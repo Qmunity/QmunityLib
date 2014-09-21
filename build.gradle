@@ -133,8 +133,6 @@ task javadocZip(type: Zip, dependsOn: javadoc) {
     from 'build/docs/javadoc'
 }
 
-apiZip.mustRunAfter deobfJar
-
 artifacts {
     archives sourceJar
     archives deobfJar
