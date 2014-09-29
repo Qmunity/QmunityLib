@@ -27,6 +27,7 @@ repositories {
 }
 
 apply plugin: 'forge'
+apply plugin: 'maven'
 
 project.ext {
     major = "0"
@@ -137,4 +138,67 @@ artifacts {
     archives sourceJar
     archives deobfJar
     archives javadocZip
+}
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file://" + System.getenv("local_maven"))
+            pom {
+                groupId = project.group
+                version = project.version
+                artifactId = project.archivesBaseName
+                project {
+                    name project.archivesBaseName
+                    packaging 'jar'
+                    description 'Qmunitylib'
+                    url 'https://github.com/Qmunity/QmunityLib'
+                    scm {
+                        url 'https://github.com/Qmunity/QmunityLib'
+                        connection 'scm:git:git@github.com:Qmunity/QmunityLib.git'
+                        developerConnection 'scm:git:git@github.com:Qmunity/QmunityLib.git'
+                    }
+                    issueManagement {
+                        system 'github'
+                        url 'https://github.com/Qmunity/QmunityLib/issues'
+                    }
+                    licenses {
+                        license {
+                            name 'GPLv3'
+                            url 'https://github.com/Qmunity/QmunityLib/blob/master/LICENCE.txt'
+                            distribution 'repo'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id 'MineMaarten'
+                            name 'MineMaarten'
+                            roles { role 'developer' }
+                        }
+                        developer {
+                            id 'Amadornes'
+                            name 'Amadornes'
+                            roles { role 'developer' }
+                        }
+                        developer {
+                            id 'Quetzi'
+                            name 'Quetzi'
+                            roles { role 'developer' }
+                        }
+                        developer {
+                            id 'K4Unl'
+                            name 'K4Unl'
+                            roles { role 'developer' }
+                        }
+                        developer {
+                            id 'Zness'
+                            name 'Zness'
+                            roles { role 'artist' }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
