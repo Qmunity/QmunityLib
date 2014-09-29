@@ -146,7 +146,7 @@ uploadArchives {
         mavenDeployer {
             repository(url: "file://" + System.getenv("local_maven"))
             pom {
-                groupId = project.group
+                groupId = "qmunity"
                 version = project.version
                 artifactId = project.archivesBaseName
                 project {
