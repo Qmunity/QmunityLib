@@ -5,9 +5,9 @@ import java.util.List;
 
 import net.minecraft.world.World;
 
-public class VectorList extends ArrayList<Vector3> {
+public class VectorList extends ArrayList<Vec3d> {
 
-    public VectorList(List<Vector3> copied) {
+    public VectorList(List<Vec3d> copied) {
 
         this();
         addAll(copied);
@@ -22,22 +22,22 @@ public class VectorList extends ArrayList<Vector3> {
 
     public boolean add(double x, double y, double z) {
 
-        return super.add(new Vector3(x, y, z));
+        return super.add(new Vec3d(x, y, z));
     }
 
     public boolean add(double x, double y, double z, World w) {
 
-        return super.add(new Vector3(x, y, z, w));
+        return super.add(new Vec3d(x, y, z, w));
     }
 
     public boolean remove(double x, double y, double z) {
 
-        return super.remove(new Vector3(x, y, z));
+        return super.remove(new Vec3d(x, y, z));
     }
 
     public boolean remove(double x, double y, double z, World w) {
 
-        return super.remove(new Vector3(x, y, z, w));
+        return super.remove(new Vec3d(x, y, z, w));
     }
 
 }

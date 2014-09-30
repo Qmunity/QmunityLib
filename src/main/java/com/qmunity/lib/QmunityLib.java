@@ -1,5 +1,7 @@
 package com.qmunity.lib;
 
+import com.qmunity.lib.init.QLBlocks;
+import com.qmunity.lib.part.compat.MultipartSystem;
 import com.qmunity.lib.proxy.CommonProxy;
 import com.qmunity.lib.util.QLog;
 
@@ -26,6 +28,10 @@ public class QmunityLib{
     public void init(FMLInitializationEvent ev){
 
         proxy.registerRenders();
+
+        QLBlocks.init();
+
+        MultipartSystem.getAvailableSystems();
     }
 
     @EventHandler

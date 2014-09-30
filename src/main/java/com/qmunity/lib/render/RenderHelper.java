@@ -12,7 +12,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import com.qmunity.lib.vec.Vector3Cube;
+import com.qmunity.lib.vec.Vec3dCube;
 
 public class RenderHelper {
 
@@ -30,7 +30,7 @@ public class RenderHelper {
      * @author K-4U
      * 
      */
-    public static void drawTexturedCube(Vector3Cube cube) {
+    public static void drawTexturedCube(Vec3dCube cube) {
 
         // Top side:
         GL11.glNormal3d(0, 1, 0);

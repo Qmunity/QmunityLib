@@ -1,4 +1,4 @@
-package com.qmunity.lib.misc;
+package com.qmunity.lib.helper;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;

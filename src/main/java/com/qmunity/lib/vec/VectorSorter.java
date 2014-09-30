@@ -2,17 +2,17 @@ package com.qmunity.lib.vec;
 
 import java.util.Comparator;
 
-public class VectorSorter implements Comparator<Vector3> {
+public class VectorSorter implements Comparator<Vec3d> {
 
-    private Vector3 start;
+    private Vec3d start;
 
-    public VectorSorter(Vector3 start) {
+    public VectorSorter(Vec3d start) {
 
         this.start = start;
     }
 
     @Override
-    public int compare(Vector3 o1, Vector3 o2) {
+    public int compare(Vec3d o1, Vec3d o2) {
 
         return Double.compare(o1.distanceTo(start), o1.distanceTo(start));
     }

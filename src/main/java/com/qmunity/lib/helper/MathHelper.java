@@ -1,4 +1,4 @@
-package com.qmunity.lib.misc;
+package com.qmunity.lib.helper;
 
 public class MathHelper {
     
