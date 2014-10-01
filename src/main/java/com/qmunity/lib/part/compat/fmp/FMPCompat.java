@@ -11,6 +11,7 @@ import codechicken.multipart.TSlottedPart;
 import codechicken.multipart.TileMultipart;
 
 import com.qmunity.lib.part.IPart;
+import com.qmunity.lib.part.ITilePartHolder;
 import com.qmunity.lib.part.compat.IMultipartCompat;
 import com.qmunity.lib.vec.Vec3i;
 
@@ -19,20 +20,30 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public boolean addPartToWorld(IPart part, World world, Vec3i location, EntityPlayer player) {
 
-        FMPPart p = new FMPPart(part);
-
         BlockCoord b = new BlockCoord(location.getX(), location.getY(), location.getZ());
         TileMultipart tmp = TileMultipart.getOrConvertTile(world, b);
-
         if (tmp == null)
             return false;
-        if (!tmp.canAddPart(p))
+
+        FMPPart p = (FMPPart) getPartHolder(world, location);
+        boolean isNew = false;
+        if (p == null) {
+            p = new FMPPart();
+            isNew = true;
+        }
+
+        if (!p.canAddPart(part))
             return false;
 
         if (!world.isRemote)
-            TileMultipart.addPart(world, b, p);
+            p.addPart(part);
 
-        part.setParent(p);
+        if (isNew) {
+            if (!tmp.canAddPart(p))
+                return false;
+            if (!world.isRemote)
+                TileMultipart.addPart(world, b, p);
+        }
 
         return true;
     }
@@ -87,5 +98,17 @@ public class FMPCompat implements IMultipartCompat {
         }
 
         return weak;
+    }
+
+    @Override
+    public ITilePartHolder getPartHolder(World world, Vec3i location) {
+
+        TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+
+        for (TMultiPart p : tmp.jPartList())
+            if (p instanceof FMPPart)
+                return (ITilePartHolder) p;
+
+        return null;
     }
 }

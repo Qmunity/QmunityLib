@@ -17,8 +17,6 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -33,7 +31,6 @@ import com.qmunity.lib.part.IPartSolid;
 import com.qmunity.lib.part.IPartTicking;
 import com.qmunity.lib.part.IPartUpdateListener;
 import com.qmunity.lib.part.ITilePartHolder;
-import com.qmunity.lib.part.PartBase;
 import com.qmunity.lib.part.PartRegistry;
 import com.qmunity.lib.raytrace.QMovingObjectPosition;
 import com.qmunity.lib.raytrace.RayTracer;
@@ -96,7 +93,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         }
 
         if (part instanceof IPartOccluding) {
-            List<Vec3dCube> l = getOcclussionBoxes();
+            List<Vec3dCube> l = getOcclusionBoxes();
             for (Vec3dCube b : ((IPartOccluding) part).getOcclusionBoxes())
                 for (Vec3dCube c : l)
                     if (b.toAABB().intersectsWith(c.toAABB()))
@@ -209,25 +206,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                 }
             }
         }
-        // if (closest != null && getWorldObj().isRemote)
-        // getWorldObj().spawnParticle("reddust", closest.hitVec.xCoord, closest.hitVec.yCoord, closest.hitVec.zCoord, -2, 0, 1);
-
-        if (closest == null)
-            new QMovingObjectPosition(new MovingObjectPosition(xCoord, yCoord, zCoord, 1, Vec3.createVectorHelper(xCoord + 0.5, yCoord + 0.5,
-                    zCoord + 0.5)), new PartBase() {
-
-                @Override
-                public String getType() {
-
-                    return null;
-                }
-
-                @Override
-                public ItemStack getItem() {
-
-                    return null;
-                }
-            }, new Vec3dCube(0, 0, 0, 1, 0.5, 1));
 
         return closest;
     }
@@ -439,7 +417,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         }
     }
 
-    public List<Vec3dCube> getOcclussionBoxes() {
+    public List<Vec3dCube> getOcclusionBoxes() {
 
         List<Vec3dCube> boxes = new ArrayList<Vec3dCube>();
 
@@ -555,6 +533,11 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         }
 
         return null;
+    }
+
+    public Map<String, IPart> getPartMap() {
+
+        return parts;
     }
 
 }

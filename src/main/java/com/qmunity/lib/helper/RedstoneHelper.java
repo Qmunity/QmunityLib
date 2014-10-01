@@ -1,5 +1,6 @@
 package com.qmunity.lib.helper;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockRedstoneWire;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.Direction;
@@ -49,10 +50,10 @@ public class RedstoneHelper {
             int y_ = y + d.offsetY;
             int z_ = z + d.offsetZ;
             int p = 0;
-            if (d != ForgeDirection.UP)
+            if (d != ForgeDirection.DOWN)
                 p = getRedstoneWireSignalStrength(world, x_, y_, z_, d.getOpposite(), ForgeDirection.DOWN);
             if (p == 0)
-                p = world.getIndirectPowerLevelTo(x_, y_, z_, d.getOpposite().ordinal());
+                p = getBlockOutputStrong(world, x_, y_, z_, d);
             max = Math.max(max, p);
         }
 
@@ -131,6 +132,54 @@ public class RedstoneHelper {
     public static int getOutput(World world, int x, int y, int z, ForgeDirection direction) {
 
         return Math.max(getOutputStrong(world, x, y, z, direction), getOutputWeak(world, x, y, z, direction));
+    }
+
+    public static int getInputStrong(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {
+
+        return getOutputStrong(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite(), face);
+    }
+
+    public static int getInputStrong(World world, int x, int y, int z, ForgeDirection direction) {
+
+        return getOutputStrong(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite());
+    }
+
+    public static int getInputWeak(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {
+
+        return getInputWeak(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite(), face);
+    }
+
+    public static int getInputWeak(World world, int x, int y, int z, ForgeDirection direction) {
+
+        return getInputWeak(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite());
+    }
+
+    public static int getInput(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {
+
+        return getOutput(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite(), face);
+    }
+
+    public static int getInput(World world, int x, int y, int z, ForgeDirection direction) {
+
+        return getOutput(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite());
+    }
+
+    public static void notifyRedstoneUpdate(World world, int x, int y, int z, ForgeDirection direction, boolean strong) {
+
+        int x_ = x + direction.offsetX;
+        int y_ = y + direction.offsetY;
+        int z_ = z + direction.offsetZ;
+
+        // Weak/strong
+        world.notifyBlockOfNeighborChange(x_, y_, z_, world.getBlock(x, y, z));
+
+        // Strong
+        if (strong) {
+            Block b = world.getBlock(x_, y_, z_);
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS)
+                if (d != direction.getOpposite())
+                    world.notifyBlockOfNeighborChange(x_ + d.offsetX, y_ + d.offsetY, z_ + d.offsetZ, b);
+        }
     }
 
 }

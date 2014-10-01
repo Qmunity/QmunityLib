@@ -1,13 +1,18 @@
 package com.qmunity.lib.part.compat.fmp;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -25,11 +30,12 @@ import codechicken.lib.vec.Vector3;
 import codechicken.multipart.INeighborTileChange;
 import codechicken.multipart.IRedstonePart;
 import codechicken.multipart.NormalOcclusionTest;
-import codechicken.multipart.TFacePart;
+import codechicken.multipart.NormallyOccludedPart;
 import codechicken.multipart.TMultiPart;
 import codechicken.multipart.TNormalOcclusion;
 
 import com.qmunity.lib.QLModInfo;
+import com.qmunity.lib.QmunityLib;
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.IPartCollidable;
 import com.qmunity.lib.part.IPartFace;
@@ -37,28 +43,31 @@ import com.qmunity.lib.part.IPartOccluding;
 import com.qmunity.lib.part.IPartRedstone;
 import com.qmunity.lib.part.IPartRenderable;
 import com.qmunity.lib.part.IPartSelectable;
-import com.qmunity.lib.part.IPartSolid;
 import com.qmunity.lib.part.IPartTicking;
 import com.qmunity.lib.part.IPartUpdateListener;
 import com.qmunity.lib.part.ITilePartHolder;
 import com.qmunity.lib.part.PartRegistry;
 import com.qmunity.lib.raytrace.QMovingObjectPosition;
+import com.qmunity.lib.raytrace.RayTracer;
 import com.qmunity.lib.vec.Vec3d;
 import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
 
-public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, TNormalOcclusion, IRedstonePart, INeighborTileChange {
+public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclusion, IRedstonePart, INeighborTileChange {
 
-    private IPart part;
+    private Map<String, IPart> parts = new HashMap<String, IPart>();
+    private List<IPart> toUpdate = new ArrayList<IPart>();
+    private List<String> removed = new ArrayList<String>();
 
     public FMPPart() {
 
     }
 
-    public FMPPart(IPart part) {
+    public FMPPart(Map<String, IPart> parts) {
 
-        this.part = part;
-        part.setParent(this);
+        this.parts = parts;
+        for (String s : parts.keySet())
+            parts.get(s).setParent(this);
     }
 
     @Override
@@ -67,9 +76,18 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
         return QLModInfo.MODID + ".multipart";
     }
 
-    public IPart getPart() {
+    @Override
+    public List<IPart> getParts() {
 
-        return part;
+        List<IPart> parts = new ArrayList<IPart>();
+
+        for (String s : this.parts.keySet()) {
+            IPart p = this.parts.get(s);
+            if (p.getParent() != null && !removed.contains(s))
+                parts.add(p);
+        }
+
+        return parts;
     }
 
     @Override
@@ -77,12 +95,13 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
 
         List<IndexedCuboid6> cubes = new ArrayList<IndexedCuboid6>();
 
-        if (part != null && part instanceof IPartSelectable) {
-            for (Vec3dCube c : ((IPartSelectable) part).getSelectionBoxes())
-                cubes.add(new IndexedCuboid6(0, new Cuboid6(c.toAABB())));
-        } else {
+        for (IPart p : getParts())
+            if (p instanceof IPartSelectable)
+                for (Vec3dCube c : ((IPartSelectable) p).getSelectionBoxes())
+                    cubes.add(new IndexedCuboid6(0, new Cuboid6(c.toAABB())));
+
+        if (cubes.size() == 0)
             cubes.add(new IndexedCuboid6(0, new Cuboid6(0, 0, 0, 1, 1, 1)));
-        }
 
         return cubes;
     }
@@ -90,25 +109,33 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
     @Override
     public ExtendedMOP collisionRayTrace(Vec3 start, Vec3 end) {
 
-        // return super.collisionRayTrace(start, end);
-        if (part != null && part instanceof IPartSelectable) {
-            QMovingObjectPosition mop = ((IPartSelectable) part).rayTrace(new Vec3d(start), new Vec3d(end));
-            if (mop == null)
-                return null;
-
-            new Cuboid6(mop.getCube().toAABB()).setBlockBounds(tile().getBlockType());
-            return new ExtendedMOP(mop, 0, start.distanceTo(mop.hitVec));
-        }
-
-        return super.collisionRayTrace(start, end);
+        QMovingObjectPosition qmop = rayTrace(new Vec3d(start), new Vec3d(end));
+        if (qmop == null)
+            return null;
+        new Cuboid6(qmop.getCube().toAABB()).setBlockBounds(tile().getBlockType());
+        return new ExtendedMOP(qmop, 0, qmop.hitVec.distanceTo(start));
     }
+
+    private boolean firstTick = true;
+    private boolean shouldSendUpdatePacket = false;
 
     @Override
     public void update() {
 
-        if (part != null && part instanceof IPartTicking)
-            ((IPartTicking) part).update();
+        if (!world().isRemote && shouldSendUpdatePacket) {
+            sendUpdatePacket();
+            shouldSendUpdatePacket = false;
+        }
 
+        for (IPart p : getParts()) {
+            if (firstTick) {
+                if (p instanceof IPartUpdateListener)
+                    ((IPartUpdateListener) p).onLoaded();
+                firstTick = false;
+            }
+            if (p instanceof IPartTicking)
+                ((IPartTicking) p).update();
+        }
     }
 
     // Loading/saving parts
@@ -116,43 +143,98 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
     @Override
     public void save(NBTTagCompound tag) {
 
-        boolean client = tile() == null ? false : world().isRemote;
-
         super.save(tag);
 
-        if (getPart() == null) {
-            new Exception("Saved null part! Client: " + client).printStackTrace();
-            return;
-        }
-
-        tag.setString("part", getPart().getType());
-
-        NBTTagCompound t = new NBTTagCompound();
-        getPart().writeToNBT(t);
-        tag.setTag("partData", t);
+        NBTTagList l = new NBTTagList();
+        writeParts(l, getParts(), false);
+        tag.setTag("parts", l);
     }
 
     @Override
     public void load(NBTTagCompound tag) {
 
-        boolean client = tile() == null ? false : world().isRemote;
-
         super.load(tag);
 
-        if (!tag.hasKey("part"))
-            return;
+        NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
+        readParts(l, false, false);
+        toUpdate.addAll(getParts());
+    }
 
-        if (getPart() == null) {
-            part = PartRegistry.createPart(tag.getString("part"), client);
-            part.setParent(this);
+    public void writeDescNBT(NBTTagCompound tag) {
+
+        List<IPart> toUpdate = new ArrayList<IPart>();
+        toUpdate.addAll(this.toUpdate);
+
+        NBTTagList l = new NBTTagList();
+        writeParts(l, toUpdate, true);
+        tag.setTag("parts", l);
+
+        NBTTagList rem = new NBTTagList();
+        for (String s : removed)
+            rem.appendTag(new NBTTagString(s));
+        tag.setTag("removed", rem);
+    }
+
+    public void readDescNBT(NBTTagCompound tag) {
+
+        int before = getParts().size();
+        NBTTagList rem = tag.getTagList("removed", new NBTTagString().getId());
+
+        for (int i = 0; i < rem.tagCount(); i++) {
+            String id = rem.getStringTagAt(i);
+            IPart p = getPart(id);
+            removePart(p);
         }
 
-        if (getPart() == null) {
-            new Exception("Loaded null part! Client: " + client).printStackTrace();
-            return;
-        }
+        NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
+        readParts(l, true, true);
 
-        getPart().readFromNBT(tag.getCompoundTag("partData"));
+        if (tile() != null && getParts().size() != before)
+            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
+    }
+
+    private void writeParts(NBTTagList l, List<IPart> parts, boolean update) {
+
+        for (IPart p : parts) {
+            String id = getIdentifier(p);
+
+            if (removed.contains(id))
+                continue;
+
+            NBTTagCompound tag = new NBTTagCompound();
+
+            tag.setString("id", id);
+            tag.setString("type", p.getType());
+            NBTTagCompound data = new NBTTagCompound();
+            if (update)
+                p.writeUpdateToNBT(data);
+            else
+                p.writeToNBT(data);
+            tag.setTag("data", data);
+
+            l.appendTag(tag);
+        }
+    }
+
+    private void readParts(NBTTagList l, boolean update, boolean client) {
+
+        for (int i = 0; i < l.tagCount(); i++) {
+            NBTTagCompound tag = l.getCompoundTagAt(i);
+
+            String id = tag.getString("id");
+            IPart p = getPart(id);
+            if (p == null) {
+                p = PartRegistry.createPart(tag.getString("type"), client);
+                p.setParent(this);
+                parts.put(id, p);
+            }
+
+            NBTTagCompound data = tag.getCompoundTag("data");
+            if (update)
+                p.readUpdateFromNBT(data);
+            else
+                p.readFromNBT(data);
+        }
     }
 
     @Override
@@ -160,44 +242,17 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
 
         super.writeDesc(packet);
 
-        if (getPart() == null) {
-            packet.writeBoolean(true);
-            return;
-        } else {
-            packet.writeBoolean(false);
-        }
-
-        packet.writeString(getPart().getType());
-
         NBTTagCompound t = new NBTTagCompound();
-        getPart().writeToNBT(t);
+        writeDescNBT(t);
         packet.writeNBTTagCompound(t);
     }
 
     @Override
     public void readDesc(MCDataInput packet) {
 
-        boolean client = tile() == null ? false : world().isRemote;
-
         super.readDesc(packet);
 
-        if (packet.readBoolean())
-            return;
-
-        String type = packet.readString();
-        NBTTagCompound tag = packet.readNBTTagCompound();
-
-        if (getPart() == null) {
-            part = PartRegistry.createPart(type, client);
-            part.setParent(this);
-        }
-
-        if (getPart() == null) {
-            new Exception("Received null part data! Client: " + client).printStackTrace();
-            return;
-        }
-
-        getPart().readFromNBT(tag);
+        readDescNBT(packet.readNBTTagCompound());
     }
 
     // Part holder methods
@@ -227,93 +282,193 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
     }
 
     @Override
-    public List<IPart> getParts() {
-
-        return Arrays.asList(part);
-    }
-
-    @Override
     public void addPart(IPart part) {
 
+        parts.put(genIdentifier(), part);
+        part.setParent(this);
+        sendPartUpdate(part);
+        if (part instanceof IPartUpdateListener)
+            ((IPartUpdateListener) part).onAdded();
+        for (IPart p : getParts())
+            if (p != part && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onPartChanged(part);
     }
 
     @Override
     public boolean removePart(IPart part) {
 
-        if (part == this.part) {
-            if (!world().isRemote)
-                tile().remPart(this);
-            return true;
-        }
-        return false;
+        if (part == null)
+            return false;
+        if (!parts.containsValue(part))
+            return false;
+        if (removed.contains(part))
+            return false;
+
+        if (part instanceof IPartUpdateListener)
+            ((IPartUpdateListener) part).onRemoved();
+        for (IPart p : getParts())
+            if (p != part && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onPartChanged(part);
+
+        String id = getIdentifier(part);
+        removed.add(id);
+        sendUpdatePacket();
+        parts.remove(id);
+        part.setParent(null);
+
+        return true;
     }
 
-    @Override
-    public void sendPartUpdate(IPart part) {
+    private String genIdentifier() {
 
-        sendDescUpdate();
+        String s = null;
+        do {
+            s = UUID.randomUUID().toString();
+        } while (parts.containsKey(s));
+
+        return s;
     }
 
-    @Override
-    public boolean canAddPart(IPart part) {
+    private String getIdentifier(IPart part) {
 
-        return false;
+        for (String s : parts.keySet())
+            if (parts.get(s).equals(part))
+                return s;
+
+        return null;
     }
 
-    @Override
-    public QMovingObjectPosition rayTrace(Vec3d start, Vec3d end) {
+    private IPart getPart(String id) {
+
+        for (String s : parts.keySet())
+            if (s.equals(id))
+                return parts.get(s);
 
         return null;
     }
 
     @Override
-    public boolean renderStatic(Vector3 pos, int pass) {
+    public void sendPartUpdate(IPart part) {
 
-        if (part == null)
-            return false;
+        if (!toUpdate.contains(part))
+            toUpdate.add(part);
+        if (tile() != null && !world().isRemote) {
+            sendUpdatePacket();
+        } else {
+            shouldSendUpdatePacket = true;
+        }
+    }
 
-        if (part instanceof IPartRenderable) {
-            if (((IPartRenderable) part).shouldRenderOnPass(pass)) {
-                RenderBlocks.getInstance().blockAccess = world();
-                boolean rendered = ((IPartRenderable) part).renderStatic(new Vec3i((int) pos.x, (int) pos.y, (int) pos.z),
-                        RenderBlocks.getInstance(), pass);
-                RenderBlocks.getInstance().blockAccess = null;
-                return rendered;
+    @Override
+    public boolean canAddPart(IPart part) {
+
+        if (tile() == null)
+            return true;
+
+        if (part instanceof IPartCollidable) {
+            List<Vec3dCube> cubes = new ArrayList<Vec3dCube>();
+            ((IPartCollidable) part).addCollisionBoxesToList(cubes, null);
+            for (Vec3dCube c : cubes)
+                if (!getWorld().checkNoEntityCollision(c.clone().add(getX(), getY(), getZ()).toAABB()))
+                    return false;
+        }
+
+        if (part instanceof IPartOccluding) {
+            for (Vec3dCube b : ((IPartOccluding) part).getOcclusionBoxes()) {
+                NormallyOccludedPart nop = new NormallyOccludedPart(new Cuboid6(b.toAABB()));
+                for (TMultiPart p : tile().jPartList())
+                    if (!p.occlusionTest(nop))
+                        return false;
             }
         }
 
-        return false;
+        return true;
+    }
+
+    @Override
+    public QMovingObjectPosition rayTrace(Vec3d start, Vec3d end) {
+
+        QMovingObjectPosition closest = null;
+        double dist = Double.MAX_VALUE;
+
+        for (IPart p : getParts()) {
+            if (p instanceof IPartSelectable) {
+                QMovingObjectPosition mop = ((IPartSelectable) p).rayTrace(start, end);
+                if (mop == null)
+                    continue;
+                double d = start.distanceTo(new Vec3d(mop.hitVec));
+                if (d < dist) {
+                    closest = mop;
+                    dist = d;
+                }
+            }
+        }
+
+        return closest;
+    }
+
+    @Override
+    public boolean renderStatic(Vector3 pos, int pass) {
+
+        boolean did = false;
+
+        RenderBlocks renderer = RenderBlocks.getInstance();
+
+        renderer.blockAccess = getWorld();
+
+        for (IPart p : getParts())
+            if (p.getParent() != null && p instanceof IPartRenderable)
+                if (((IPartRenderable) p).shouldRenderOnPass(pass))
+                    if (((IPartRenderable) p).renderStatic(new Vec3i(0, 0, 0), renderer, pass))
+                        did = true;
+
+        renderer.blockAccess = null;
+
+        return did;
     }
 
     @Override
     public void renderDynamic(Vector3 pos, float frame, int pass) {
 
-        if (part == null)
-            return;
-
         GL11.glPushMatrix();
         {
             GL11.glTranslated(pos.x, pos.y, pos.z);
+            for (IPart p : getParts()) {
+                if (p.getParent() != null && p instanceof IPartRenderable) {
+                    GL11.glPushMatrix();
 
-            if (part instanceof IPartRenderable)
-                if (((IPartRenderable) part).shouldRenderOnPass(pass))
-                    ((IPartRenderable) part).renderDynamic(new Vec3d(0, 0, 0), frame, pass);
+                    if (((IPartRenderable) p).shouldRenderOnPass(pass))
+                        ((IPartRenderable) p).renderDynamic(new Vec3d(0, 0, 0), frame, pass);
+
+                    GL11.glPopMatrix();
+                }
+            }
         }
         GL11.glPopMatrix();
     }
 
     @Override
-    public void addCollisionBoxesToList(List<Vec3dCube> boxes, AxisAlignedBB bounds, Entity entity) {
+    public void addCollisionBoxesToList(List<Vec3dCube> l, AxisAlignedBB bounds, Entity entity) {
 
-        if (part != null && part instanceof IPartCollidable) {
-            List<Vec3dCube> boxes_ = new ArrayList<Vec3dCube>();
-            ((IPartCollidable) part).addCollisionBoxesToList(boxes_, entity);
-            for (Vec3dCube c : boxes) {
-                Vec3dCube cube = c.clone();
-                cube.setPart(part);
-                boxes.add(cube);
+        List<Vec3dCube> boxes = new ArrayList<Vec3dCube>();
+
+        for (IPart p : getParts()) {
+            if (p instanceof IPartCollidable) {
+                List<Vec3dCube> boxes_ = new ArrayList<Vec3dCube>();
+                ((IPartCollidable) p).addCollisionBoxesToList(boxes_, entity);
+                for (Vec3dCube c : boxes_) {
+                    Vec3dCube cube = c.clone();
+                    cube.add(getX(), getY(), getZ());
+                    cube.setPart(p);
+                    boxes.add(cube);
+                }
+                boxes_.clear();
             }
-            boxes_.clear();
+        }
+
+        for (Vec3dCube c : boxes) {
+            if (c.toAABB().intersectsWith(bounds))
+                l.add(c);
         }
     }
 
@@ -325,7 +480,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
         List<Vec3dCube> boxes = new ArrayList<Vec3dCube>();
         addCollisionBoxesToList(boxes, AxisAlignedBB.getBoundingBox(x(), y(), z(), x() + 1, y() + 1, z() + 1), null);
         for (Vec3dCube c : boxes)
-            cubes.add(new Cuboid6(c.toAABB()));
+            cubes.add(new Cuboid6(c.clone().add(-x(), -y(), -z()).toAABB()));
 
         return cubes;
     }
@@ -336,8 +491,9 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
         super.onNeighborChanged();
         onUpdate();
 
-        if (part != null && part instanceof IPartUpdateListener)
-            ((IPartUpdateListener) part).onNeighborBlockChange();
+        for (IPart p : getParts())
+            if (p != null && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onNeighborBlockChange();
     }
 
     @Override
@@ -346,52 +502,31 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
         super.onPartChanged(part);
         onUpdate();
 
-        IPart p = null;
-
-        if (part instanceof FMPPart)
-            p = ((FMPPart) part).getPart();
-
-        if (this.part != null && this.part instanceof IPartUpdateListener)
-            ((IPartUpdateListener) this.part).onPartChanged(p);
+        for (IPart p : getParts())
+            if (p != null && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onPartChanged(null);
     }
 
     private void onUpdate() {
 
-        if (part != null && part instanceof IPartFace) {
-            if (!((IPartFace) part).canStay()) {
-                part.breakAndDrop(false);
-            }
-        }
+        for (IPart p : getParts())
+            if (p != null && p instanceof IPartFace)
+                if (!((IPartFace) p).canStay())
+                    p.breakAndDrop(false);
     }
 
     @Override
     public Iterable<ItemStack> getDrops() {
 
-        return part.getDrops();
-    }
+        List<ItemStack> l = new ArrayList<ItemStack>();
 
-    @Override
-    public int getSlotMask() {
+        for (IPart p : getParts()) {
+            List<ItemStack> d = p.getDrops();
+            if (d != null)
+                l.addAll(d);
+        }
 
-        if (part != null && part instanceof IPartFace)
-            return 1 << ((IPartFace) part).getFace().ordinal();
-
-        return 0;
-    }
-
-    @Override
-    public int redstoneConductionMap() {
-
-        return 0;
-    }
-
-    @Override
-    public boolean solid(int f) {
-
-        if (part != null && part instanceof IPartSolid)
-            return ((IPartSolid) part).isSideSolid(ForgeDirection.getOrientation(f));
-
-        return false;
+        return l;
     }
 
     @Override
@@ -399,10 +534,10 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
 
         List<Cuboid6> cubes = new ArrayList<Cuboid6>();
 
-        if (part != null && part instanceof IPartOccluding) {
-            for (Vec3dCube c : ((IPartOccluding) part).getOcclusionBoxes())
-                cubes.add(new IndexedCuboid6(0, new Cuboid6(c.toAABB())));
-        }
+        for (IPart p : getParts())
+            if (p != null && p instanceof IPartOccluding)
+                for (Vec3dCube c : ((IPartOccluding) p).getOcclusionBoxes())
+                    cubes.add(new IndexedCuboid6(0, new Cuboid6(c.toAABB())));
 
         return cubes;
     }
@@ -416,8 +551,10 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
     @Override
     public boolean canConnectRedstone(int side) {
 
-        if (part != null && part instanceof IPartRedstone)
-            return ((IPartRedstone) part).canConnectRedstone(ForgeDirection.getOrientation(side));
+        for (IPart p : getParts())
+            if (p instanceof IPartRedstone)
+                if (((IPartRedstone) p).canConnectRedstone(ForgeDirection.getOrientation(side)))
+                    return true;
 
         return false;
     }
@@ -425,26 +562,35 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
     @Override
     public int strongPowerLevel(int side) {
 
-        if (part != null && part instanceof IPartRedstone)
-            return ((IPartRedstone) part).getStrongPower(ForgeDirection.getOrientation(side));
+        int max = 0;
 
-        return 0;
+        for (IPart p : getParts())
+            if (p instanceof IPartRedstone)
+                max = Math.max(max, ((IPartRedstone) p).getStrongPower(ForgeDirection.getOrientation(side)));
+
+        return max;
     }
 
     @Override
     public int weakPowerLevel(int side) {
 
-        if (part != null && part instanceof IPartRedstone)
-            return ((IPartRedstone) part).getWeakPower(ForgeDirection.getOrientation(side));
+        int max = 0;
 
-        return 0;
+        for (IPart p : getParts()) {
+            if (p instanceof IPartRedstone) {
+                max = Math.max(max, ((IPartRedstone) p).getWeakPower(ForgeDirection.getOrientation(side)));
+            }
+        }
+
+        return max;
     }
 
     @Override
     public void onNeighborTileChanged(int arg0, boolean arg1) {
 
-        if (part != null && part instanceof IPartUpdateListener)
-            ((IPartUpdateListener) part).onNeighborTileChange();
+        for (IPart p : getParts())
+            if (p != null && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onNeighborTileChange();
     }
 
     @Override
@@ -456,15 +602,17 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
     @Override
     public void onAdded() {
 
-        if (part != null && part instanceof IPartUpdateListener)
-            ((IPartUpdateListener) part).onAdded();
+        for (IPart p : getParts())
+            if (p != null && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onAdded();
     }
 
     @Override
     public void onRemoved() {
 
-        if (part != null && part instanceof IPartUpdateListener)
-            ((IPartUpdateListener) part).onRemoved();
+        for (IPart p : getParts())
+            if (p != null && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onRemoved();
     }
 
     @Override
@@ -472,8 +620,9 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
 
         super.onChunkLoad();
 
-        if (part != null && part instanceof IPartUpdateListener)
-            ((IPartUpdateListener) part).onLoaded();
+        for (IPart p : getParts())
+            if (p != null && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onLoaded();
     }
 
     @Override
@@ -481,14 +630,52 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TFacePart, T
 
         super.onChunkUnload();
 
-        if (part != null && part instanceof IPartUpdateListener)
-            ((IPartUpdateListener) part).onUnloaded();
+        for (IPart p : getParts())
+            if (p != null && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onUnloaded();
     }
 
     @Override
     public ItemStack pickItem(MovingObjectPosition hit) {
 
-        return part != null ? part.getItem() : null;
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(QmunityLib.proxy.getPlayer()),
+                RayTracer.instance().getEndVector(QmunityLib.proxy.getPlayer()));
+        if (mop == null)
+            return null;
+
+        return mop.getPart().getItem();
+    }
+
+    @Override
+    public void harvest(MovingObjectPosition hit, EntityPlayer player) {
+
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        if (mop != null) {
+            mop.getPart().breakAndDrop(player.capabilities.isCreativeMode);
+
+            if (getParts().size() == 0)
+                super.harvest(hit, player);
+            else
+                sendUpdatePacket();
+        }
+    }
+
+    @Override
+    public void onConverted() {
+
+        for (IPart p : getParts())
+            toUpdate.add(p);
+
+        sendUpdatePacket();
+    }
+
+    private void sendUpdatePacket() {
+
+        if (tile() != null && !world().isRemote)
+            sendDescUpdate();
+
+        toUpdate.clear();
+        removed.clear();
     }
 
 }

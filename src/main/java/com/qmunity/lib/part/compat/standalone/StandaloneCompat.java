@@ -7,6 +7,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.qmunity.lib.block.BlockMultipart;
 import com.qmunity.lib.init.QLBlocks;
 import com.qmunity.lib.part.IPart;
+import com.qmunity.lib.part.ITilePartHolder;
 import com.qmunity.lib.part.compat.IMultipartCompat;
 import com.qmunity.lib.tile.TileMultipart;
 import com.qmunity.lib.vec.Vec3i;
@@ -72,6 +73,12 @@ public class StandaloneCompat implements IMultipartCompat {
             return 0;
 
         return te.getWeakOutput(direction, face);
+    }
+
+    @Override
+    public ITilePartHolder getPartHolder(World world, Vec3i location) {
+
+        return BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());
     }
 
 }
