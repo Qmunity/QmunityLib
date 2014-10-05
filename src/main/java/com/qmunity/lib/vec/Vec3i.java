@@ -138,41 +138,37 @@ public class Vec3i {
         return divide(direction.offsetX, direction.offsetY, direction.offsetZ);
     }
 
-    /**
-     * This method is based on ChickenBones' code for CodeChickenLib
-     *
-     * @author ChickenBones
-     */
-    public double mag() {
+    public double length() {
 
         return Math.sqrt(x * x + y * y + z * z);
     }
 
-    /**
-     * This method is based on ChickenBones' code for CodeChickenLib
-     *
-     * @author ChickenBones
-     */
-    public double dotProduct(Vec3i vec) {
+    public Vec3i normalize() {
 
-        double d = vec.x * x + vec.y * y + vec.z * z;
+        Vec3i v = clone();
 
-        if ((d > 1.0D) && (d < 1.00001D)) {
-            d = 1.0D;
-        } else if ((d < -1.0D) && (d > -1.00001D))
-            d = -1.0D;
-        return d;
+        double len = length();
+
+        v.x /= len;
+        v.y /= len;
+        v.z /= len;
+
+        return v;
     }
 
-    /**
-     * This method is based on ChickenBones' code for CodeChickenLib
-     *
-     * @author ChickenBones
-     */
-    public double scalarProject(Vec3i b) {
+    public Vec3i abs() {
 
-        double l = b.mag();
-        return l == 0.0D ? 0.0D : dotProduct(b) / l;
+        return new Vec3i(Math.abs(x), Math.abs(y), Math.abs(z));
+    }
+
+    public double dot(Vec3i v) {
+
+        return x * v.getX() + y * v.getY() + z * v.getZ();
+    }
+
+    public Vec3i cross(Vec3i v) {
+
+        return new Vec3i(y * v.getZ() - z * v.getY(), x * v.getZ() - z * v.getX(), x * v.getY() - y * v.getX());
     }
 
     public Vec3i getRelative(int x, int y, int z) {
@@ -346,12 +342,24 @@ public class Vec3i {
         return s;
     }
 
-    public Vec3i toAbsoulte() {
+    public ForgeDirection toForgeDirection() {
 
-        x = Math.abs(x);
-        y = Math.abs(y);
-        z = Math.abs(z);
-        return this;
+        if (z >= x && z >= y)
+            return ForgeDirection.SOUTH;
+        if (z <= x && z <= y)
+            return ForgeDirection.NORTH;
+
+        if (x >= y && x >= z)
+            return ForgeDirection.EAST;
+        if (x <= y && x <= z)
+            return ForgeDirection.WEST;
+
+        if (y >= x && y >= z)
+            return ForgeDirection.UP;
+        if (y <= x && y <= z)
+            return ForgeDirection.DOWN;
+
+        return ForgeDirection.UNKNOWN;
     }
 
     public static Vec3i fromString(String s) {

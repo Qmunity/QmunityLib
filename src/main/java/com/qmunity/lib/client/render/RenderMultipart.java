@@ -35,8 +35,7 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
                 if (p.getParent() != null && p instanceof IPartRenderable) {
                     GL11.glPushMatrix();
 
-                    if (((IPartRenderable) p).shouldRenderOnPass(PASS))
-                        ((IPartRenderable) p).renderDynamic(new Vec3d(0, 0, 0), delta, PASS);
+                    ((IPartRenderable) p).renderDynamic(new Vec3d(0, 0, 0), delta, PASS);
 
                     GL11.glPopMatrix();
                 }

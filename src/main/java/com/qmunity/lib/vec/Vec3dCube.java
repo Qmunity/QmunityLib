@@ -124,6 +124,25 @@ public class Vec3dCube {
         return this;
     }
 
+    public Vec3dCube fix() {
+
+        Vec3d a = min.clone();
+        Vec3d b = max.clone();
+
+        double minX = Math.min(a.getX(), b.getX());
+        double minY = Math.min(a.getY(), b.getY());
+        double minZ = Math.min(a.getZ(), b.getZ());
+
+        double maxX = Math.max(a.getX(), b.getX());
+        double maxY = Math.max(a.getY(), b.getY());
+        double maxZ = Math.max(a.getZ(), b.getZ());
+
+        min = new Vec3d(minX, minY, minZ, a.w);
+        max = new Vec3d(maxX, maxY, maxZ, b.w);
+
+        return this;
+    }
+
     public Vec3dCube rotate(int x, int y, int z, Vec3d center) {
 
         min.sub(center).rotate(x, y, z).add(center);
@@ -140,25 +159,6 @@ public class Vec3dCube {
         max.setX(Math.round(max.getX() * mul) / mul);
         max.setY(Math.round(max.getY() * mul) / mul);
         max.setZ(Math.round(max.getZ() * mul) / mul);
-
-        return this;
-    }
-
-    public Vec3dCube fix() {
-
-        Vec3d a = min.clone();
-        Vec3d b = max.clone();
-
-        double minX = Math.min(a.getX(), b.getX());
-        double minY = Math.min(a.getY(), b.getY());
-        double minZ = Math.min(a.getZ(), b.getZ());
-
-        double maxX = Math.max(a.getX(), b.getX());
-        double maxY = Math.max(a.getY(), b.getY());
-        double maxZ = Math.max(a.getZ(), b.getZ());
-
-        min = new Vec3d(minX, minY, minZ, a.w);
-        max = new Vec3d(maxX, maxY, maxZ, b.w);
 
         return this;
     }

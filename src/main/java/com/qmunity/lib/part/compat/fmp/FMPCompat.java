@@ -21,7 +21,7 @@ public class FMPCompat implements IMultipartCompat {
     public boolean addPartToWorld(IPart part, World world, Vec3i location, EntityPlayer player) {
 
         BlockCoord b = new BlockCoord(location.getX(), location.getY(), location.getZ());
-        TileMultipart tmp = TileMultipart.getOrConvertTile(world, b);
+        TileMultipart tmp = TileMultipart.getTile(world, b);
         if (tmp == null)
             return false;
 
@@ -51,13 +51,13 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public boolean isMultipart(World world, Vec3i location) {
 
-        return TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ())) != null;
+        return TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ())) != null;
     }
 
     @Override
     public int getStrongRedstoneOuput(World world, Vec3i location, ForgeDirection direction, ForgeDirection face) {
 
-        TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
         int strong = 0;
 
         for (TMultiPart p : tmp.jPartList()) {
@@ -80,7 +80,7 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public int getWeakRedstoneOuput(World world, Vec3i location, ForgeDirection direction, ForgeDirection face) {
 
-        TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
         int weak = 0;
 
         for (TMultiPart p : tmp.jPartList()) {
@@ -103,7 +103,7 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public ITilePartHolder getPartHolder(World world, Vec3i location) {
 
-        TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
 
         for (TMultiPart p : tmp.jPartList())
             if (p instanceof FMPPart)

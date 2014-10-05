@@ -167,6 +167,62 @@ public class Vec3d {
         return this;
     }
 
+    private Vec3d rotate(int x, int y, int z, Vec3d center) {
+
+        sub(center).rotate(x, y, z).add(center);
+        double mul = 10000000;
+
+        setX(Math.round(getX() * mul) / mul);
+        setY(Math.round(getY() * mul) / mul);
+        setZ(Math.round(getZ() * mul) / mul);
+
+        return this;
+    }
+
+    public Vec3d rotate(ForgeDirection face, Vec3d center) {
+
+        switch (face) {
+        case DOWN:
+            return this;
+        case UP:
+            return rotate(0, 0, 2 * 90, center);
+        case WEST:
+            return rotate(0, 0, -1 * 90, center);
+        case EAST:
+            return rotate(0, 0, 1 * 90, center);
+        case NORTH:
+            return rotate(1 * 90, 0, 0, center);
+        case SOUTH:
+            return rotate(-1 * 90, 0, 0, center);
+        default:
+            break;
+        }
+
+        return this;
+    }
+
+    public Vec3d rotateUndo(ForgeDirection face, Vec3d center) {
+
+        switch (face) {
+        case DOWN:
+            return this;
+        case UP:
+            return rotate(0, 0, -2 * 90, center);
+        case WEST:
+            return rotate(0, 0, 1 * 90, center);
+        case EAST:
+            return rotate(0, 0, -1 * 90, center);
+        case NORTH:
+            return rotate(-1 * 90, 0, 0, center);
+        case SOUTH:
+            return rotate(1 * 90, 0, 0, center);
+        default:
+            break;
+        }
+
+        return this;
+    }
+
     public double length() {
 
         return Math.sqrt(x * x + y * y + z * z);
@@ -214,7 +270,7 @@ public class Vec3d {
 
         for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS)
             if (getBlockX() + d.offsetX == vec.getBlockX() && getBlockY() + d.offsetY == vec.getBlockY()
-                    && getBlockZ() + d.offsetZ == vec.getBlockZ())
+            && getBlockZ() + d.offsetZ == vec.getBlockZ())
                 return d;
         return null;
     }
@@ -392,12 +448,24 @@ public class Vec3d {
         return s;
     }
 
-    public Vec3d toAbsoulte() {
+    public ForgeDirection toForgeDirection() {
 
-        x = Math.abs(x);
-        y = Math.abs(y);
-        z = Math.abs(z);
-        return this;
+        if (z == 1)
+            return ForgeDirection.SOUTH;
+        if (z == -1)
+            return ForgeDirection.NORTH;
+
+        if (x == 1)
+            return ForgeDirection.EAST;
+        if (x == -1)
+            return ForgeDirection.WEST;
+
+        if (y == 1)
+            return ForgeDirection.UP;
+        if (y == -1)
+            return ForgeDirection.DOWN;
+
+        return ForgeDirection.UNKNOWN;
     }
 
     public static Vec3d fromString(String s) {

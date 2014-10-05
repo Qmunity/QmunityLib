@@ -3,7 +3,6 @@ package com.qmunity.lib.part.compat.fmp;
 import java.util.Arrays;
 
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 import codechicken.lib.vec.BlockCoord;
 import codechicken.multipart.MultiPartRegistry;
@@ -12,9 +11,7 @@ import codechicken.multipart.MultiPartRegistry.IPartFactory;
 import codechicken.multipart.TMultiPart;
 
 import com.qmunity.lib.QLModInfo;
-import com.qmunity.lib.block.BlockMultipart;
 import com.qmunity.lib.init.QLBlocks;
-import com.qmunity.lib.tile.TileMultipart;
 
 public class FMPPartFactory implements IPartFactory, IPartConverter {
 
@@ -35,13 +32,12 @@ public class FMPPartFactory implements IPartFactory, IPartConverter {
     @Override
     public TMultiPart convert(World world, BlockCoord loc) {
 
-        TileMultipart te = BlockMultipart.get(world, loc.x, loc.y, loc.z);
-        if (te == null || te.getParts().size() == 0) {
-            world.setBlock(loc.x, loc.y, loc.z, Blocks.air);
-            return null;
-        }
-
-        return new FMPPart(te.getPartMap());
+        // TileMultipart te = BlockMultipart.get(world, loc.x, loc.y, loc.z);
+        // if (te == null)
+        // return null;
+        //
+        // return new FMPPart(te.getPartMap());
+        return null;
     }
 
     @Override

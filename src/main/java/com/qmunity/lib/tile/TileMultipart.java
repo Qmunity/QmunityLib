@@ -96,8 +96,10 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             List<Vec3dCube> l = getOcclusionBoxes();
             for (Vec3dCube b : ((IPartOccluding) part).getOcclusionBoxes())
                 for (Vec3dCube c : l)
-                    if (b.toAABB().intersectsWith(c.toAABB()))
+                    if (b.toAABB().intersectsWith(c.toAABB())) {
+                        System.out.println(b.toAABB() + " -> " + c.toAABB());
                         return false;
+                    }
         }
 
         return true;
@@ -381,10 +383,11 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
     private void onUpdate() {
 
-        for (IPart p : getParts())
-            if (p instanceof IPartFace)
-                if (!((IPartFace) p).canStay())
-                    p.breakAndDrop(false);
+        if (!getWorldObj().isRemote)
+            for (IPart p : getParts())
+                if (p instanceof IPartFace)
+                    if (!((IPartFace) p).canStay())
+                        p.breakAndDrop(false);
 
         if (getParts().size() == 0) {
             getWorldObj().setBlockToAir(xCoord, yCoord, zCoord);

@@ -15,7 +15,7 @@ public interface IPartRenderable {
     public boolean renderStatic(Vec3i translation, RenderBlocks renderer, int pass);
 
     @SideOnly(Side.CLIENT)
-    public void renderDynamic(Vec3d translation, float delta, int pass);
+    public void renderDynamic(Vec3d translation, double delta, int pass);
 
     public boolean shouldRenderOnPass(int pass);
 

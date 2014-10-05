@@ -58,6 +58,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     private Map<String, IPart> parts = new HashMap<String, IPart>();
     private List<IPart> toUpdate = new ArrayList<IPart>();
     private List<String> removed = new ArrayList<String>();
+    private List<IPart> added = new ArrayList<IPart>();
 
     public FMPPart() {
 
@@ -129,8 +130,12 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
 
         for (IPart p : getParts()) {
             if (firstTick) {
-                if (p instanceof IPartUpdateListener)
+                for (IPart p_ : added)
+                    if (p_ == p)
+                        ((IPartUpdateListener) p).onAdded();
+                if (p instanceof IPartUpdateListener) {
                     ((IPartUpdateListener) p).onLoaded();
+                }
                 firstTick = false;
             }
             if (p instanceof IPartTicking)
@@ -288,7 +293,10 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         part.setParent(this);
         sendPartUpdate(part);
         if (part instanceof IPartUpdateListener)
-            ((IPartUpdateListener) part).onAdded();
+            if (tile() != null)
+                ((IPartUpdateListener) part).onAdded();
+            else
+                added.add(part);
         for (IPart p : getParts())
             if (p != part && p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onPartChanged(part);
@@ -649,15 +657,21 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @Override
     public void harvest(MovingObjectPosition hit, EntityPlayer player) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
-        if (mop != null) {
-            mop.getPart().breakAndDrop(player.capabilities.isCreativeMode);
+        super.harvest(hit, player);
 
-            if (getParts().size() == 0)
-                super.harvest(hit, player);
-            else
-                sendUpdatePacket();
-        }
+        // if (world().isRemote) {
+        // return;
+        // }
+        //
+        // QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        // if (mop != null) {
+        // mop.getPart().breakAndDrop(player.capabilities.isCreativeMode);
+        //
+        // if (getParts().size() == 0)
+        // super.harvest(hit, player);
+        // else
+        // sendUpdatePacket();
+        // }
     }
 
     @Override
