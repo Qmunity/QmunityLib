@@ -5,20 +5,17 @@
  * PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along
  * with Blue Power. If not, see <http://www.gnu.org/licenses/>
  */
+package com.qmunity.lib.tileentity;
 
-package com.qmunity.lib.util;
+import net.minecraftforge.common.util.ForgeDirection;
 
-public class Dependencies{
-
-    public static final String QLib = "qmunitylib";
-    public static final String FMP = "ForgeMultipart";
-    public static final String COMPUTER_CRAFT = "ComputerCraft";
-    public static final String OPEN_COMPUTERS = "OpenComputers";
-    public static final String WAILA = "Waila";
-    public static final String IC2 = "IC2";
-    public static final String HC = "HydCraft";
-    public static final String THAUMCRAFT = "Thaumcraft";
-    public static final String NEI = "NotEnoughItems";
-
-    public static final String INVTWEAKS = "inventorytweaks";
+/**
+ * Implemented by BluePower block that can be rotated.
+ * @author MineMaarten
+ */
+public interface IRotatable {
+    
+    public void setFacingDirection(ForgeDirection dir);
+    
+    public ForgeDirection getFacingDirection();
 }
