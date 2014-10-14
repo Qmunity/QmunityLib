@@ -42,19 +42,21 @@ public class RedstoneHelper {
         int max = world.getBlock(x, y, z).isProvidingWeakPower(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ,
                 direction.getOpposite().ordinal());
 
-        for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
-            if (d == direction)
-                continue;
+        if (world.getBlock(x, y, z).isOpaqueCube()) {
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+                if (d == direction)
+                    continue;
 
-            int x_ = x + d.offsetX;
-            int y_ = y + d.offsetY;
-            int z_ = z + d.offsetZ;
-            int p = 0;
-            if (d != ForgeDirection.DOWN)
-                p = getRedstoneWireSignalStrength(world, x_, y_, z_, d.getOpposite(), ForgeDirection.DOWN);
-            if (p == 0)
-                p = getBlockOutputStrong(world, x_, y_, z_, d);
-            max = Math.max(max, p);
+                int x_ = x + d.offsetX;
+                int y_ = y + d.offsetY;
+                int z_ = z + d.offsetZ;
+                int p = 0;
+                if (d != ForgeDirection.DOWN)
+                    p = getRedstoneWireSignalStrength(world, x_, y_, z_, d.getOpposite(), ForgeDirection.DOWN);
+                if (p == 0)
+                    p = getBlockOutputStrong(world, x_, y_, z_, d);
+                max = Math.max(max, p);
+            }
         }
 
         return max;
