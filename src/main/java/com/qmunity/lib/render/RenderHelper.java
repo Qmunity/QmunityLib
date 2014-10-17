@@ -18,7 +18,7 @@ public class RenderHelper {
 
     /**
      * @author K-4U
-     * 
+     *
      */
     public static final void vertexWithTexture(double x, double y, double z, float tx, float ty) {
 
@@ -28,51 +28,100 @@ public class RenderHelper {
 
     /**
      * @author K-4U
-     * 
+     *
      */
     public static void drawTexturedCube(Vec3dCube cube) {
 
         // Top side:
         GL11.glNormal3d(0, 1, 0);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), 0.0F, 0.0F);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMaxZ(), 1.0F, 0.0F);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMinZ(), 1.0F, 1.0F);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMinZ(), 0.0F, 1.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), 0.0F, 0.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMaxZ(), 1.0F, 0.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMinZ(), 1.0F, 1.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMinZ(), 0.0F, 1.0F);
 
         // Bottom side:
         GL11.glNormal3d(0, -1, 0);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMaxZ(), 0.0F, 0.0F);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMaxZ(), 1.0F, 0.0F);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMinZ(), 1.0F, 1.0F);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMinZ(), 0.0F, 1.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMaxZ(), 0.0F, 0.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMaxZ(), 1.0F, 0.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMinZ(), 1.0F, 1.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMinZ(), 0.0F, 1.0F);
 
         // Draw west side:
         GL11.glNormal3d(-1, 0, 0);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMaxZ(), 1.0F, 0.0F);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), 1.0F, 1.0F);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMinZ(), 0.0F, 1.0F);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMinZ(), 0.0F, 0.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMaxZ(), 1.0F, 0.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), 1.0F, 1.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMinZ(), 0.0F, 1.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMinZ(), 0.0F, 0.0F);
 
         // Draw east side:
         GL11.glNormal3d(1, 0, 0);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMinZ(), 1.0F, 0.0F);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMinZ(), 1.0F, 1.0F);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMaxZ(), 0.0F, 1.0F);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMaxZ(), 0.0F, 0.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMinZ(), 1.0F, 0.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMinZ(), 1.0F, 1.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMaxZ(), 0.0F, 1.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMaxZ(), 0.0F, 0.0F);
 
         // Draw north side
         GL11.glNormal3d(0, 0, -1);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMinZ(), 1.0F, 0.0F);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMinZ(), 1.0F, 1.0F);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMinZ(), 0.0F, 1.0F);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMinZ(), 0.0F, 0.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMinZ(), 1.0F, 0.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMinZ(), 1.0F, 1.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMinZ(), 0.0F, 1.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMinZ(), 0.0F, 0.0F);
 
         // Draw south side
         GL11.glNormal3d(0, 0, 1);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMaxZ(), 0.0F, 0.0F);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMaxZ(), 1.0F, 0.0F);
-        RenderHelper.vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMaxZ(), 1.0F, 1.0F);
-        RenderHelper.vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), 0.0F, 1.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMaxZ(), 0.0F, 0.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMaxZ(), 1.0F, 0.0F);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMaxZ(), 1.0F, 1.0F);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), 0.0F, 1.0F);
+    }
+
+    /**
+     * @author amadornes
+     *
+     */
+    public static void drawTexturedCube(Vec3dCube cube, float minU, float minV, float maxU, float maxV) {
+
+        // Top side:
+        GL11.glNormal3d(0, 1, 0);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), minU, minV);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMaxZ(), maxU, minV);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMinZ(), maxU, maxV);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMinZ(), minU, maxV);
+
+        // Bottom side:
+        GL11.glNormal3d(0, -1, 0);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMaxZ(), minU, minV);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMaxZ(), maxU, minV);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMinZ(), maxU, maxV);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMinZ(), minU, maxV);
+
+        // Draw west side:
+        GL11.glNormal3d(-1, 0, 0);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMaxZ(), maxU, minV);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), maxU, maxV);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMinZ(), minU, maxV);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMinZ(), minU, minV);
+
+        // Draw east side:
+        GL11.glNormal3d(1, 0, 0);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMinZ(), maxU, minV);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMinZ(), maxU, maxV);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMaxZ(), minU, maxV);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMaxZ(), minU, minV);
+
+        // Draw north side
+        GL11.glNormal3d(0, 0, -1);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMinZ(), maxU, minV);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMinZ(), maxU, maxV);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMinZ(), minU, maxV);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMinZ(), minU, minV);
+
+        // Draw south side
+        GL11.glNormal3d(0, 0, 1);
+        vertexWithTexture(cube.getMinX(), cube.getMinY(), cube.getMaxZ(), minU, minV);
+        vertexWithTexture(cube.getMaxX(), cube.getMinY(), cube.getMaxZ(), maxU, minV);
+        vertexWithTexture(cube.getMaxX(), cube.getMaxY(), cube.getMaxZ(), maxU, maxV);
+        vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), minU, maxV);
     }
 
     public static DoubleBuffer planeEquation(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3) {
