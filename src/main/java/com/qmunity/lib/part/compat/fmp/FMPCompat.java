@@ -122,6 +122,6 @@ public class FMPCompat implements IMultipartCompat {
         if (tmp == null)
             return false;
 
-        return tmp.canAddPart(new NormallyOccludedPart(new Cuboid6(cube.toAABB())));
+        return !tmp.canAddPart(new NormallyOccludedPart(new Cuboid6(cube.toAABB())));
     }
 }

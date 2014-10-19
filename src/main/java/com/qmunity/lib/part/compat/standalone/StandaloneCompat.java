@@ -90,7 +90,7 @@ public class StandaloneCompat implements IMultipartCompat {
         if (te == null)
             return false;
 
-        return te.canAddPart(new PartNormallyOccluded(cube));
+        return !te.canAddPart(new PartNormallyOccluded(cube));
     }
 
 }
