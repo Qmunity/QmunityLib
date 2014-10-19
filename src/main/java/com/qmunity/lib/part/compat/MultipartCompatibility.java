@@ -7,6 +7,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.ITilePartHolder;
+import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
 
 public class MultipartCompatibility {
@@ -92,4 +93,17 @@ public class MultipartCompatibility {
         return getPart(world, new Vec3i(x, y, z), type);
     }
 
+    public static boolean checkOcclusion(World world, Vec3i location, Vec3dCube cube) {
+
+        for (MultipartSystem s : MultipartSystem.getAvailableSystems())
+            if (s.getCompat().isMultipart(world, location))
+                return s.getCompat().checkOcclusion(world, location, cube);
+
+        return false;
+    }
+
+    public static boolean checkOcclusion(World world, int x, int y, int z, Vec3dCube cube) {
+
+        return checkOcclusion(world, new Vec3i(x, y, z), cube);
+    }
 }
