@@ -47,6 +47,7 @@ import com.qmunity.lib.part.IPartSelectable;
 import com.qmunity.lib.part.IPartTicking;
 import com.qmunity.lib.part.IPartUpdateListener;
 import com.qmunity.lib.part.ITilePartHolder;
+import com.qmunity.lib.part.PartNormallyOccluded;
 import com.qmunity.lib.part.PartRegistry;
 import com.qmunity.lib.raytrace.QMovingObjectPosition;
 import com.qmunity.lib.raytrace.RayTracer;
@@ -711,6 +712,12 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
                 return ((IPartInteractable) mop.getPart()).onActivated(player, mop, item);
 
         return false;
+    }
+
+    @Override
+    public boolean checkOcclusion(Vec3dCube cube) {
+
+        return canAddPart(new PartNormallyOccluded(cube));
     }
 
 }

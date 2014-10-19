@@ -34,4 +34,6 @@ public interface ITilePartHolder {
 
     public void addCollisionBoxesToList(List<Vec3dCube> boxes, AxisAlignedBB bounds, Entity entity);
 
+    public boolean checkOcclusion(Vec3dCube cube);
+
 }
