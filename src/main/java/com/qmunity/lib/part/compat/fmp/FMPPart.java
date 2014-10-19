@@ -39,6 +39,7 @@ import com.qmunity.lib.QmunityLib;
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.IPartCollidable;
 import com.qmunity.lib.part.IPartFace;
+import com.qmunity.lib.part.IPartInteractable;
 import com.qmunity.lib.part.IPartOccluding;
 import com.qmunity.lib.part.IPartRedstone;
 import com.qmunity.lib.part.IPartRenderable;
@@ -646,8 +647,8 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @Override
     public ItemStack pickItem(MovingObjectPosition hit) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(QmunityLib.proxy.getPlayer()),
-                RayTracer.instance().getEndVector(QmunityLib.proxy.getPlayer()));
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(QmunityLib.proxy.getPlayer()), RayTracer.instance()
+                .getEndVector(QmunityLib.proxy.getPlayer()));
         if (mop == null)
             return null;
 
@@ -690,6 +691,26 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
 
         toUpdate.clear();
         removed.clear();
+    }
+
+    @Override
+    public void click(EntityPlayer player, MovingObjectPosition hit, ItemStack item) {
+
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        if (mop != null)
+            if (mop.getPart() instanceof IPartInteractable)
+                ((IPartInteractable) mop.getPart()).onClicked(player, mop, item);
+    }
+
+    @Override
+    public boolean activate(EntityPlayer player, MovingObjectPosition hit, ItemStack item) {
+
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        if (mop != null)
+            if (mop.getPart() instanceof IPartInteractable)
+                return ((IPartInteractable) mop.getPart()).onActivated(player, mop, item);
+
+        return false;
     }
 
 }

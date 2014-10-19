@@ -105,7 +105,8 @@ public class BlockMultipart extends BlockContainer {
         }
 
         Vec3dCube c = mop.getCube();
-        setBlockBounds((float) c.getMinX(), (float) c.getMinY(), (float) c.getMinZ(), (float) c.getMaxX(), (float) c.getMaxY(), (float) c.getMaxZ());
+        setBlockBounds((float) c.getMinX(), (float) c.getMinY(), (float) c.getMinZ(), (float) c.getMaxX(), (float) c.getMaxY(),
+                (float) c.getMaxZ());
 
         return mop;
     }
@@ -248,5 +249,25 @@ public class BlockMultipart extends BlockContainer {
             return null;
 
         return te.pickUp(QmunityLib.proxy.getPlayer());
+    }
+
+    @Override
+    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float x_, float y_, float z_) {
+
+        TileMultipart te = get(world, x, y, z);
+        if (te == null)
+            return false;
+
+        return te.onActivated(player);
+    }
+
+    @Override
+    public void onBlockClicked(World world, int x, int y, int z, EntityPlayer player) {
+
+        TileMultipart te = get(world, x, y, z);
+        if (te == null)
+            return;
+
+        te.onClicked(player);
     }
 }

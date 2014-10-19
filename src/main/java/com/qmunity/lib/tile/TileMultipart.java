@@ -23,6 +23,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.IPartCollidable;
 import com.qmunity.lib.part.IPartFace;
+import com.qmunity.lib.part.IPartInteractable;
 import com.qmunity.lib.part.IPartLightEmitter;
 import com.qmunity.lib.part.IPartOccluding;
 import com.qmunity.lib.part.IPartRedstone;
@@ -541,6 +542,24 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     public Map<String, IPart> getPartMap() {
 
         return parts;
+    }
+
+    public void onClicked(EntityPlayer player) {
+
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        if (mop != null)
+            if (mop.getPart() instanceof IPartInteractable)
+                ((IPartInteractable) mop.getPart()).onClicked(player, mop, player.getCurrentEquippedItem());
+    }
+
+    public boolean onActivated(EntityPlayer player) {
+
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        if (mop != null)
+            if (mop.getPart() instanceof IPartInteractable)
+                return ((IPartInteractable) mop.getPart()).onActivated(player, mop, player.getCurrentEquippedItem());
+
+        return false;
     }
 
 }

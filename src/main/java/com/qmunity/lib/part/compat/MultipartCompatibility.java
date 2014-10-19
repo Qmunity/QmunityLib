@@ -11,7 +11,8 @@ import com.qmunity.lib.vec.Vec3i;
 
 public class MultipartCompatibility {
 
-    public static boolean addPartToWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player, ItemStack item) {
+    public static boolean addPartToWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
+            ItemStack item) {
 
         if (!player.isSneaking()) {
             for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
@@ -52,6 +53,43 @@ public class MultipartCompatibility {
     public static ITilePartHolder getPartHolder(World world, int x, int y, int z) {
 
         return getPartHolder(world, new Vec3i(x, y, z));
+    }
+
+    public static IPart getPart(World world, Vec3i location, String type) {
+
+        ITilePartHolder h = getPartHolder(world, location);
+        if (h == null)
+            return null;
+
+        for (IPart p : h.getParts())
+            if (p.getType() == type)
+                return p;
+
+        return null;
+    }
+
+    public static IPart getPart(World world, int x, int y, int z, String type) {
+
+        return getPart(world, new Vec3i(x, y, z), type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getPart(World world, Vec3i location, Class<T> type) {
+
+        ITilePartHolder h = getPartHolder(world, location);
+        if (h == null)
+            return null;
+
+        for (IPart p : h.getParts())
+            if (type.isAssignableFrom(p.getClass()))
+                return (T) p;
+
+        return null;
+    }
+
+    public static <T> T getPart(World world, int x, int y, int z, Class<T> type) {
+
+        return getPart(world, new Vec3i(x, y, z), type);
     }
 
 }
