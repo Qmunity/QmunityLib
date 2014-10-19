@@ -6,6 +6,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.ITilePartHolder;
+import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
 
 public interface IMultipartCompat {
@@ -19,5 +20,7 @@ public interface IMultipartCompat {
     public int getWeakRedstoneOuput(World world, Vec3i location, ForgeDirection direction, ForgeDirection face);
 
     public ITilePartHolder getPartHolder(World world, Vec3i location);
+
+    public boolean checkOcclusion(World world, Vec3i location, Vec3dCube cube);
 
 }

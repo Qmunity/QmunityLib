@@ -4,8 +4,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import codechicken.lib.vec.BlockCoord;
+import codechicken.lib.vec.Cuboid6;
 import codechicken.multipart.IFaceRedstonePart;
 import codechicken.multipart.IRedstonePart;
+import codechicken.multipart.NormallyOccludedPart;
 import codechicken.multipart.TMultiPart;
 import codechicken.multipart.TSlottedPart;
 import codechicken.multipart.TileMultipart;
@@ -13,6 +15,7 @@ import codechicken.multipart.TileMultipart;
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.ITilePartHolder;
 import com.qmunity.lib.part.compat.IMultipartCompat;
+import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
 
 public class FMPCompat implements IMultipartCompat {
@@ -110,5 +113,15 @@ public class FMPCompat implements IMultipartCompat {
                 return (ITilePartHolder) p;
 
         return null;
+    }
+
+    @Override
+    public boolean checkOcclusion(World world, Vec3i location, Vec3dCube cube) {
+
+        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        if (tmp == null)
+            return false;
+
+        return tmp.canAddPart(new NormallyOccludedPart(new Cuboid6(cube.toAABB())));
     }
 }

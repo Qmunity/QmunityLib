@@ -32,7 +32,6 @@ import com.qmunity.lib.part.IPartSolid;
 import com.qmunity.lib.part.IPartTicking;
 import com.qmunity.lib.part.IPartUpdateListener;
 import com.qmunity.lib.part.ITilePartHolder;
-import com.qmunity.lib.part.PartNormallyOccluded;
 import com.qmunity.lib.part.PartRegistry;
 import com.qmunity.lib.raytrace.QMovingObjectPosition;
 import com.qmunity.lib.raytrace.RayTracer;
@@ -561,12 +560,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                 return ((IPartInteractable) mop.getPart()).onActivated(player, mop, player.getCurrentEquippedItem());
 
         return false;
-    }
-
-    @Override
-    public boolean checkOcclusion(Vec3dCube cube) {
-
-        return canAddPart(new PartNormallyOccluded(cube));
     }
 
 }

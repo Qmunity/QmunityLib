@@ -8,8 +8,10 @@ import com.qmunity.lib.block.BlockMultipart;
 import com.qmunity.lib.init.QLBlocks;
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.ITilePartHolder;
+import com.qmunity.lib.part.PartNormallyOccluded;
 import com.qmunity.lib.part.compat.IMultipartCompat;
 import com.qmunity.lib.tile.TileMultipart;
+import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
 
 public class StandaloneCompat implements IMultipartCompat {
@@ -79,6 +81,16 @@ public class StandaloneCompat implements IMultipartCompat {
     public ITilePartHolder getPartHolder(World world, Vec3i location) {
 
         return BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());
+    }
+
+    @Override
+    public boolean checkOcclusion(World world, Vec3i location, Vec3dCube cube) {
+
+        TileMultipart te = BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());
+        if (te == null)
+            return false;
+
+        return te.canAddPart(new PartNormallyOccluded(cube));
     }
 
 }
