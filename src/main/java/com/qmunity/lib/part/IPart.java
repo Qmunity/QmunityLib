@@ -4,19 +4,11 @@ import java.util.List;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
 
 import com.qmunity.lib.raytrace.QMovingObjectPosition;
+import com.qmunity.lib.vec.IWorldLocation;
 
-public interface IPart {
-
-    public World getWorld();
-
-    public int getX();
-
-    public int getY();
-
-    public int getZ();
+public interface IPart extends IWorldLocation {
 
     public ITilePartHolder getParent();
 

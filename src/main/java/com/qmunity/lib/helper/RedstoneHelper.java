@@ -23,8 +23,8 @@ public class RedstoneHelper {
                 return world.getBlockMetadata(x, y, z);
             int d = Direction.getMovementDirection(dir.offsetX, dir.offsetZ);
             if (BlockRedstoneWire.isPowerProviderOrWire(world, x, y, z, d)
-                    || BlockRedstoneWire.isPowerProviderOrWire(world, x + dir.offsetX + dir.offsetX, y + dir.offsetY + dir.offsetY, z + dir.offsetZ
-                            + dir.offsetZ, (d + 2) % 4)) {
+                    || BlockRedstoneWire.isPowerProviderOrWire(world, x + dir.offsetX + dir.offsetX, y + dir.offsetY + dir.offsetY, z
+                            + dir.offsetZ + dir.offsetZ, (d + 2) % 4)) {
                 return world.getBlockMetadata(x, y, z);
             }
         }
@@ -34,7 +34,7 @@ public class RedstoneHelper {
 
     public static int getBlockOutputStrong(World world, int x, int y, int z, ForgeDirection direction) {
 
-        return world.isBlockProvidingPowerTo(x, y, z, direction.ordinal());
+        return world.getBlock(x, y, z).isProvidingStrongPower(world, x, y, z, direction.ordinal());
     }
 
     public static int getBlockOutputWeak(World world, int x, int y, int z, ForgeDirection direction) {
@@ -148,12 +148,12 @@ public class RedstoneHelper {
 
     public static int getInputWeak(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {
 
-        return getInputWeak(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite(), face);
+        return getOutputWeak(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite(), face);
     }
 
     public static int getInputWeak(World world, int x, int y, int z, ForgeDirection direction) {
 
-        return getInputWeak(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite());
+        return getOutputWeak(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite());
     }
 
     public static int getInput(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {

@@ -44,6 +44,9 @@ public class MultipartCompatibility {
 
     public static ITilePartHolder getPartHolder(World world, Vec3i location) {
 
+        if (world == null)
+            return null;
+
         for (MultipartSystem s : MultipartSystem.getAvailableSystems())
             if (s.getCompat().isMultipart(world, location))
                 return s.getCompat().getPartHolder(world, location);

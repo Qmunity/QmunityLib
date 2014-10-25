@@ -414,6 +414,10 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             if (firstTick) {
                 if (p instanceof IPartUpdateListener)
                     ((IPartUpdateListener) p).onLoaded();
+                if (!getWorld().isRemote) {
+                    toUpdate.clear();
+                    toUpdate.addAll(getParts());
+                }
                 firstTick = false;
             }
             if (p instanceof IPartTicking)

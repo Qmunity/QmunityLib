@@ -61,6 +61,11 @@ public class Vec3i {
         this.w = w;
     }
 
+    public Vec3i(IWorldLocation loc) {
+
+        this(loc.getX(), loc.getY(), loc.getZ(), loc.getWorld());
+    }
+
     public boolean hasWorld() {
 
         return w != null;
@@ -243,7 +248,7 @@ public class Vec3i {
 
     public Block getBlock() {
 
-        return getBlock(true);
+        return getBlock(false);
     }
 
     public Block getBlock(boolean airIsNull) {

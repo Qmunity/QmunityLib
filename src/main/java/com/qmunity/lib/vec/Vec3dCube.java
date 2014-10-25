@@ -1,5 +1,7 @@
 package com.qmunity.lib.vec;
 
+import java.util.List;
+
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -191,6 +193,30 @@ public class Vec3dCube {
         max.add(x, y, z);
 
         return this;
+    }
+
+    public static final Vec3dCube merge(List<Vec3dCube> cubes) {
+
+        double minx = Double.MAX_VALUE;
+        double miny = Double.MAX_VALUE;
+        double minz = Double.MAX_VALUE;
+        double maxx = Double.MIN_VALUE;
+        double maxy = Double.MIN_VALUE;
+        double maxz = Double.MIN_VALUE;
+
+        for (Vec3dCube c : cubes) {
+            minx = Math.min(minx, c.getMinX());
+            miny = Math.min(miny, c.getMinY());
+            minz = Math.min(minz, c.getMinZ());
+            maxx = Math.max(maxx, c.getMaxX());
+            maxy = Math.max(maxy, c.getMaxY());
+            maxz = Math.max(maxz, c.getMaxZ());
+        }
+
+        if (cubes.size() == 0)
+            return new Vec3dCube(0, 0, 0, 0, 0, 0);
+
+        return new Vec3dCube(minx, miny, minz, maxx, maxy, maxz);
     }
 
 }

@@ -428,7 +428,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         for (IPart p : getParts())
             if (p.getParent() != null && p instanceof IPartRenderable)
                 if (((IPartRenderable) p).shouldRenderOnPass(pass))
-                    if (((IPartRenderable) p).renderStatic(new Vec3i(0, 0, 0), renderer, pass))
+                    if (((IPartRenderable) p).renderStatic(new Vec3i((int) pos.x, (int) pos.y, (int) pos.z), renderer, pass))
                         did = true;
 
         renderer.blockAccess = null;
