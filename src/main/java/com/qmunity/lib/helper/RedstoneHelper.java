@@ -1,8 +1,11 @@
 package com.qmunity.lib.helper;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockRedstoneComparator;
+import net.minecraft.block.BlockRedstoneRepeater;
 import net.minecraft.block.BlockRedstoneWire;
 import net.minecraft.init.Blocks;
+import net.minecraft.tileentity.TileEntityComparator;
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -13,157 +16,203 @@ import com.qmunity.lib.vec.Vec3i;
 
 public class RedstoneHelper {
 
-    public static int getRedstoneWireSignalStrength(World world, int x, int y, int z, ForgeDirection dir, ForgeDirection face) {
+    public static int getVanillaSignalStrength(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
-        if (face != ForgeDirection.DOWN)
+        if (face != ForgeDirection.DOWN && face != ForgeDirection.UNKNOWN)
             return 0;
 
-        if (world.getBlock(x, y, z) == Blocks.redstone_wire) {
-            if (dir == ForgeDirection.DOWN)
+        Block block = world.getBlock(x, y, z);
+
+        if (block == Blocks.redstone_wire) {
+            if (side == ForgeDirection.DOWN)
                 return world.getBlockMetadata(x, y, z);
-            int d = Direction.getMovementDirection(dir.offsetX, dir.offsetZ);
+            if (side == ForgeDirection.UP)
+                return 0;
+            int d = Direction.getMovementDirection(side.offsetX, side.offsetZ);
             if (BlockRedstoneWire.isPowerProviderOrWire(world, x, y, z, d)
-                    || BlockRedstoneWire.isPowerProviderOrWire(world, x + dir.offsetX + dir.offsetX, y + dir.offsetY + dir.offsetY, z
-                            + dir.offsetZ + dir.offsetZ, (d + 2) % 4)) {
+                    || BlockRedstoneWire.isPowerProviderOrWire(world, x + side.offsetX + side.offsetX, y + side.offsetY + side.offsetY, z
+                            + side.offsetZ + side.offsetZ, (d + 2) % 4)) {
                 return world.getBlockMetadata(x, y, z);
             }
+        }
+        if (block instanceof BlockRedstoneComparator)
+
+            if (block == Blocks.unpowered_repeater) {
+                return 0;
+            }
+        if (block == Blocks.powered_repeater) {
+            if (side == ForgeDirection.DOWN || side == ForgeDirection.UP)
+                return 0;
+            int d = Direction.getMovementDirection(side.offsetX, side.offsetZ);
+            return d == (world.getBlockMetadata(x, y, z) % 4) ? 15 : 0;
+        }
+        if (block instanceof BlockRedstoneComparator) {
+            if (side == ForgeDirection.DOWN || side == ForgeDirection.UP)
+                return 0;
+            int d = Direction.getMovementDirection(side.offsetX, side.offsetZ);
+            return d == (world.getBlockMetadata(x, y, z) % 4) ? ((TileEntityComparator) world.getTileEntity(x, y, z)).getOutputSignal() : 0;
         }
 
         return 0;
     }
 
-    public static int getBlockOutputStrong(World world, int x, int y, int z, ForgeDirection direction) {
+    public static boolean canConnectVanilla(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
-        return world.getBlock(x, y, z).isProvidingStrongPower(world, x, y, z, direction.ordinal());
+        if (face != ForgeDirection.DOWN && face != ForgeDirection.UNKNOWN)
+            return false;
+
+        Block block = world.getBlock(x, y, z);
+        int meta = world.getBlockMetadata(x, y, z);
+        int d = Direction.getMovementDirection(side.offsetX, side.offsetZ);
+
+        if (block == Blocks.unpowered_repeater || block == Blocks.powered_repeater) {
+            if (d % 2 == meta % 2)
+                return true;
+        }
+
+        return false;
     }
 
-    public static int getBlockOutputWeak(World world, int x, int y, int z, ForgeDirection direction) {
+    private static boolean isVanillaBlock(World world, int x, int y, int z) {
 
-        int max = world.getBlock(x, y, z).isProvidingWeakPower(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ,
-                direction.getOpposite().ordinal());
+        Block b = world.getBlock(x, y, z);
+        return b == Blocks.redstone_wire || b instanceof BlockRedstoneRepeater;
+    }
 
-        if (world.getBlock(x, y, z).isOpaqueCube()) {
+    public static int getOutputWeak(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
+
+        Vec3i location = new Vec3i(x, y, z);
+
+        for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
+            IMultipartCompat compat = s.getCompat();
+            if (compat.isMultipart(world, location))
+                return compat.getWeakRedstoneOuput(world, location, side, face);
+        }
+
+        int power = getVanillaSignalStrength(world, x, y, z, side, face);
+        if (power > 0)
+            return power;
+
+        Block block = world.getBlock(x, y, z);
+
+        power = block.isProvidingWeakPower(world, x, y, z, side.getOpposite().ordinal());
+        if (power > 0)
+            return power;
+
+        if (block.isNormalCube(world, x, y, z) && block.isOpaqueCube()) {
             for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
-                if (d == direction)
+                if (d == side)
                     continue;
-
-                int x_ = x + d.offsetX;
-                int y_ = y + d.offsetY;
-                int z_ = z + d.offsetZ;
-                int p = 0;
-                if (d != ForgeDirection.DOWN)
-                    p = getRedstoneWireSignalStrength(world, x_, y_, z_, d.getOpposite(), ForgeDirection.DOWN);
-                if (p == 0)
-                    p = getBlockOutputStrong(world, x_, y_, z_, d);
-                max = Math.max(max, p);
+                power = Math.max(power,
+                        getOutputStrong(world, x + d.offsetX, y + d.offsetY, z + d.offsetZ, d.getOpposite(), ForgeDirection.UNKNOWN));
             }
         }
 
-        return max;
+        return power;
     }
 
-    public static int getOutputStrong(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {
-
-        int redstoneWire = getRedstoneWireSignalStrength(world, x, y, z, direction, face);
-        if (redstoneWire > 0)
-            return redstoneWire;
-
-        int power = 0;
-        boolean found = false;
+    public static int getOutputStrong(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
         Vec3i location = new Vec3i(x, y, z);
+
         for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
-            IMultipartCompat c = s.getCompat();
-            if (found = c.isMultipart(world, location))
-                power = Math.max(power, c.getStrongRedstoneOuput(world, location, direction, face));
+            IMultipartCompat compat = s.getCompat();
+            if (compat.isMultipart(world, location))
+                return compat.getStrongRedstoneOuput(world, location, side, face);
         }
 
-        if (found)
+        int power = getVanillaSignalStrength(world, x, y, z, side, face);
+        if (power > 0)
             return power;
 
-        return getBlockOutputStrong(world, x, y, z, direction);
+        return world.getBlock(x, y, z).isProvidingStrongPower(world, x, y, z, side.getOpposite().ordinal());
     }
 
-    public static int getOutputStrong(World world, int x, int y, int z, ForgeDirection direction) {
+    public static int getOutputWeak(World world, int x, int y, int z, ForgeDirection side) {
 
-        int max = 0;
-
-        for (ForgeDirection f : ForgeDirection.VALID_DIRECTIONS)
-            max = Math.max(max, getOutputStrong(world, x, y, z, direction, f));
-
-        return max;
+        return getOutputWeak(world, x, y, z, side, ForgeDirection.UNKNOWN);
     }
 
-    public static int getOutputWeak(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {
+    public static int getOutputStrong(World world, int x, int y, int z, ForgeDirection side) {
 
-        int redstoneWire = getRedstoneWireSignalStrength(world, x, y, z, direction, face);
-        if (redstoneWire > 0)
-            return redstoneWire;
+        return getOutputStrong(world, x, y, z, side, ForgeDirection.UNKNOWN);
+    }
+
+    public static int getOutput(World world, int x, int y, int z, ForgeDirection side) {
+
+        return Math.max(getOutputWeak(world, x, y, z, side), getOutputStrong(world, x, y, z, side));
+    }
+
+    public static int getOutput(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
+
+        return Math.max(getOutputWeak(world, x, y, z, side, face), getOutputStrong(world, x, y, z, side, face));
+    }
+
+    public static int getOutput(World world, int x, int y, int z) {
 
         int power = 0;
-        boolean found = false;
+        for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS)
+            power = Math.max(power, getOutput(world, x, y, z, side));
+        return power;
+    }
+
+    public static int getInputWeak(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
+
+        return getOutputWeak(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite(), face);
+    }
+
+    public static int getInputStrong(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
+
+        return getOutputStrong(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite(), face);
+    }
+
+    public static int getInputWeak(World world, int x, int y, int z, ForgeDirection side) {
+
+        return getOutputWeak(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite());
+    }
+
+    public static int getInputStrong(World world, int x, int y, int z, ForgeDirection side) {
+
+        return getOutputStrong(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite());
+    }
+
+    public static int getInput(World world, int x, int y, int z, ForgeDirection side) {
+
+        return getInput(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite());
+    }
+
+    public static int getInput(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
+
+        return getOutput(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite(), face);
+    }
+
+    public static int getInput(World world, int x, int y, int z) {
+
+        int power = 0;
+        for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS)
+            power = Math.max(power, getInput(world, x, y, z, side));
+        return power;
+    }
+
+    public static boolean canConnect(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
         Vec3i location = new Vec3i(x, y, z);
+
         for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
-            IMultipartCompat c = s.getCompat();
-            if (found = c.isMultipart(world, location))
-                power = Math.max(power, c.getWeakRedstoneOuput(world, location, direction, face));
+            IMultipartCompat compat = s.getCompat();
+            if (compat.isMultipart(world, location))
+                return compat.canConnectRedstone(world, location, side, face);
         }
 
-        if (found)
-            return power;
+        if (isVanillaBlock(world, x, y, z))
+            return canConnectVanilla(world, x, y, z, side, face);
 
-        return getBlockOutputWeak(world, x, y, z, direction);
+        return world.getBlock(x, y, z).canConnectRedstone(world, x, y, z, Direction.getMovementDirection(side.offsetX, side.offsetZ));
     }
 
-    public static int getOutputWeak(World world, int x, int y, int z, ForgeDirection direction) {
+    public static boolean canConnect(World world, int x, int y, int z, ForgeDirection side) {
 
-        int max = 0;
-
-        for (ForgeDirection f : ForgeDirection.VALID_DIRECTIONS)
-            max = Math.max(max, getOutputWeak(world, x, y, z, direction, f));
-
-        return max;
-    }
-
-    public static int getOutput(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {
-
-        return Math.max(getOutputStrong(world, x, y, z, direction, face), getOutputWeak(world, x, y, z, direction, face));
-    }
-
-    public static int getOutput(World world, int x, int y, int z, ForgeDirection direction) {
-
-        return Math.max(getOutputStrong(world, x, y, z, direction), getOutputWeak(world, x, y, z, direction));
-    }
-
-    public static int getInputStrong(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {
-
-        return getOutputStrong(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite(), face);
-    }
-
-    public static int getInputStrong(World world, int x, int y, int z, ForgeDirection direction) {
-
-        return getOutputStrong(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite());
-    }
-
-    public static int getInputWeak(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {
-
-        return getOutputWeak(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite(), face);
-    }
-
-    public static int getInputWeak(World world, int x, int y, int z, ForgeDirection direction) {
-
-        return getOutputWeak(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite());
-    }
-
-    public static int getInput(World world, int x, int y, int z, ForgeDirection direction, ForgeDirection face) {
-
-        return getOutput(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite(), face);
-    }
-
-    public static int getInput(World world, int x, int y, int z, ForgeDirection direction) {
-
-        return getOutput(world, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ, direction.getOpposite());
+        return canConnect(world, x, y, z, side, ForgeDirection.UNKNOWN);
     }
 
     public static void notifyRedstoneUpdate(World world, int x, int y, int z, ForgeDirection direction, boolean strong) {

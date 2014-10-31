@@ -1,6 +1,7 @@
 package com.qmunity.lib.part.compat.fmp;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import codechicken.lib.vec.BlockCoord;
@@ -58,21 +59,27 @@ public class FMPCompat implements IMultipartCompat {
     }
 
     @Override
-    public int getStrongRedstoneOuput(World world, Vec3i location, ForgeDirection direction, ForgeDirection face) {
+    public int getStrongRedstoneOuput(World world, Vec3i location, ForgeDirection side, ForgeDirection face) {
 
         TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        if (tmp == null)
+            return 0;
+
+        if (face == ForgeDirection.UNKNOWN)
+            return tmp.strongPowerLevel(side.ordinal());
+
         int strong = 0;
 
         for (TMultiPart p : tmp.jPartList()) {
             if (p instanceof IRedstonePart) {
                 if (p instanceof IFaceRedstonePart) {
                     if (((IFaceRedstonePart) p).getFace() == face.ordinal())
-                        strong = Math.max(strong, ((IRedstonePart) p).strongPowerLevel(direction.ordinal()));
+                        strong = Math.max(strong, ((IRedstonePart) p).strongPowerLevel(side.ordinal()));
                 } else if (p instanceof TSlottedPart) {
-                    if (((TSlottedPart) p).getSlotMask() == 1 << direction.ordinal())
-                        strong = Math.max(strong, ((IRedstonePart) p).strongPowerLevel(direction.ordinal()));
+                    if (((TSlottedPart) p).getSlotMask() == 1 << side.ordinal())
+                        strong = Math.max(strong, ((IRedstonePart) p).strongPowerLevel(side.ordinal()));
                 } else {
-                    strong = Math.max(strong, ((IRedstonePart) p).strongPowerLevel(direction.ordinal()));
+                    strong = Math.max(strong, ((IRedstonePart) p).strongPowerLevel(side.ordinal()));
                 }
             }
         }
@@ -81,26 +88,66 @@ public class FMPCompat implements IMultipartCompat {
     }
 
     @Override
-    public int getWeakRedstoneOuput(World world, Vec3i location, ForgeDirection direction, ForgeDirection face) {
+    public int getWeakRedstoneOuput(World world, Vec3i location, ForgeDirection side, ForgeDirection face) {
 
         TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        if (tmp == null)
+            return 0;
+
+        if (face == ForgeDirection.UNKNOWN)
+            return tmp.weakPowerLevel(side.ordinal());
+
         int weak = 0;
 
         for (TMultiPart p : tmp.jPartList()) {
             if (p instanceof IRedstonePart) {
                 if (p instanceof IFaceRedstonePart) {
                     if (((IFaceRedstonePart) p).getFace() == face.ordinal())
-                        weak = Math.max(weak, ((IRedstonePart) p).weakPowerLevel(direction.ordinal()));
+                        weak = Math.max(weak, ((IRedstonePart) p).weakPowerLevel(side.ordinal()));
                 } else if (p instanceof TSlottedPart) {
-                    if (((TSlottedPart) p).getSlotMask() == 1 << direction.ordinal())
-                        weak = Math.max(weak, ((IRedstonePart) p).weakPowerLevel(direction.ordinal()));
+                    if (((TSlottedPart) p).getSlotMask() == 1 << side.ordinal())
+                        weak = Math.max(weak, ((IRedstonePart) p).weakPowerLevel(side.ordinal()));
                 } else {
-                    weak = Math.max(weak, ((IRedstonePart) p).weakPowerLevel(direction.ordinal()));
+                    weak = Math.max(weak, ((IRedstonePart) p).weakPowerLevel(side.ordinal()));
                 }
             }
         }
 
         return weak;
+    }
+
+    @Override
+    public boolean canConnectRedstone(World world, Vec3i location, ForgeDirection side, ForgeDirection face) {
+
+        int s = Direction.getMovementDirection(side.offsetX, side.offsetZ);
+        int f = face.ordinal();
+
+        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        if (tmp == null)
+            return false;
+
+        if (face == ForgeDirection.UNKNOWN)
+            return tmp.canConnectRedstone(s);
+
+        if (!tmp.canConnectRedstone(s))
+            return false;
+
+        for (TMultiPart p : tmp.jPartList()) {
+            if (p instanceof IRedstonePart) {
+                if (p instanceof IFaceRedstonePart) {
+                    if (((IFaceRedstonePart) p).getFace() == f && ((IRedstonePart) p).canConnectRedstone(s))
+                        return true;
+                } else if (p instanceof TSlottedPart) {
+                    if (((TSlottedPart) p).getSlotMask() == 1 << s && ((IRedstonePart) p).canConnectRedstone(s))
+                        return true;
+                } else {
+                    if (((IRedstonePart) p).canConnectRedstone(s))
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     @Override

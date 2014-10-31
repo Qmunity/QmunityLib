@@ -58,23 +58,42 @@ public class StandaloneCompat implements IMultipartCompat {
     }
 
     @Override
-    public int getStrongRedstoneOuput(World world, Vec3i location, ForgeDirection direction, ForgeDirection face) {
+    public int getStrongRedstoneOuput(World world, Vec3i location, ForgeDirection side, ForgeDirection face) {
 
         TileMultipart te = BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());
         if (te == null)
             return 0;
 
-        return te.getStrongOutput(direction, face);
+        if (face == ForgeDirection.UNKNOWN)
+            return te.getStrongOutput(side);
+
+        return te.getStrongOutput(side, face);
     }
 
     @Override
-    public int getWeakRedstoneOuput(World world, Vec3i location, ForgeDirection direction, ForgeDirection face) {
+    public int getWeakRedstoneOuput(World world, Vec3i location, ForgeDirection side, ForgeDirection face) {
 
         TileMultipart te = BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());
         if (te == null)
             return 0;
 
-        return te.getWeakOutput(direction, face);
+        if (face == ForgeDirection.UNKNOWN)
+            return te.getWeakOutput(side);
+
+        return te.getWeakOutput(side, face);
+    }
+
+    @Override
+    public boolean canConnectRedstone(World world, Vec3i location, ForgeDirection side, ForgeDirection face) {
+
+        TileMultipart te = BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());
+        if (te == null)
+            return false;
+
+        if (face == ForgeDirection.UNKNOWN)
+            return te.canConnect(side);
+
+        return te.canConnect(side, face);
     }
 
     @Override

@@ -15,9 +15,11 @@ public interface IMultipartCompat {
 
     public boolean isMultipart(World world, Vec3i location);
 
-    public int getStrongRedstoneOuput(World world, Vec3i location, ForgeDirection direction, ForgeDirection face);
+    public int getStrongRedstoneOuput(World world, Vec3i location, ForgeDirection side, ForgeDirection face);
 
-    public int getWeakRedstoneOuput(World world, Vec3i location, ForgeDirection direction, ForgeDirection face);
+    public int getWeakRedstoneOuput(World world, Vec3i location, ForgeDirection side, ForgeDirection face);
+
+    public boolean canConnectRedstone(World world, Vec3i location, ForgeDirection side, ForgeDirection face);
 
     public ITilePartHolder getPartHolder(World world, Vec3i location);
 

@@ -191,7 +191,7 @@ public class Vec3i {
         for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS)
             if (getX() + d.offsetX == vec.getX() && getY() + d.offsetY == vec.getY() && getZ() + d.offsetZ == vec.getZ())
                 return d;
-        return null;
+        return ForgeDirection.UNKNOWN;
     }
 
     @Override
