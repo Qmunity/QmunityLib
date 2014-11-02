@@ -65,10 +65,9 @@ public class RedstoneHelper {
         int meta = world.getBlockMetadata(x, y, z);
         int d = Direction.getMovementDirection(side.offsetX, side.offsetZ);
 
-        if (block == Blocks.unpowered_repeater || block == Blocks.powered_repeater) {
+        if (block == Blocks.unpowered_repeater || block == Blocks.powered_repeater)
             if (d % 2 == meta % 2)
                 return true;
-        }
 
         return false;
     }
@@ -76,7 +75,7 @@ public class RedstoneHelper {
     private static boolean isVanillaBlock(World world, int x, int y, int z) {
 
         Block b = world.getBlock(x, y, z);
-        return b == Blocks.redstone_wire || b instanceof BlockRedstoneRepeater;
+        return b instanceof BlockRedstoneRepeater;
     }
 
     public static int getOutputWeak(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
