@@ -177,7 +177,7 @@ public class RedstoneHelper {
 
     public static int getInput(World world, int x, int y, int z, ForgeDirection side) {
 
-        return getInput(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite());
+        return getOutput(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite());
     }
 
     public static int getInput(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
