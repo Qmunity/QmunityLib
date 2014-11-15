@@ -12,7 +12,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -21,8 +20,6 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import org.lwjgl.opengl.GL11;
 
-import codechicken.lib.data.MCDataInput;
-import codechicken.lib.data.MCDataOutput;
 import codechicken.lib.raytracer.ExtendedMOP;
 import codechicken.lib.raytracer.IndexedCuboid6;
 import codechicken.lib.vec.Cuboid6;
@@ -57,7 +54,6 @@ import com.qmunity.lib.vec.Vec3i;
 public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclusion, IRedstonePart, INeighborTileChange {
 
     private Map<String, IPart> parts = new HashMap<String, IPart>();
-    private List<IPart> toUpdate = new ArrayList<IPart>();
     private List<String> removed = new ArrayList<String>();
     private List<IPart> added = new ArrayList<IPart>();
 
@@ -119,15 +115,9 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     }
 
     private boolean firstTick = true;
-    private boolean shouldSendUpdatePacket = false;
 
     @Override
     public void update() {
-
-        if (!world().isRemote && shouldSendUpdatePacket) {
-            sendUpdatePacket();
-            shouldSendUpdatePacket = false;
-        }
 
         for (IPart p : getParts()) {
             if (firstTick) {
@@ -144,15 +134,13 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         }
     }
 
-    // Loading/saving parts
-
     @Override
     public void save(NBTTagCompound tag) {
 
         super.save(tag);
 
         NBTTagList l = new NBTTagList();
-        writeParts(l, getParts(), false);
+        writeParts(l, getParts());
         tag.setTag("parts", l);
     }
 
@@ -162,44 +150,10 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         super.load(tag);
 
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
-        readParts(l, false, false);
-        toUpdate.addAll(getParts());
+        readParts(l);
     }
 
-    public void writeDescNBT(NBTTagCompound tag) {
-
-        List<IPart> toUpdate = new ArrayList<IPart>();
-        toUpdate.addAll(this.toUpdate);
-
-        NBTTagList l = new NBTTagList();
-        writeParts(l, toUpdate, true);
-        tag.setTag("parts", l);
-
-        NBTTagList rem = new NBTTagList();
-        for (String s : removed)
-            rem.appendTag(new NBTTagString(s));
-        tag.setTag("removed", rem);
-    }
-
-    public void readDescNBT(NBTTagCompound tag) {
-
-        int before = getParts().size();
-        NBTTagList rem = tag.getTagList("removed", new NBTTagString().getId());
-
-        for (int i = 0; i < rem.tagCount(); i++) {
-            String id = rem.getStringTagAt(i);
-            IPart p = getPart(id);
-            removePart(p);
-        }
-
-        NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
-        readParts(l, true, true);
-
-        if (tile() != null && getParts().size() != before)
-            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
-    }
-
-    private void writeParts(NBTTagList l, List<IPart> parts, boolean update) {
+    private void writeParts(NBTTagList l, List<IPart> parts) {
 
         for (IPart p : parts) {
             String id = getIdentifier(p);
@@ -212,17 +166,14 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
             tag.setString("id", id);
             tag.setString("type", p.getType());
             NBTTagCompound data = new NBTTagCompound();
-            if (update)
-                p.writeUpdateToNBT(data);
-            else
-                p.writeToNBT(data);
+            p.writeToNBT(data);
             tag.setTag("data", data);
 
             l.appendTag(tag);
         }
     }
 
-    private void readParts(NBTTagList l, boolean update, boolean client) {
+    private void readParts(NBTTagList l) {
 
         for (int i = 0; i < l.tagCount(); i++) {
             NBTTagCompound tag = l.getCompoundTagAt(i);
@@ -230,35 +181,14 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
             String id = tag.getString("id");
             IPart p = getPart(id);
             if (p == null) {
-                p = PartRegistry.createPart(tag.getString("type"), client);
+                p = PartRegistry.createPart(tag.getString("type"), false);
                 p.setParent(this);
                 parts.put(id, p);
             }
 
             NBTTagCompound data = tag.getCompoundTag("data");
-            if (update)
-                p.readUpdateFromNBT(data);
-            else
-                p.readFromNBT(data);
+            p.readFromNBT(data);
         }
-    }
-
-    @Override
-    public void writeDesc(MCDataOutput packet) {
-
-        super.writeDesc(packet);
-
-        NBTTagCompound t = new NBTTagCompound();
-        writeDescNBT(t);
-        packet.writeNBTTagCompound(t);
-    }
-
-    @Override
-    public void readDesc(MCDataInput packet) {
-
-        super.readDesc(packet);
-
-        readDescNBT(packet.readNBTTagCompound());
     }
 
     // Part holder methods
@@ -292,7 +222,6 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
 
         parts.put(genIdentifier(), part);
         part.setParent(this);
-        sendPartUpdate(part);
         if (part instanceof IPartUpdateListener)
             if (tile() != null)
                 ((IPartUpdateListener) part).onAdded();
@@ -321,7 +250,6 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
 
         String id = getIdentifier(part);
         removed.add(id);
-        sendUpdatePacket();
         parts.remove(id);
         part.setParent(null);
 
@@ -354,18 +282,6 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
                 return parts.get(s);
 
         return null;
-    }
-
-    @Override
-    public void sendPartUpdate(IPart part) {
-
-        if (!toUpdate.contains(part))
-            toUpdate.add(part);
-        if (tile() != null && !world().isRemote) {
-            sendUpdatePacket();
-        } else {
-            shouldSendUpdatePacket = true;
-        }
     }
 
     @Override
@@ -658,39 +574,17 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @Override
     public void harvest(MovingObjectPosition hit, EntityPlayer player) {
 
-        super.harvest(hit, player);
+        if (world().isRemote) {
+            return;
+        }
 
-        // if (world().isRemote) {
-        // return;
-        // }
-        //
-        // QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
-        // if (mop != null) {
-        // mop.getPart().breakAndDrop(player.capabilities.isCreativeMode);
-        //
-        // if (getParts().size() == 0)
-        // super.harvest(hit, player);
-        // else
-        // sendUpdatePacket();
-        // }
-    }
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        if (mop != null) {
+            mop.getPart().breakAndDrop(player.capabilities.isCreativeMode);
 
-    @Override
-    public void onConverted() {
-
-        for (IPart p : getParts())
-            toUpdate.add(p);
-
-        sendUpdatePacket();
-    }
-
-    private void sendUpdatePacket() {
-
-        if (tile() != null && !world().isRemote)
-            sendDescUpdate();
-
-        toUpdate.clear();
-        removed.clear();
+            if (getParts().size() == 0)
+                super.harvest(hit, player);
+        }
     }
 
     @Override

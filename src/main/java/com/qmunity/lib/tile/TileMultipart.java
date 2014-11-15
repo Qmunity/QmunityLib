@@ -11,7 +11,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
@@ -37,12 +36,11 @@ import com.qmunity.lib.raytrace.QMovingObjectPosition;
 import com.qmunity.lib.raytrace.RayTracer;
 import com.qmunity.lib.vec.Vec3d;
 import com.qmunity.lib.vec.Vec3dCube;
+import com.qmunity.lib.vec.Vec3i;
 
 public class TileMultipart extends TileEntity implements ITilePartHolder {
 
     private Map<String, IPart> parts = new HashMap<String, IPart>();
-    private List<IPart> toUpdate = new ArrayList<IPart>();
-    private List<String> removed = new ArrayList<String>();
 
     @Override
     public World getWorld() {
@@ -111,7 +109,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
         parts.put(genIdentifier(), part);
         part.setParent(this);
-        sendPartUpdate(part);
         if (part instanceof IPartUpdateListener)
             ((IPartUpdateListener) part).onAdded();
         for (IPart p : getParts())
@@ -126,8 +123,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             return false;
         if (!parts.containsValue(part))
             return false;
-        if (removed.contains(part))
-            return false;
 
         if (part instanceof IPartUpdateListener)
             ((IPartUpdateListener) part).onRemoved();
@@ -136,10 +131,8 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                 ((IPartUpdateListener) p).onPartChanged(part);
 
         String id = getIdentifier(part);
-        removed.add(id);
         parts.remove(id);
         part.setParent(null);
-        sendUpdatePacket();
 
         return true;
     }
@@ -170,14 +163,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                 return parts.get(s);
 
         return null;
-    }
-
-    @Override
-    public void sendPartUpdate(IPart part) {
-
-        if (!toUpdate.contains(part))
-            toUpdate.add(part);
-        sendUpdatePacket();
     }
 
     public int getLightValue() {
@@ -213,7 +198,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         return closest;
     }
 
-    // Saving/syncing parts
+    // Saving/loading/syncing parts
 
     @Override
     public void writeToNBT(NBTTagCompound tag) {
@@ -221,7 +206,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         super.writeToNBT(tag);
 
         NBTTagList l = new NBTTagList();
-        writeParts(l, getParts(), false);
+        writeParts(l, false);
         tag.setTag("parts", l);
     }
 
@@ -232,46 +217,31 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
         readParts(l, false, false);
-        toUpdate.addAll(getParts());
     }
 
     public void writeUpdateToNBT(NBTTagCompound tag) {
 
-        List<IPart> toUpdate = new ArrayList<IPart>();
-        toUpdate.addAll(this.toUpdate);
+        System.out.println("Writing update with " + parts.size() + " (" + getParts().size() + ") parts");
 
         NBTTagList l = new NBTTagList();
-        writeParts(l, toUpdate, true);
+        writeParts(l, true);
         tag.setTag("parts", l);
-
-        NBTTagList rem = new NBTTagList();
-        for (String s : removed)
-            rem.appendTag(new NBTTagString(s));
-        tag.setTag("removed", rem);
     }
 
     public void readUpdateFromNBT(NBTTagCompound tag) {
 
-        int before = getParts().size();
+        System.out.println("Received update!");
 
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
         readParts(l, true, true);
 
-        NBTTagList rem = tag.getTagList("removed", new NBTTagString().getId());
-        for (int i = 0; i < rem.tagCount(); i++)
-            removePart(getPart(rem.getStringTagAt(i)));
-
-        if (getParts().size() != before)
-            getWorldObj().markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord, yCoord, zCoord);
+        getWorldObj().markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord, yCoord, zCoord);
     }
 
-    private void writeParts(NBTTagList l, List<IPart> parts, boolean update) {
+    private void writeParts(NBTTagList l, boolean update) {
 
-        for (IPart p : parts) {
+        for (IPart p : getParts()) {
             String id = getIdentifier(p);
-
-            if (removed.contains(id))
-                continue;
 
             NBTTagCompound tag = new NBTTagCompound();
 
@@ -299,6 +269,13 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                 p = PartRegistry.createPart(tag.getString("type"), client);
                 p.setParent(this);
                 parts.put(id, p);
+
+                if (client)
+                    System.out.println("                  Created part: " + p + "@" + new Vec3i(this));
+            } else {
+
+                if (client)
+                    System.out.println("                  Updated part: " + p + "@" + new Vec3i(this));
             }
 
             NBTTagCompound data = tag.getCompoundTag("data");
@@ -316,9 +293,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         writeUpdateToNBT(tag);
         S35PacketUpdateTileEntity pkt = new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, tag);
 
-        toUpdate.clear();
-        removed.clear();
-
         return pkt;
     }
 
@@ -326,11 +300,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
 
         readUpdateFromNBT(pkt.func_148857_g());
-    }
-
-    public void sendUpdatePacket() {
-
-        getWorldObj().markBlockForUpdate(xCoord, yCoord, zCoord);
     }
 
     public void removePart(EntityPlayer player) {
@@ -414,15 +383,12 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             if (firstTick) {
                 if (p instanceof IPartUpdateListener)
                     ((IPartUpdateListener) p).onLoaded();
-                if (!getWorld().isRemote) {
-                    toUpdate.clear();
-                    toUpdate.addAll(getParts());
-                }
                 firstTick = false;
             }
             if (p instanceof IPartTicking)
                 ((IPartTicking) p).update();
         }
+
     }
 
     public List<Vec3dCube> getOcclusionBoxes() {

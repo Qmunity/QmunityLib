@@ -27,7 +27,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class Vec3i {
+public class Vec3i implements IWorldLocation {
 
     protected int x, y, z;
     protected World w = null;
@@ -262,6 +262,7 @@ public class Vec3i {
         return null;
     }
 
+    @Override
     public World getWorld() {
 
         return w;
@@ -274,16 +275,19 @@ public class Vec3i {
         return this;
     }
 
+    @Override
     public int getX() {
 
         return x;
     }
 
+    @Override
     public int getY() {
 
         return y;
     }
 
+    @Override
     public int getZ() {
 
         return z;

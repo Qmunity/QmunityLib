@@ -98,11 +98,8 @@ public class BlockMultipart extends BlockContainer {
             return null;
 
         QMovingObjectPosition mop = te.rayTrace(new Vec3d(start), new Vec3d(end));
-        if (mop == null) {
-            if (te.getParts().size() == 0)
-                return super.collisionRayTrace(world, x, y, z, start, end);
+        if (mop == null)
             return null;
-        }
 
         Vec3dCube c = mop.getCube();
         setBlockBounds((float) c.getMinX(), (float) c.getMinY(), (float) c.getMinZ(), (float) c.getMaxX(), (float) c.getMaxY(),

@@ -4,9 +4,17 @@ import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.List;
 
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -124,7 +132,8 @@ public class RenderHelper {
         vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), minU, maxV);
     }
 
-    public static DoubleBuffer planeEquation(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3) {
+    public static DoubleBuffer planeEquation(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3,
+            double z3) {
 
         double[] eq = new double[4];
         eq[0] = (y1 * (z2 - z3)) + (y2 * (z3 - z1)) + (y3 * (z1 - z2));
@@ -280,5 +289,34 @@ public class RenderHelper {
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
+    }
+
+    private static RenderItem customRenderItem;
+
+    public static void renderItem(ItemStack item) {
+
+        if (customRenderItem == null) {
+            customRenderItem = new RenderItem() {
+
+                @Override
+                public boolean shouldSpreadItems() {
+
+                    return false;
+                }
+            };
+            customRenderItem.setRenderManager(RenderManager.instance);
+        }
+        EntityItem ghostEntityItem = new EntityItem(Minecraft.getMinecraft().theWorld);
+        ghostEntityItem.hoverStart = 0.0F;
+        ghostEntityItem.setEntityItemStack(item);
+        GL11.glColor3d(1, 1, 1);
+        if (item.getItem() instanceof ItemBlock) {
+            ItemBlock testItem = (ItemBlock) item.getItem();
+            Block testBlock = testItem.field_150939_a;
+            if (RenderBlocks.renderItemIn3d(testBlock.getRenderType())) {
+                GL11.glScaled(1.2, 1.2, 1.2);
+            }
+        }
+        customRenderItem.doRender(ghostEntityItem, 0, 0, 0, 0, 0);
     }
 }

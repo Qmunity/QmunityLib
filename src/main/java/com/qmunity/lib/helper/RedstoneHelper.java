@@ -32,7 +32,7 @@ public class RedstoneHelper {
             if (BlockRedstoneWire.isPowerProviderOrWire(world, x, y, z, d)
                     || BlockRedstoneWire.isPowerProviderOrWire(world, x + side.offsetX + side.offsetX, y + side.offsetY + side.offsetY, z
                             + side.offsetZ + side.offsetZ, (d + 2) % 4)) {
-                return world.getBlockMetadata(x, y, z);
+                return block.isProvidingStrongPower(world, x, y, z, side.ordinal());
             }
         }
         if (block instanceof BlockRedstoneComparator)
@@ -88,13 +88,9 @@ public class RedstoneHelper {
                 return compat.getWeakRedstoneOuput(world, location, side, face);
         }
 
-        int power = getVanillaSignalStrength(world, x, y, z, side, face);
-        if (power > 0)
-            return power;
-
         Block block = world.getBlock(x, y, z);
 
-        power = block.isProvidingWeakPower(world, x, y, z, side.getOpposite().ordinal());
+        int power = block.isProvidingWeakPower(world, x, y, z, side.getOpposite().ordinal());
         if (power > 0)
             return power;
 

@@ -28,8 +28,6 @@ public interface ITilePartHolder {
 
     public boolean removePart(IPart part);
 
-    public void sendPartUpdate(IPart part);
-
     public QMovingObjectPosition rayTrace(Vec3d start, Vec3d end);
 
     public void addCollisionBoxesToList(List<Vec3dCube> boxes, AxisAlignedBB bounds, Entity entity);

@@ -44,8 +44,8 @@ public class FMPPartFactory implements IPartFactory, IPartConverter {
     @Override
     public TMultiPart createPart(String type, boolean client) {
 
-        if (type.equals(QLModInfo.MODID + ".multipart"))
-            return new FMPPart();
+        // if (type.equals(QLModInfo.MODID + ".multipart"))
+        // return new FMPPart();
 
         return null;
     }
