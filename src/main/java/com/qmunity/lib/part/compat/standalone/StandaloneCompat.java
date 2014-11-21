@@ -1,6 +1,8 @@
 package com.qmunity.lib.part.compat.standalone;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -10,6 +12,7 @@ import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.ITilePartHolder;
 import com.qmunity.lib.part.PartNormallyOccluded;
 import com.qmunity.lib.part.compat.IMultipartCompat;
+import com.qmunity.lib.raytrace.RayTracer;
 import com.qmunity.lib.tile.TileMultipart;
 import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
@@ -71,6 +74,75 @@ public class StandaloneCompat implements IMultipartCompat {
         te.addPart(part);
 
         return true;
+    }
+
+    @Override
+    public boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
+            ItemStack item, int pass) {
+
+        if (pass == 0 && player.isSneaking())
+            return false;
+
+        MovingObjectPosition mop = world.getBlock(location.getX(), location.getY(), location.getZ()).collisionRayTrace(world,
+                location.getX(), location.getY(), location.getZ(), RayTracer.instance().getStartVector(player).toVec3(),
+                RayTracer.instance().getEndVector(player).toVec3());
+        if (mop == null)
+            return false;
+
+        boolean solidFace = false;
+        double x = mop.hitVec.xCoord - mop.blockX;
+        double y = mop.hitVec.yCoord - mop.blockY;
+        double z = mop.hitVec.zCoord - mop.blockZ;
+        if (x < 0)
+            x += 1;
+        if (y < 0)
+            y += 1;
+        if (z < 0)
+            z += 1;
+
+        switch (clickedFace) {
+        case DOWN:
+            if (y == 0)
+                solidFace = true;
+            break;
+        case UP:
+            if (y == 1)
+                solidFace = true;
+            break;
+        case WEST:
+            if (x == 0)
+                solidFace = true;
+            break;
+        case EAST:
+            if (x == 1)
+                solidFace = true;
+            break;
+        case NORTH:
+            if (z == 0)
+                solidFace = true;
+            break;
+        case SOUTH:
+            if (z == 1)
+                solidFace = true;
+            break;
+        default:
+            break;
+        }
+
+        if (pass == 1 || solidFace)
+            location.add(clickedFace);
+
+        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location))
+            if (addPartToWorld(part, world, location, player))
+                return true;
+
+        return false;
+    }
+
+    @Override
+    public int getPlacementPasses() {
+
+        return 2;
     }
 
     @Override

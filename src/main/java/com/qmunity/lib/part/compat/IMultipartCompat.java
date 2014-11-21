@@ -1,6 +1,7 @@
 package com.qmunity.lib.part.compat;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -18,6 +19,11 @@ public interface IMultipartCompat {
     public boolean addPartToWorld(IPart part, World world, Vec3i location, EntityPlayer player);
 
     public boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location, EntityPlayer player);
+
+    public boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
+            ItemStack item, int pass);
+
+    public int getPlacementPasses();
 
     public boolean isMultipart(World world, Vec3i location);
 

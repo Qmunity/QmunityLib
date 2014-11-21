@@ -1,5 +1,8 @@
 package com.qmunity.lib.part.compat;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -33,23 +36,21 @@ public class MultipartCompatibility {
     public static boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
             ItemStack item) {
 
-        if (!player.isSneaking()) {
-            for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
-                if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || s.getCompat().isMultipart(world, location)) {
-                    if (s.getCompat().addPartToWorld(part, world, location, player)) {
-                        if (!player.capabilities.isCreativeMode)
-                            item.stackSize -= 1;
-                        return true;
-                    }
-                }
-            }
+        Map<IMultipartCompat, Integer> passes = new HashMap<IMultipartCompat, Integer>();
+        int totalPasses = 0;
+        for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
+            IMultipartCompat c = s.getCompat();
+            int p = c.getPlacementPasses();
+            passes.put(c, p);
+            totalPasses += p;
         }
 
-        location = location.clone().add(clickedFace);
+        for (int pass = 0; pass < totalPasses; pass++) {
+            for (IMultipartCompat c : passes.keySet()) {
+                if (pass >= passes.get(c))
+                    continue;
 
-        for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
-            if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || s.getCompat().isMultipart(world, location)) {
-                if (s.getCompat().addPartToWorld(part, world, location, player)) {
+                if (c.placePartInWorld(part, world, location.clone(), clickedFace, player, item, pass)) {
                     if (!player.capabilities.isCreativeMode)
                         item.stackSize -= 1;
                     return true;
