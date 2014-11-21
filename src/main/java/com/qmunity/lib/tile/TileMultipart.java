@@ -32,11 +32,11 @@ import com.qmunity.lib.part.IPartTicking;
 import com.qmunity.lib.part.IPartUpdateListener;
 import com.qmunity.lib.part.ITilePartHolder;
 import com.qmunity.lib.part.PartRegistry;
+import com.qmunity.lib.part.compat.PartUpdateManager;
 import com.qmunity.lib.raytrace.QMovingObjectPosition;
 import com.qmunity.lib.raytrace.RayTracer;
 import com.qmunity.lib.vec.Vec3d;
 import com.qmunity.lib.vec.Vec3dCube;
-import com.qmunity.lib.vec.Vec3i;
 
 public class TileMultipart extends TileEntity implements ITilePartHolder {
 
@@ -107,6 +107,8 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     @Override
     public void addPart(IPart part) {
 
+        int before = parts.size();
+
         parts.put(genIdentifier(), part);
         part.setParent(this);
         if (part instanceof IPartUpdateListener)
@@ -114,6 +116,12 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         for (IPart p : getParts())
             if (p != part && p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onPartChanged(part);
+
+        if (before > 0)
+            PartUpdateManager.addPart(this, part);
+
+        markDirty();
+        getWorld().func_147479_m(getX(), getY(), getZ());
     }
 
     @Override
@@ -124,6 +132,8 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         if (!parts.containsValue(part))
             return false;
 
+        PartUpdateManager.removePart(this, part);
+
         if (part instanceof IPartUpdateListener)
             ((IPartUpdateListener) part).onRemoved();
         for (IPart p : getParts())
@@ -133,6 +143,11 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         String id = getIdentifier(part);
         parts.remove(id);
         part.setParent(null);
+
+        markDirty();
+        getWorld().func_147479_m(getX(), getY(), getZ());
+
+        System.out.println("Removed " + getWorld().isRemote);
 
         return true;
     }
@@ -221,16 +236,12 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
     public void writeUpdateToNBT(NBTTagCompound tag) {
 
-        System.out.println("Writing update with " + parts.size() + " (" + getParts().size() + ") parts");
-
         NBTTagList l = new NBTTagList();
         writeParts(l, true);
         tag.setTag("parts", l);
     }
 
     public void readUpdateFromNBT(NBTTagCompound tag) {
-
-        System.out.println("Received update!");
 
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
         readParts(l, true, true);
@@ -269,13 +280,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                 p = PartRegistry.createPart(tag.getString("type"), client);
                 p.setParent(this);
                 parts.put(id, p);
-
-                if (client)
-                    System.out.println("                  Created part: " + p + "@" + new Vec3i(this));
-            } else {
-
-                if (client)
-                    System.out.println("                  Updated part: " + p + "@" + new Vec3i(this));
             }
 
             NBTTagCompound data = tag.getCompoundTag("data");
@@ -291,13 +295,13 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
         NBTTagCompound tag = new NBTTagCompound();
         writeUpdateToNBT(tag);
-        S35PacketUpdateTileEntity pkt = new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, tag);
-
-        return pkt;
+        return new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, tag);
     }
 
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+
+        System.out.println("Received packet!");
 
         readUpdateFromNBT(pkt.func_148857_g());
     }
@@ -353,14 +357,17 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
     private void onUpdate() {
 
-        if (!getWorldObj().isRemote)
-            for (IPart p : getParts())
-                if (p instanceof IPartFace)
-                    if (!((IPartFace) p).canStay())
+        if (!getWorldObj().isRemote) {
+            for (IPart p : getParts()) {
+                if (p instanceof IPartFace) {
+                    if (!((IPartFace) p).canStay()) {
                         p.breakAndDrop(false);
 
-        if (getParts().size() == 0) {
-            getWorldObj().setBlockToAir(xCoord, yCoord, zCoord);
+                        if (getParts().size() == 0)
+                            getWorldObj().setBlockToAir(xCoord, yCoord, zCoord);
+                    }
+                }
+            }
         }
     }
 
@@ -388,7 +395,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             if (p instanceof IPartTicking)
                 ((IPartTicking) p).update();
         }
-
     }
 
     public List<Vec3dCube> getOcclusionBoxes() {
@@ -509,6 +515,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         return null;
     }
 
+    @Override
     public Map<String, IPart> getPartMap() {
 
         return parts;

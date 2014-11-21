@@ -24,13 +24,14 @@ public abstract class ItemMultipart extends Item {
     @Override
     public boolean onItemUse(ItemStack item, EntityPlayer player, World world, int x, int y, int z, int face, float x_, float y_, float z_) {
 
-        IPart part = createPart(item, player, world, new MovingObjectPosition(x, y, z, face, Vec3.createVectorHelper(x + x_, y + y_, z + z_)));
+        IPart part = createPart(item, player, world,
+                new MovingObjectPosition(x, y, z, face, Vec3.createVectorHelper(x + x_, y + y_, z + z_)));
 
         if (part == null)
             return false;
 
         ForgeDirection dir = ForgeDirection.getOrientation(face);
-        return MultipartCompatibility.addPartToWorld(part, world, new Vec3i(x, y, z), dir, player, item);
+        return MultipartCompatibility.placePartInWorld(part, world, new Vec3i(x, y, z), dir, player, item);
     }
 
     public abstract String getCreatedPartType(ItemStack item, EntityPlayer player, World world, MovingObjectPosition mop);

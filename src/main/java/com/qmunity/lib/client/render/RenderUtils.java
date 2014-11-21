@@ -1,4 +1,4 @@
-package com.qmunity.lib.render;
+package com.qmunity.lib.client.render;
 
 import java.nio.DoubleBuffer;
 import java.util.Iterator;
@@ -22,7 +22,7 @@ import org.lwjgl.opengl.GL12;
 
 import com.qmunity.lib.vec.Vec3dCube;
 
-public class RenderHelper {
+public class RenderUtils {
 
     /**
      * @author K-4U

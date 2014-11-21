@@ -14,6 +14,10 @@ import com.qmunity.lib.tile.TileMultipart;
 import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
 
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+
 public class StandaloneCompat implements IMultipartCompat {
 
     @Override
@@ -33,20 +37,38 @@ public class StandaloneCompat implements IMultipartCompat {
         if (!te.canAddPart(part))
             return false;
 
-        if (newTe) {
+        if (!world.isRemote) {
+            if (newTe) {
+                world.setBlock(location.getX(), location.getY(), location.getZ(), QLBlocks.multipart);
+                world.setTileEntity(location.getX(), location.getY(), location.getZ(), te);
+            }
             te.addPart(part);
-            if (te.getParts().size() == 0)
-                return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location, EntityPlayer player) {
+
+        TileMultipart te = BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());
+        boolean newTe = false;
+        if (te == null) {
+            te = new TileMultipart();
+            te.xCoord = location.getX();
+            te.yCoord = location.getY();
+            te.zCoord = location.getZ();
+            te.setWorldObj(world);
+            newTe = true;
         }
 
         if (!world.isRemote) {
             if (newTe) {
                 world.setBlock(location.getX(), location.getY(), location.getZ(), QLBlocks.multipart);
                 world.setTileEntity(location.getX(), location.getY(), location.getZ(), te);
-            } else {
-                te.addPart(part);
             }
         }
+        te.addPart(part);
 
         return true;
     }
@@ -110,6 +132,21 @@ public class StandaloneCompat implements IMultipartCompat {
             return false;
 
         return !te.canAddPart(new PartNormallyOccluded(cube));
+    }
+
+    @Override
+    public void preInit(FMLPreInitializationEvent event) {
+
+    }
+
+    @Override
+    public void init(FMLInitializationEvent event) {
+
+    }
+
+    @Override
+    public void postInit(FMLPostInitializationEvent event) {
+
     }
 
 }

@@ -20,6 +20,8 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.lib.data.MCDataInput;
+import codechicken.lib.data.MCDataOutput;
 import codechicken.lib.raytracer.ExtendedMOP;
 import codechicken.lib.raytracer.IndexedCuboid6;
 import codechicken.lib.vec.Cuboid6;
@@ -33,6 +35,7 @@ import codechicken.multipart.TNormalOcclusion;
 
 import com.qmunity.lib.QLModInfo;
 import com.qmunity.lib.QmunityLib;
+import com.qmunity.lib.client.render.RenderHelper;
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.IPartCollidable;
 import com.qmunity.lib.part.IPartFace;
@@ -71,7 +74,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @Override
     public String getType() {
 
-        return QLModInfo.MODID + ".multipart";
+        return QLModInfo.MODID + "_multipart";
     }
 
     @Override
@@ -111,7 +114,8 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         if (qmop == null)
             return null;
         new Cuboid6(qmop.getCube().toAABB()).setBlockBounds(tile().getBlockType());
-        return new ExtendedMOP(qmop, 0, qmop.hitVec.distanceTo(start));
+        Vec3 v = qmop.hitVec.subtract(start);
+        return new ExtendedMOP(qmop, 0, v.xCoord * v.xCoord + v.yCoord * v.yCoord + v.zCoord + v.zCoord);
     }
 
     private boolean firstTick = true;
@@ -132,6 +136,9 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
             if (p instanceof IPartTicking)
                 ((IPartTicking) p).update();
         }
+
+        if (!world().isRemote)
+            sendDescUpdate();
     }
 
     @Override
@@ -140,7 +147,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         super.save(tag);
 
         NBTTagList l = new NBTTagList();
-        writeParts(l, getParts());
+        writeParts(l, false);
         tag.setTag("parts", l);
     }
 
@@ -150,30 +157,53 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         super.load(tag);
 
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
-        readParts(l);
+        readParts(l, true, false);
     }
 
-    private void writeParts(NBTTagList l, List<IPart> parts) {
+    @Override
+    public void writeDesc(MCDataOutput packet) {
 
-        for (IPart p : parts) {
+        super.writeDesc(packet);
+
+        NBTTagCompound tag = new NBTTagCompound();
+
+        NBTTagList l = new NBTTagList();
+        writeParts(l, true);
+        tag.setTag("parts", l);
+
+        packet.writeNBTTagCompound(tag);
+    }
+
+    @Override
+    public void readDesc(MCDataInput packet) {
+
+        super.readDesc(packet);
+
+        NBTTagList l = packet.readNBTTagCompound().getTagList("parts", new NBTTagCompound().getId());
+        readParts(l, true, true);
+    }
+
+    private void writeParts(NBTTagList l, boolean update) {
+
+        for (IPart p : getParts()) {
             String id = getIdentifier(p);
-
-            if (removed.contains(id))
-                continue;
 
             NBTTagCompound tag = new NBTTagCompound();
 
             tag.setString("id", id);
             tag.setString("type", p.getType());
             NBTTagCompound data = new NBTTagCompound();
-            p.writeToNBT(data);
+            if (update)
+                p.writeUpdateToNBT(data);
+            else
+                p.writeToNBT(data);
             tag.setTag("data", data);
 
             l.appendTag(tag);
         }
     }
 
-    private void readParts(NBTTagList l) {
+    private void readParts(NBTTagList l, boolean update, boolean client) {
 
         for (int i = 0; i < l.tagCount(); i++) {
             NBTTagCompound tag = l.getCompoundTagAt(i);
@@ -181,13 +211,16 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
             String id = tag.getString("id");
             IPart p = getPart(id);
             if (p == null) {
-                p = PartRegistry.createPart(tag.getString("type"), false);
+                p = PartRegistry.createPart(tag.getString("type"), client);
                 p.setParent(this);
                 parts.put(id, p);
             }
 
             NBTTagCompound data = tag.getCompoundTag("data");
-            p.readFromNBT(data);
+            if (update)
+                p.readUpdateFromNBT(data);
+            else
+                p.readFromNBT(data);
         }
     }
 
@@ -338,16 +371,20 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         boolean did = false;
 
         RenderBlocks renderer = RenderBlocks.getInstance();
+        RenderHelper.instance.setRenderCoords(getWorld(), (int) pos.x, (int) pos.y, (int) pos.z);
 
         renderer.blockAccess = getWorld();
 
         for (IPart p : getParts())
             if (p.getParent() != null && p instanceof IPartRenderable)
                 if (((IPartRenderable) p).shouldRenderOnPass(pass))
-                    if (((IPartRenderable) p).renderStatic(new Vec3i((int) pos.x, (int) pos.y, (int) pos.z), renderer, pass))
+                    if (((IPartRenderable) p).renderStatic(new Vec3i((int) pos.x, (int) pos.y, (int) pos.z), RenderHelper.instance,
+                            renderer, pass))
                         did = true;
 
         renderer.blockAccess = null;
+
+        RenderHelper.instance.reset();
 
         return did;
     }
@@ -480,7 +517,6 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
             if (p instanceof IPartRedstone)
                 if (((IPartRedstone) p).canConnectRedstone(ForgeDirection.getOrientation(side)))
                     return true;
-
         return false;
     }
 
@@ -603,8 +639,13 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         if (mop != null)
             if (mop.getPart() instanceof IPartInteractable)
                 return ((IPartInteractable) mop.getPart()).onActivated(player, mop, item);
-
         return false;
+    }
+
+    @Override
+    public Map<String, IPart> getPartMap() {
+
+        return parts;
     }
 
 }

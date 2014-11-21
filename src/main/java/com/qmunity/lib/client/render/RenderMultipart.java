@@ -52,14 +52,18 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
         renderer.renderStandardBlock(Blocks.stone, x, y, z);
         renderer.setRenderBounds(0, 0, 0, 1, 1, 1);
 
+        RenderHelper.instance.setRenderCoords(world, x, y, z);
+
         TileMultipart te = BlockMultipart.get(world, x, y, z);
         if (te != null)
             for (IPart p : te.getParts())
                 if (p.getParent() != null && p instanceof IPartRenderable)
                     if (((IPartRenderable) p).shouldRenderOnPass(PASS))
-                        ((IPartRenderable) p).renderStatic(new Vec3i(x, y, z), renderer, PASS);
+                        ((IPartRenderable) p).renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, PASS);
 
-        return false;
+        RenderHelper.instance.reset();
+
+        return true;
     }
 
     @Override

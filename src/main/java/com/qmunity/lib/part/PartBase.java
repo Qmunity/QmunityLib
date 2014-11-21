@@ -8,6 +8,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 import com.qmunity.lib.helper.ItemHelper;
+import com.qmunity.lib.part.compat.PartUpdateManager;
 import com.qmunity.lib.raytrace.QMovingObjectPosition;
 
 public abstract class PartBase implements IPart {
@@ -73,7 +74,7 @@ public abstract class PartBase implements IPart {
     @Override
     public void sendUpdatePacket() {
 
-        // FIXME PartUpdateManager.sendPartUpdate(this);
+        PartUpdateManager.sendPartUpdate(parent, this);
     }
 
     @Override

@@ -19,13 +19,17 @@ import com.qmunity.lib.part.compat.IMultipartCompat;
 import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
 
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+
 public class FMPCompat implements IMultipartCompat {
 
     @Override
     public boolean addPartToWorld(IPart part, World world, Vec3i location, EntityPlayer player) {
 
         BlockCoord b = new BlockCoord(location.getX(), location.getY(), location.getZ());
-        TileMultipart tmp = TileMultipart.getTile(world, b);
+        TileMultipart tmp = TileMultipart.getOrConvertTile(world, b);
         if (tmp == null)
             return false;
 
@@ -53,15 +57,39 @@ public class FMPCompat implements IMultipartCompat {
     }
 
     @Override
+    public boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location, EntityPlayer player) {
+
+        BlockCoord b = new BlockCoord(location.getX(), location.getY(), location.getZ());
+        TileMultipart tmp = TileMultipart.getOrConvertTile(world, b);
+        if (tmp == null)
+            return false;
+
+        FMPPart p = (FMPPart) getPartHolder(world, location);
+        boolean isNew = false;
+        if (p == null) {
+            p = new FMPPart();
+            isNew = true;
+        }
+
+        if (!world.isRemote)
+            p.addPart(part);
+
+        if (isNew && !world.isRemote)
+            TileMultipart.addPart(world, b, p);
+
+        return true;
+    }
+
+    @Override
     public boolean isMultipart(World world, Vec3i location) {
 
-        return TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ())) != null;
+        return TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ())) != null;
     }
 
     @Override
     public int getStrongRedstoneOuput(World world, Vec3i location, ForgeDirection side, ForgeDirection face) {
 
-        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
         if (tmp == null)
             return 0;
 
@@ -90,7 +118,7 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public int getWeakRedstoneOuput(World world, Vec3i location, ForgeDirection side, ForgeDirection face) {
 
-        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
         if (tmp == null)
             return 0;
 
@@ -122,7 +150,7 @@ public class FMPCompat implements IMultipartCompat {
         int s = Direction.getMovementDirection(side.offsetX, side.offsetZ);
         int f = face.ordinal();
 
-        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
         if (tmp == null)
             return false;
 
@@ -153,7 +181,7 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public ITilePartHolder getPartHolder(World world, Vec3i location) {
 
-        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
 
         for (TMultiPart p : tmp.jPartList())
             if (p instanceof FMPPart)
@@ -165,10 +193,26 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public boolean checkOcclusion(World world, Vec3i location, Vec3dCube cube) {
 
-        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
         if (tmp == null)
             return false;
 
         return !tmp.canAddPart(new NormallyOccludedPart(new Cuboid6(cube.toAABB())));
+    }
+
+    @Override
+    public void preInit(FMLPreInitializationEvent event) {
+
+    }
+
+    @Override
+    public void init(FMLInitializationEvent event) {
+
+        FMPPartFactory.register();
+    }
+
+    @Override
+    public void postInit(FMLPostInitializationEvent event) {
+
     }
 }

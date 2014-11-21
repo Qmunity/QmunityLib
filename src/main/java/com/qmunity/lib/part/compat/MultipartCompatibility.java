@@ -12,7 +12,25 @@ import com.qmunity.lib.vec.Vec3i;
 
 public class MultipartCompatibility {
 
-    public static boolean addPartToWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
+    public static boolean addPartToWorld(IPart part, World world, Vec3i location) {
+
+        for (MultipartSystem s : MultipartSystem.getAvailableSystems())
+            if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || s.getCompat().isMultipart(world, location))
+                if (s.getCompat().addPartToWorld(part, world, location, null))
+                    return true;
+        return false;
+    }
+
+    public static boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location) {
+
+        for (MultipartSystem s : MultipartSystem.getAvailableSystems())
+            if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || s.getCompat().isMultipart(world, location))
+                if (s.getCompat().addPartToWorldBruteforce(part, world, location, null))
+                    return true;
+        return false;
+    }
+
+    public static boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
             ItemStack item) {
 
         if (!player.isSneaking()) {

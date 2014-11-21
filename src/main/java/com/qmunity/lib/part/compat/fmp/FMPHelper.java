@@ -28,8 +28,6 @@ public class FMPHelper {
 
         if (compat == null)
             compat = new FMPCompat();
-
-        FMPPartFactory.register();
     }
 
 }

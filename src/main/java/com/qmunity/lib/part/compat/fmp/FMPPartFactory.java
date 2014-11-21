@@ -21,7 +21,7 @@ public class FMPPartFactory implements IPartFactory, IPartConverter {
 
         FMPPartFactory reg = new FMPPartFactory();
 
-        MultiPartRegistry.registerParts(reg, new String[] { QLModInfo.MODID + ".multipart" });
+        MultiPartRegistry.registerParts(reg, new String[] { QLModInfo.MODID + "_multipart" });
         MultiPartRegistry.registerConverter(reg);
     }
 
@@ -44,8 +44,8 @@ public class FMPPartFactory implements IPartFactory, IPartConverter {
     @Override
     public TMultiPart createPart(String type, boolean client) {
 
-        // if (type.equals(QLModInfo.MODID + ".multipart"))
-        // return new FMPPart();
+        if (type.equals(QLModInfo.MODID + "_multipart"))
+            return new FMPPart();
 
         return null;
     }

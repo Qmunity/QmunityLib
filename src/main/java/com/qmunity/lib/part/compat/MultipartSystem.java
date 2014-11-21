@@ -8,6 +8,10 @@ import java.util.List;
 import com.qmunity.lib.part.compat.fmp.FMPHelper;
 import com.qmunity.lib.part.compat.standalone.StandaloneCompat;
 
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+
 public enum MultipartSystem {
 
     STANDALONE(0, true, new StandaloneCompat()), //
@@ -57,6 +61,24 @@ public enum MultipartSystem {
         });
 
         return l;
+    }
+
+    public static void preInit(FMLPreInitializationEvent event) {
+
+        for (MultipartSystem s : getAvailableSystems())
+            s.getCompat().preInit(event);
+    }
+
+    public static void init(FMLInitializationEvent event) {
+
+        for (MultipartSystem s : getAvailableSystems())
+            s.getCompat().init(event);
+    }
+
+    public static void postInit(FMLPostInitializationEvent event) {
+
+        for (MultipartSystem s : getAvailableSystems())
+            s.getCompat().postInit(event);
     }
 
 }

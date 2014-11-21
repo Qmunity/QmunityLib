@@ -9,9 +9,15 @@ import com.qmunity.lib.part.ITilePartHolder;
 import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
 
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+
 public interface IMultipartCompat {
 
     public boolean addPartToWorld(IPart part, World world, Vec3i location, EntityPlayer player);
+
+    public boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location, EntityPlayer player);
 
     public boolean isMultipart(World world, Vec3i location);
 
@@ -24,5 +30,11 @@ public interface IMultipartCompat {
     public ITilePartHolder getPartHolder(World world, Vec3i location);
 
     public boolean checkOcclusion(World world, Vec3i location, Vec3dCube cube);
+
+    public void preInit(FMLPreInitializationEvent event);
+
+    public void init(FMLInitializationEvent event);
+
+    public void postInit(FMLPostInitializationEvent event);
 
 }

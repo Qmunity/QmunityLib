@@ -140,7 +140,7 @@ public class BlockMultipart extends BlockContainer {
             return false;
         }
 
-        return false;// super.removedByPlayer(world, player, x, y, z);
+        return false;
     }
 
     @Override

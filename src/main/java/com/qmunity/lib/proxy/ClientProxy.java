@@ -4,8 +4,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 
 import com.qmunity.lib.client.render.RenderMultipart;
+import com.qmunity.lib.client.render.RenderParticle;
 import com.qmunity.lib.effect.EntityFXParticle;
-import com.qmunity.lib.render.RenderParticle;
 import com.qmunity.lib.tile.TileMultipart;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
