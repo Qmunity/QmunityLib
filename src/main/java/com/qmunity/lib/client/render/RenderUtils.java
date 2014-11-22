@@ -132,15 +132,9 @@ public class RenderUtils {
         vertexWithTexture(cube.getMinX(), cube.getMaxY(), cube.getMaxZ(), minU, maxV);
     }
 
-    public static DoubleBuffer planeEquation(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3,
-            double z3) {
+    public static DoubleBuffer planeEquation(double x, double y, double z) {
 
-        double[] eq = new double[4];
-        eq[0] = (y1 * (z2 - z3)) + (y2 * (z3 - z1)) + (y3 * (z1 - z2));
-        eq[1] = (z1 * (x2 - x3)) + (z2 * (x3 - x1)) + (z3 * (x1 - x2));
-        eq[2] = (x1 * (y2 - y3)) + (x2 * (y3 - y1)) + (x3 * (y1 - y2));
-        eq[3] = -((x1 * ((y2 * z3) - (y3 * z2))) + (x2 * ((y3 * z1) - (y1 * z3))) + (x3 * ((y1 * z2) - (y2 * z1))));
-        return fromArray(eq);
+        return fromArray(new double[] { x, y, z, 0 });
     }
 
     public static DoubleBuffer fromArray(double... eq) {

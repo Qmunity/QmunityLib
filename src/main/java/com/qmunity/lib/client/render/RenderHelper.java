@@ -172,11 +172,13 @@ public class RenderHelper {
         lightmap.set(x + 1, y + 1, z + 1, value);
     }
 
+    @SuppressWarnings("unused")
     private int getLightValue(int x, int y, int z) {
 
         return lightmap.get(x + 1, y + 1, z + 1);
     }
 
+    @SuppressWarnings("unused")
     private void addVertex(double x, double y, double z, double u, double v) {
 
         setTextureCoords(u, v);

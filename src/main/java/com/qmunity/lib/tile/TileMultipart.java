@@ -147,8 +147,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         markDirty();
         getWorld().func_147479_m(getX(), getY(), getZ());
 
-        System.out.println("Removed " + getWorld().isRemote);
-
         return true;
     }
 

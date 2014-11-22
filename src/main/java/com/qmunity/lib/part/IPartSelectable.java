@@ -6,7 +6,7 @@ import com.qmunity.lib.raytrace.QMovingObjectPosition;
 import com.qmunity.lib.vec.Vec3d;
 import com.qmunity.lib.vec.Vec3dCube;
 
-public interface IPartSelectable {
+public interface IPartSelectable extends IPart {
 
     public QMovingObjectPosition rayTrace(Vec3d start, Vec3d end);
 

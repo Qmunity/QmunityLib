@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 
 import com.qmunity.lib.raytrace.QMovingObjectPosition;
 
-public interface IPartInteractable {
+public interface IPartInteractable extends IPart {
 
     public boolean onActivated(EntityPlayer player, QMovingObjectPosition hit, ItemStack item);
 

@@ -16,12 +16,12 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 public interface IMultipartCompat {
 
-    public boolean addPartToWorld(IPart part, World world, Vec3i location, EntityPlayer player);
+    public boolean addPartToWorld(IPart part, World world, Vec3i location, boolean simulated);
 
-    public boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location, EntityPlayer player);
+    public boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location);
 
     public boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
-            ItemStack item, int pass);
+            ItemStack item, int pass, boolean simulated);
 
     public int getPlacementPasses();
 

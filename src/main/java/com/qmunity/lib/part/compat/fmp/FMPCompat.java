@@ -18,6 +18,7 @@ import codechicken.multipart.TileMultipart;
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.ITilePartHolder;
 import com.qmunity.lib.part.compat.IMultipartCompat;
+import com.qmunity.lib.part.compat.MultipartCompatibility;
 import com.qmunity.lib.raytrace.RayTracer;
 import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
@@ -29,7 +30,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class FMPCompat implements IMultipartCompat {
 
     @Override
-    public boolean addPartToWorld(IPart part, World world, Vec3i location, EntityPlayer player) {
+    public boolean addPartToWorld(IPart part, World world, Vec3i location, boolean simulated) {
 
         BlockCoord b = new BlockCoord(location.getX(), location.getY(), location.getZ());
         TileMultipart tmp = TileMultipart.getOrConvertTile(world, b);
@@ -46,13 +47,23 @@ public class FMPCompat implements IMultipartCompat {
         if (!p.canAddPart(part))
             return false;
 
-        if (!world.isRemote)
-            p.addPart(part);
+        if (!simulated) {
+            if (!world.isRemote)
+                p.addPart(part);
+        } else {
+            part.setParent(p);
+            TileMultipart te = new TileMultipart();
+            te.xCoord = location.getX();
+            te.yCoord = location.getY();
+            te.zCoord = location.getZ();
+            te.setWorldObj(world);
+            p.tile_$eq(te);
+        }
 
         if (isNew) {
             if (!tmp.canAddPart(p))
                 return false;
-            if (!world.isRemote)
+            if (!simulated && !world.isRemote)
                 TileMultipart.addPart(world, b, p);
         }
 
@@ -60,7 +71,7 @@ public class FMPCompat implements IMultipartCompat {
     }
 
     @Override
-    public boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location, EntityPlayer player) {
+    public boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location) {
 
         BlockCoord b = new BlockCoord(location.getX(), location.getY(), location.getZ());
         TileMultipart tmp = TileMultipart.getOrConvertTile(world, b);
@@ -85,7 +96,7 @@ public class FMPCompat implements IMultipartCompat {
 
     @Override
     public boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
-            ItemStack item, int pass) {
+            ItemStack item, int pass, boolean simulated) {
 
         if (pass == 0 && player.isSneaking())
             return false;
@@ -140,7 +151,8 @@ public class FMPCompat implements IMultipartCompat {
             location.add(clickedFace);
 
         if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location))
-            if (addPartToWorld(part, world, location, player))
+            if (MultipartCompatibility.getPlacementForPart(part, world, location, clickedFace, mop, player).placePart(part, world,
+                    location, this, simulated))
                 return true;
 
         return false;

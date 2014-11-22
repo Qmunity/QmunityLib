@@ -1,7 +1,6 @@
 package com.qmunity.lib.part;
 
-
-public interface IPartUpdateListener {
+public interface IPartUpdateListener extends IPart {
 
     public void onPartChanged(IPart part);
 

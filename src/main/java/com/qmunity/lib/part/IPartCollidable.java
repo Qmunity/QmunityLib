@@ -6,7 +6,7 @@ import net.minecraft.entity.Entity;
 
 import com.qmunity.lib.vec.Vec3dCube;
 
-public interface IPartCollidable {
+public interface IPartCollidable extends IPart {
 
     public void addCollisionBoxesToList(List<Vec3dCube> boxes, Entity entity);
 

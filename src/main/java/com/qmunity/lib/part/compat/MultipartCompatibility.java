@@ -5,11 +5,15 @@ import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.qmunity.lib.part.IPart;
+import com.qmunity.lib.part.IPartCustomPlacement;
+import com.qmunity.lib.part.IPartPlacement;
 import com.qmunity.lib.part.ITilePartHolder;
+import com.qmunity.lib.part.PartPlacementDefault;
 import com.qmunity.lib.vec.Vec3dCube;
 import com.qmunity.lib.vec.Vec3i;
 
@@ -17,9 +21,14 @@ public class MultipartCompatibility {
 
     public static boolean addPartToWorld(IPart part, World world, Vec3i location) {
 
+        return addPartToWorld(part, world, location, false);
+    }
+
+    public static boolean addPartToWorld(IPart part, World world, Vec3i location, boolean simulated) {
+
         for (MultipartSystem s : MultipartSystem.getAvailableSystems())
             if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || s.getCompat().isMultipart(world, location))
-                if (s.getCompat().addPartToWorld(part, world, location, null))
+                if (s.getCompat().addPartToWorld(part, world, location, simulated))
                     return true;
         return false;
     }
@@ -28,13 +37,22 @@ public class MultipartCompatibility {
 
         for (MultipartSystem s : MultipartSystem.getAvailableSystems())
             if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || s.getCompat().isMultipart(world, location))
-                if (s.getCompat().addPartToWorldBruteforce(part, world, location, null))
+                if (s.getCompat().addPartToWorldBruteforce(part, world, location))
                     return true;
         return false;
     }
 
     public static boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
             ItemStack item) {
+
+        return placePartInWorld(part, world, location, clickedFace, player, item, false);
+    }
+
+    public static boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
+            ItemStack item, boolean simulated) {
+
+        if (simulated)
+            PartUpdateManager.setUpdatesEnabled(false);
 
         Map<IMultipartCompat, Integer> passes = new HashMap<IMultipartCompat, Integer>();
         int totalPasses = 0;
@@ -50,13 +68,16 @@ public class MultipartCompatibility {
                 if (pass >= passes.get(c))
                     continue;
 
-                if (c.placePartInWorld(part, world, location.clone(), clickedFace, player, item, pass)) {
+                if (c.placePartInWorld(part, world, location.clone(), clickedFace, player, item, pass, simulated)) {
                     if (!player.capabilities.isCreativeMode)
                         item.stackSize -= 1;
                     return true;
                 }
             }
         }
+
+        if (simulated)
+            PartUpdateManager.setUpdatesEnabled(true);
 
         return false;
     }
@@ -127,5 +148,18 @@ public class MultipartCompatibility {
     public static boolean checkOcclusion(World world, int x, int y, int z, Vec3dCube cube) {
 
         return checkOcclusion(world, new Vec3i(x, y, z), cube);
+    }
+
+    public static IPartPlacement getPlacementForPart(IPart part, World world, Vec3i location, ForgeDirection face,
+            MovingObjectPosition mop, EntityPlayer player) {
+
+        IPartPlacement placement = null;
+
+        if (part instanceof IPartCustomPlacement)
+            placement = ((IPartCustomPlacement) part).getPlacement(part, world, location, face, mop, player);
+        if (placement != null)
+            return placement;
+
+        return new PartPlacementDefault();
     }
 }

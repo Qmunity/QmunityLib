@@ -2,7 +2,7 @@ package com.qmunity.lib.part;
 
 import java.util.Random;
 
-public interface IPartRandomDisplayTick {
+public interface IPartRandomDisplayTick extends IPart {
 
     public void randomDisplayTick(Random rnd);
 

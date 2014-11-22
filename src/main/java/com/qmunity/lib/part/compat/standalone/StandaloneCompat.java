@@ -12,6 +12,7 @@ import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.ITilePartHolder;
 import com.qmunity.lib.part.PartNormallyOccluded;
 import com.qmunity.lib.part.compat.IMultipartCompat;
+import com.qmunity.lib.part.compat.MultipartCompatibility;
 import com.qmunity.lib.raytrace.RayTracer;
 import com.qmunity.lib.tile.TileMultipart;
 import com.qmunity.lib.vec.Vec3dCube;
@@ -24,7 +25,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class StandaloneCompat implements IMultipartCompat {
 
     @Override
-    public boolean addPartToWorld(IPart part, World world, Vec3i location, EntityPlayer player) {
+    public boolean addPartToWorld(IPart part, World world, Vec3i location, boolean simulated) {
 
         TileMultipart te = BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());
         boolean newTe = false;
@@ -40,19 +41,23 @@ public class StandaloneCompat implements IMultipartCompat {
         if (!te.canAddPart(part))
             return false;
 
-        if (!world.isRemote) {
-            if (newTe) {
-                world.setBlock(location.getX(), location.getY(), location.getZ(), QLBlocks.multipart);
-                world.setTileEntity(location.getX(), location.getY(), location.getZ(), te);
+        if (!simulated) {
+            if (!world.isRemote) {
+                if (newTe) {
+                    world.setBlock(location.getX(), location.getY(), location.getZ(), QLBlocks.multipart);
+                    world.setTileEntity(location.getX(), location.getY(), location.getZ(), te);
+                }
+                te.addPart(part);
             }
-            te.addPart(part);
+        } else {
+            part.setParent(te);
         }
 
         return true;
     }
 
     @Override
-    public boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location, EntityPlayer player) {
+    public boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location) {
 
         TileMultipart te = BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());
         boolean newTe = false;
@@ -78,7 +83,7 @@ public class StandaloneCompat implements IMultipartCompat {
 
     @Override
     public boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
-            ItemStack item, int pass) {
+            ItemStack item, int pass, boolean simulated) {
 
         if (pass == 0 && player.isSneaking())
             return false;
@@ -133,9 +138,10 @@ public class StandaloneCompat implements IMultipartCompat {
             location.add(clickedFace);
 
         if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location))
-            if (addPartToWorld(part, world, location, player))
+            if (MultipartCompatibility.getPlacementForPart(part, world, location, clickedFace, mop, player).placePart(part, world,
+                    location, this, simulated))
                 return true;
-
+        // if (addPartToWorld(part, world, location, simulated))
         return false;
     }
 
