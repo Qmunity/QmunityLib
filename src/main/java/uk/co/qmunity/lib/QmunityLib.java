@@ -13,13 +13,13 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 @Mod(modid = QLModInfo.MODID, name = QLModInfo.NAME)
-public class QmunityLib {
+public class QmunityLib{
 
-    @SidedProxy(serverSide = "com.qmunity.lib.proxy.CommonProxy", clientSide = "com.qmunity.lib.proxy.ClientProxy")
+    @SidedProxy(serverSide = "uk.co.qmunity.lib.proxy.CommonProxy", clientSide = "uk.co.qmunity.lib.proxy.ClientProxy")
     public static CommonProxy proxy;
 
     @EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
+    public void preInit(FMLPreInitializationEvent event){
 
         event.getModMetadata().version = QLModInfo.fullVersionString();
         QLog.logger = event.getModLog();
@@ -28,7 +28,7 @@ public class QmunityLib {
     }
 
     @EventHandler
-    public void init(FMLInitializationEvent event) {
+    public void init(FMLInitializationEvent event){
 
         NetworkHandler.init();
 
@@ -40,7 +40,7 @@ public class QmunityLib {
     }
 
     @EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
+    public void postInit(FMLPostInitializationEvent event){
 
         MultipartSystem.postInit(event);
 
