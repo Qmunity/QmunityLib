@@ -26,6 +26,7 @@ import codechicken.lib.raytracer.ExtendedMOP;
 import codechicken.lib.raytracer.IndexedCuboid6;
 import codechicken.lib.vec.Cuboid6;
 import codechicken.lib.vec.Vector3;
+import codechicken.microblock.CommonMicroblock;
 import codechicken.multipart.INeighborTileChange;
 import codechicken.multipart.IRedstonePart;
 import codechicken.multipart.NormalOcclusionTest;
@@ -36,6 +37,7 @@ import codechicken.multipart.TNormalOcclusion;
 import com.qmunity.lib.QLModInfo;
 import com.qmunity.lib.QmunityLib;
 import com.qmunity.lib.client.render.RenderHelper;
+import com.qmunity.lib.part.IMicroblock;
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.IPartCollidable;
 import com.qmunity.lib.part.IPartFace;
@@ -646,6 +648,18 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     public Map<String, IPart> getPartMap() {
 
         return parts;
+    }
+
+    @Override
+    public List<IMicroblock> getMicroblocks() {
+
+        List<IMicroblock> microblocks = new ArrayList<IMicroblock>();
+
+        for (TMultiPart p : tile().jPartList())
+            if (p instanceof CommonMicroblock)
+                microblocks.add(new FMPMicroblock((CommonMicroblock) p));
+
+        return microblocks;
     }
 
 }

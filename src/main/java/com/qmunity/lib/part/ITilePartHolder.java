@@ -40,4 +40,6 @@ public interface ITilePartHolder extends IWorldLocation {
 
     public Map<String, IPart> getPartMap();
 
+    public List<IMicroblock> getMicroblocks();
+
 }

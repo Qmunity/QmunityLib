@@ -19,6 +19,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.qmunity.lib.part.IMicroblock;
 import com.qmunity.lib.part.IPart;
 import com.qmunity.lib.part.IPartCollidable;
 import com.qmunity.lib.part.IPartFace;
@@ -535,6 +536,18 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                 return ((IPartInteractable) mop.getPart()).onActivated(player, mop, player.getCurrentEquippedItem());
 
         return false;
+    }
+
+    @Override
+    public List<IMicroblock> getMicroblocks() {
+
+        List<IMicroblock> microblocks = new ArrayList<IMicroblock>();
+
+        for (IPart p : getParts())
+            if (p instanceof IMicroblock)
+                microblocks.add((IMicroblock) p);
+
+        return microblocks;
     }
 
 }
