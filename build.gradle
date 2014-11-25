@@ -37,7 +37,7 @@ project.ext {
 
 
 version = "${project.ext.major}.${project.minor}"
-group = "com.qmunity.lib"
+group = "co.uk.qmunity.lib"
 archivesBaseName = "QmunityLib"
 
 
