@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface IPartWAILAProvider extends IPart {
 
-    public void addWAILAText(List<String> text);
+    public void addWAILABody(List<String> text);
 
 }

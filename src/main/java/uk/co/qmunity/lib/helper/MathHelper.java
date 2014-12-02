@@ -1,10 +1,16 @@
 package uk.co.qmunity.lib.helper;
 
 public class MathHelper {
-    
+
     public static boolean isBetween(double min, double number, double max) {
-    
+
         return number >= min && number <= max;
     }
-    
+
+    public static int map(int amt, int originalMin, int originalMax, int newMin, int newMax) {
+
+        double amount = (amt - originalMin) / ((double) (originalMax - originalMin));
+        return (int) (amount * (newMax - newMin)) + newMin;
+    }
+
 }
