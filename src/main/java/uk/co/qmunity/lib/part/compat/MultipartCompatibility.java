@@ -3,6 +3,11 @@ package uk.co.qmunity.lib.part.compat;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartCustomPlacement;
 import uk.co.qmunity.lib.part.IPartPlacement;
@@ -10,11 +15,6 @@ import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.PartPlacementDefault;
 import uk.co.qmunity.lib.vec.Vec3dCube;
 import uk.co.qmunity.lib.vec.Vec3i;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 public class MultipartCompatibility {
 
@@ -157,11 +157,12 @@ public class MultipartCompatibility {
 
         IPartPlacement placement = null;
 
-        if (part instanceof IPartCustomPlacement)
-            placement = ((IPartCustomPlacement) part).getPlacement(part, world, location, face, mop, player);
+        if (!(part instanceof IPartCustomPlacement))
+            return new PartPlacementDefault();
+        placement = ((IPartCustomPlacement) part).getPlacement(part, world, location, face, mop, player);
         if (placement != null)
             return placement;
 
-        return new PartPlacementDefault();
+        return null;
     }
 }

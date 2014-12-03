@@ -1,18 +1,20 @@
 package uk.co.qmunity.lib.part.compat.fmp;
 
-import uk.co.qmunity.lib.part.IPart;
-import uk.co.qmunity.lib.part.ITilePartHolder;
-import uk.co.qmunity.lib.part.compat.IMultipartCompat;
-import uk.co.qmunity.lib.part.compat.MultipartCompatibility;
-import uk.co.qmunity.lib.raytrace.RayTracer;
-import uk.co.qmunity.lib.vec.Vec3dCube;
-import uk.co.qmunity.lib.vec.Vec3i;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.part.IPart;
+import uk.co.qmunity.lib.part.IPartFace;
+import uk.co.qmunity.lib.part.IPartPlacement;
+import uk.co.qmunity.lib.part.ITilePartHolder;
+import uk.co.qmunity.lib.part.compat.IMultipartCompat;
+import uk.co.qmunity.lib.part.compat.MultipartCompatibility;
+import uk.co.qmunity.lib.raytrace.RayTracer;
+import uk.co.qmunity.lib.vec.Vec3dCube;
+import uk.co.qmunity.lib.vec.Vec3i;
 import codechicken.lib.vec.BlockCoord;
 import codechicken.lib.vec.Cuboid6;
 import codechicken.multipart.IFaceRedstonePart;
@@ -50,11 +52,14 @@ public class FMPCompat implements IMultipartCompat {
                 p.addPart(part);
         } else {
             part.setParent(p);
-            TileMultipart te = new TileMultipart();
-            te.xCoord = location.getX();
-            te.yCoord = location.getY();
-            te.zCoord = location.getZ();
-            te.setWorldObj(world);
+            TileMultipart te = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+            if (te == null) {
+                te = new TileMultipart();
+                te.xCoord = location.getX();
+                te.yCoord = location.getY();
+                te.zCoord = location.getZ();
+                te.setWorldObj(world);
+            }
             p.tile_$eq(te);
         }
 
@@ -148,10 +153,25 @@ public class FMPCompat implements IMultipartCompat {
         if (pass == 1 || solidFace)
             location.add(clickedFace);
 
-        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location))
-            if (MultipartCompatibility.getPlacementForPart(part, world, location, clickedFace, mop, player).placePart(part, world,
-                    location, this, simulated))
-                return true;
+        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location)) {
+            IPartPlacement placement = MultipartCompatibility.getPlacementForPart(part, world, location, clickedFace, mop, player);
+            if (placement == null)
+                return false;
+            if (!simulated) {
+                if (!placement.placePart(part, world, location, this, true))
+                    return false;
+                if (part instanceof IPartFace && !((IPartFace) part).canStay())
+                    return false;
+                if (placement.placePart(part, world, location, this, false))
+                    return true;
+            } else {
+                if (placement.placePart(part, world, location, this, simulated)) {
+                    if (part instanceof IPartFace && !((IPartFace) part).canStay())
+                        return false;
+                    return true;
+                }
+            }
+        }
 
         return false;
     }

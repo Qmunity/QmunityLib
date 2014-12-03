@@ -1,8 +1,15 @@
 package uk.co.qmunity.lib.part.compat.standalone;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.block.BlockMultipart;
 import uk.co.qmunity.lib.init.QLBlocks;
 import uk.co.qmunity.lib.part.IPart;
+import uk.co.qmunity.lib.part.IPartFace;
+import uk.co.qmunity.lib.part.IPartPlacement;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.PartNormallyOccluded;
 import uk.co.qmunity.lib.part.compat.IMultipartCompat;
@@ -11,11 +18,6 @@ import uk.co.qmunity.lib.raytrace.RayTracer;
 import uk.co.qmunity.lib.tile.TileMultipart;
 import uk.co.qmunity.lib.vec.Vec3dCube;
 import uk.co.qmunity.lib.vec.Vec3i;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -135,11 +137,26 @@ public class StandaloneCompat implements IMultipartCompat {
         if (pass == 1 || solidFace)
             location.add(clickedFace);
 
-        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location))
-            if (MultipartCompatibility.getPlacementForPart(part, world, location, clickedFace, mop, player).placePart(part, world,
-                    location, this, simulated))
-                return true;
-        // if (addPartToWorld(part, world, location, simulated))
+        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location)) {
+            IPartPlacement placement = MultipartCompatibility.getPlacementForPart(part, world, location, clickedFace, mop, player);
+            if (placement == null)
+                return false;
+            if (!simulated) {
+                if (!placement.placePart(part, world, location, this, true))
+                    return false;
+                if (part instanceof IPartFace && !((IPartFace) part).canStay())
+                    return false;
+                if (placement.placePart(part, world, location, this, false))
+                    return true;
+            } else {
+                if (placement.placePart(part, world, location, this, simulated)) {
+                    if (part instanceof IPartFace && !((IPartFace) part).canStay())
+                        return false;
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 

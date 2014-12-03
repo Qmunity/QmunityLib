@@ -36,4 +36,13 @@ public class Pair<K, V> implements Entry<K, V> {
         return this.key = key;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+
+        if (!(obj instanceof Pair<?, ?>))
+            return false;
+
+        return getKey().equals(((Entry<?, ?>) obj).getKey()) && getValue().equals(((Entry<?, ?>) obj).getValue());
+    }
+
 }
