@@ -6,7 +6,7 @@
  * with Blue Power. If not, see <http://www.gnu.org/licenses/>
  */
 
-package uk.co.qmunity.lib.util;
+package uk.co.qmunity.lib.ref;
 
 public class Dependencies{
 
