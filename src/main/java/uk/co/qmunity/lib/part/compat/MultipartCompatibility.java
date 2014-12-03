@@ -68,7 +68,7 @@ public class MultipartCompatibility {
                     continue;
 
                 if (c.placePartInWorld(part, world, location.clone(), clickedFace, player, item, pass, simulated)) {
-                    if (!player.capabilities.isCreativeMode)
+                    if (!player.capabilities.isCreativeMode && !simulated)
                         item.stackSize -= 1;
 
                     if (simulated)
