@@ -95,10 +95,8 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             List<Vec3dCube> l = getOcclusionBoxes();
             for (Vec3dCube b : ((IPartOccluding) part).getOcclusionBoxes())
                 for (Vec3dCube c : l)
-                    if (b.toAABB().intersectsWith(c.toAABB())) {
-                        System.out.println(b.toAABB() + " -> " + c.toAABB());
+                    if (b.toAABB().intersectsWith(c.toAABB()))
                         return false;
-                    }
         }
 
         return true;
@@ -298,8 +296,6 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
-
-        System.out.println("Received packet!");
 
         readUpdateFromNBT(pkt.func_148857_g());
     }

@@ -32,6 +32,7 @@ import uk.co.qmunity.lib.part.IPartOccluding;
 import uk.co.qmunity.lib.part.IPartRedstone;
 import uk.co.qmunity.lib.part.IPartRenderable;
 import uk.co.qmunity.lib.part.IPartSelectable;
+import uk.co.qmunity.lib.part.IPartSolid;
 import uk.co.qmunity.lib.part.IPartTicking;
 import uk.co.qmunity.lib.part.IPartUpdateListener;
 import uk.co.qmunity.lib.part.ITilePartHolder;
@@ -55,7 +56,7 @@ import codechicken.multipart.NormallyOccludedPart;
 import codechicken.multipart.TMultiPart;
 import codechicken.multipart.TNormalOcclusion;
 
-public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclusion, IRedstonePart, INeighborTileChange {
+public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclusion, IRedstonePart, INeighborTileChange, IFMPPart {
 
     private Map<String, IPart> parts = new HashMap<String, IPart>();
     private List<String> removed = new ArrayList<String>();
@@ -661,4 +662,24 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         return microblocks;
     }
 
+    public boolean isSolid(ForgeDirection face) {
+
+        for (IPart p : getParts())
+            if (p instanceof IPartSolid && ((IPartSolid) p).isSideSolid(face))
+                return true;
+
+        return true;
+    }
+
+    @Override
+    public boolean isSolid(int side) {
+
+        return isSolid(ForgeDirection.getOrientation(side));
+    }
+
+}
+
+interface IFMPPart {
+
+    public boolean isSolid(int side);
 }

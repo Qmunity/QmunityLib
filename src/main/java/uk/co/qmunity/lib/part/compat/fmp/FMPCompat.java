@@ -195,8 +195,11 @@ public class FMPCompat implements IMultipartCompat {
         if (tmp == null)
             return 0;
 
-        if (face == ForgeDirection.UNKNOWN)
-            return tmp.strongPowerLevel(side.ordinal());
+        if (face == ForgeDirection.UNKNOWN) {
+            if (side != ForgeDirection.UNKNOWN)
+                return tmp.strongPowerLevel(side.ordinal());
+            return 0;
+        }
 
         int strong = 0;
 
@@ -224,8 +227,11 @@ public class FMPCompat implements IMultipartCompat {
         if (tmp == null)
             return 0;
 
-        if (face == ForgeDirection.UNKNOWN)
-            return tmp.weakPowerLevel(side.ordinal());
+        if (face == ForgeDirection.UNKNOWN) {
+            if (side != ForgeDirection.UNKNOWN)
+                return tmp.weakPowerLevel(side.ordinal());
+            return 0;
+        }
 
         int weak = 0;
 
