@@ -1,9 +1,7 @@
 package uk.co.qmunity.lib.helper;
 
-import uk.co.qmunity.lib.part.compat.IMultipartCompat;
-import uk.co.qmunity.lib.part.compat.MultipartSystem;
-import uk.co.qmunity.lib.vec.Vec3i;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockLever;
 import net.minecraft.block.BlockRedstoneComparator;
 import net.minecraft.block.BlockRedstoneRepeater;
 import net.minecraft.block.BlockRedstoneWire;
@@ -12,6 +10,9 @@ import net.minecraft.tileentity.TileEntityComparator;
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.part.compat.IMultipartCompat;
+import uk.co.qmunity.lib.part.compat.MultipartSystem;
+import uk.co.qmunity.lib.vec.Vec3i;
 
 public class RedstoneHelper {
 
@@ -67,6 +68,9 @@ public class RedstoneHelper {
         if (block == Blocks.unpowered_repeater || block == Blocks.powered_repeater)
             if (d % 2 == meta % 2)
                 return true;
+
+        if (block instanceof BlockLever)
+            return true;
 
         return false;
     }
