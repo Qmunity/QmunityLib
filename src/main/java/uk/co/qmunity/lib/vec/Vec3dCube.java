@@ -2,10 +2,11 @@ package uk.co.qmunity.lib.vec;
 
 import java.util.List;
 
-import uk.co.qmunity.lib.part.IPart;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.part.IPart;
+import uk.co.qmunity.lib.transform.Transformation;
 
 public class Vec3dCube {
 
@@ -250,5 +251,10 @@ public class Vec3dCube {
         }
 
         return null;
+    }
+
+    public Vec3dCube transform(Transformation transformation) {
+
+        return transformation.apply(this);
     }
 }

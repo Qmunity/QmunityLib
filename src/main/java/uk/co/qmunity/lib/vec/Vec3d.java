@@ -23,6 +23,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.transform.Transformation;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -424,6 +425,11 @@ public class Vec3d {
     public void setZ(double z) {
 
         this.z = z;
+    }
+
+    public Vec3d transform(Transformation transformation) {
+
+        return transformation.apply(this);
     }
 
     @Override
