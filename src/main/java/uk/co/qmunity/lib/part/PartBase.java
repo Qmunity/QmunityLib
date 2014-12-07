@@ -3,14 +3,26 @@ package uk.co.qmunity.lib.part;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+import uk.co.qmunity.lib.client.render.RenderHelper;
 import uk.co.qmunity.lib.helper.ItemHelper;
 import uk.co.qmunity.lib.part.compat.PartUpdateManager;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
+import uk.co.qmunity.lib.vec.Vec3d;
+import uk.co.qmunity.lib.vec.Vec3dCube;
+import uk.co.qmunity.lib.vec.Vec3i;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
+/**
+ * Basic implementation of the {@link IPart} interface.
+ *
+ * @author amadornes
+ */
 public abstract class PartBase implements IPart {
 
     private ITilePartHolder parent;
@@ -113,6 +125,46 @@ public abstract class PartBase implements IPart {
     public double getHardness(EntityPlayer player, QMovingObjectPosition mop) {
 
         return 0.1;
+    }
+
+    @Override
+    public int getLightValue() {
+
+        return 0;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public boolean renderBreaking(Vec3i translation, RenderHelper renderer, RenderBlocks renderBlocks, int pass, QMovingObjectPosition mop) {
+
+        return false;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public boolean renderStatic(Vec3i translation, RenderHelper renderer, RenderBlocks renderBlocks, int pass) {
+
+        return false;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void renderDynamic(Vec3d translation, double delta, int pass) {
+
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public boolean shouldRenderOnPass(int pass) {
+
+        return pass == 0;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Vec3dCube getRenderBounds() {
+
+        return new Vec3dCube(0, 0, 0, 1, 1, 1);
     }
 
 }

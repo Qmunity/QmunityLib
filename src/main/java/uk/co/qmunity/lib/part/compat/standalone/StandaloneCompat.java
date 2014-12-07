@@ -1,7 +1,5 @@
 package uk.co.qmunity.lib.part.compat.standalone;
 
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
@@ -9,7 +7,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.block.BlockMultipart;
 import uk.co.qmunity.lib.init.QLBlocks;
-import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartFace;
 import uk.co.qmunity.lib.part.IPartPlacement;
@@ -228,12 +225,6 @@ public class StandaloneCompat implements IMultipartCompat {
             return false;
 
         return !te.canAddPart(new PartNormallyOccluded(cube));
-    }
-
-    @Override
-    public List<IMicroblock> getMicroblocks(World world, Vec3i location) {
-
-        return null;
     }
 
     @Override

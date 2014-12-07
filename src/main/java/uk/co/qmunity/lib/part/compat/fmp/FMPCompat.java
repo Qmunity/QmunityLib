@@ -1,14 +1,11 @@
 package uk.co.qmunity.lib.part.compat.fmp;
 
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartFace;
 import uk.co.qmunity.lib.part.IPartPlacement;
@@ -309,12 +306,6 @@ public class FMPCompat implements IMultipartCompat {
             return false;
 
         return tmp.occlusionTest(tmp.partList(), new NormallyOccludedPart(new Cuboid6(cube.toAABB())));
-    }
-
-    @Override
-    public List<IMicroblock> getMicroblocks(World world, Vec3i location) {
-
-        return null;
     }
 
     @Override
