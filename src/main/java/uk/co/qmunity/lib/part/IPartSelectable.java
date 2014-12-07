@@ -9,7 +9,7 @@ import uk.co.qmunity.lib.vec.Vec3dCube;
 /**
  * Interface implemented by parts that have selection boxes.
  *
- * @author Néstor
+ * @author amadornes
  */
 public interface IPartSelectable extends IPart {
 
