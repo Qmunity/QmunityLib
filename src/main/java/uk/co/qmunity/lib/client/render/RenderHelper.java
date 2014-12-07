@@ -401,7 +401,7 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(face.getMaxX(), y, face.getMaxY()).transform(transformations);
         Vec3d v4 = new Vec3d(face.getMaxX(), y, face.getMinY()).transform(transformations);
 
-        face = face.clone().rotate(90 * rotations[ForgeDirection.UP.ordinal()], new Vec2d(0.5, 0.5));
+        face = face.clone().rotate(rotations[ForgeDirection.UP.ordinal()] * 90, new Vec2d(0.5, 0.5));
 
         Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMinY() * 16));
         Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));

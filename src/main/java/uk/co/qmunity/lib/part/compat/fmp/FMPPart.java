@@ -336,6 +336,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         }
 
         if (part instanceof IPartOccluding) {
+            System.out.println("a");
             for (Vec3dCube b : ((IPartOccluding) part).getOcclusionBoxes()) {
                 NormallyOccludedPart nop = new NormallyOccludedPart(new Cuboid6(b.toAABB()));
                 for (TMultiPart p : tile().jPartList())

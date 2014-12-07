@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.particle.EffectRenderer;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -289,5 +290,11 @@ public class BlockMultipart extends BlockContainer {
             return 1F;
 
         return (float) mop.getPart().getHardness(player, mop);
+    }
+
+    @Override
+    public void registerBlockIcons(IIconRegister reg) {
+
+        blockIcon = null;
     }
 }

@@ -1,6 +1,7 @@
 package uk.co.qmunity.lib.part.compat;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -8,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartCustomPlacement;
 import uk.co.qmunity.lib.part.IPartPlacement;
@@ -99,6 +101,11 @@ public class MultipartCompatibility {
     public static ITilePartHolder getPartHolder(World world, int x, int y, int z) {
 
         return getPartHolder(world, new Vec3i(x, y, z));
+    }
+
+    public static List<IMicroblock> getMicroblocks(World world, int x, int y, int z) {
+
+        return null;
     }
 
     public static IPart getPart(World world, Vec3i location, String type) {

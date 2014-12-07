@@ -1,13 +1,16 @@
 package uk.co.qmunity.lib.part.compat;
 
-import uk.co.qmunity.lib.part.IPart;
-import uk.co.qmunity.lib.part.ITilePartHolder;
-import uk.co.qmunity.lib.vec.Vec3dCube;
-import uk.co.qmunity.lib.vec.Vec3i;
+import java.util.List;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.part.IMicroblock;
+import uk.co.qmunity.lib.part.IPart;
+import uk.co.qmunity.lib.part.ITilePartHolder;
+import uk.co.qmunity.lib.vec.Vec3dCube;
+import uk.co.qmunity.lib.vec.Vec3i;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -34,6 +37,8 @@ public interface IMultipartCompat {
     public ITilePartHolder getPartHolder(World world, Vec3i location);
 
     public boolean checkOcclusion(World world, Vec3i location, Vec3dCube cube);
+
+    public List<IMicroblock> getMicroblocks(World world, Vec3i location);
 
     public void preInit(FMLPreInitializationEvent event);
 
