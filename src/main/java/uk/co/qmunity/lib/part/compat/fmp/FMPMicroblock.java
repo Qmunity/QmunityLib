@@ -49,6 +49,12 @@ public class FMPMicroblock extends PartBase implements IMicroblock {
     }
 
     @Override
+    public int getPosition() {
+
+        return -1;// TODO
+    }
+
+    @Override
     public String getType() {
 
         return "fmpmicroblock";

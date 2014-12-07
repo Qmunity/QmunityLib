@@ -13,7 +13,6 @@ import org.lwjgl.opengl.GL11;
 
 import uk.co.qmunity.lib.block.BlockMultipart;
 import uk.co.qmunity.lib.part.IPart;
-import uk.co.qmunity.lib.part.IPartRenderable;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.tile.TileMultipart;
 import uk.co.qmunity.lib.vec.Vec3d;
@@ -35,10 +34,10 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
         {
             GL11.glTranslated(x, y, z);
             for (IPart p : te.getParts()) {
-                if (p.getParent() != null && p instanceof IPartRenderable) {
+                if (p.getParent() != null) {
                     GL11.glPushMatrix();
 
-                    ((IPartRenderable) p).renderDynamic(new Vec3d(0, 0, 0), delta, PASS);
+                    p.renderDynamic(new Vec3d(0, 0, 0), delta, PASS);
 
                     GL11.glPopMatrix();
                 }
@@ -67,9 +66,9 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
         TileMultipart te = BlockMultipart.get(world, x, y, z);
         if (te != null)
             for (IPart p : te.getParts())
-                if (p.getParent() != null && p instanceof IPartRenderable)
-                    if (((IPartRenderable) p).shouldRenderOnPass(PASS))
-                        ((IPartRenderable) p).renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, PASS);
+                if (p.getParent() != null)
+                    if (p.shouldRenderOnPass(PASS))
+                        p.renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, PASS);
 
         RenderHelper.instance.fullReset();
 
@@ -78,11 +77,9 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
 
     public static void renderBreaking(IBlockAccess world, int x, int y, int z, RenderBlocks renderer, QMovingObjectPosition mop) {
 
-        if (mop.getPart() instanceof IPartRenderable) {
-            RenderHelper.instance.setOverrideTexture(renderer.overrideBlockTexture);
-            ((IPartRenderable) mop.getPart()).renderBreaking(new Vec3i(x, y, z), RenderHelper.instance, renderer, PASS, mop);
-            RenderHelper.instance.setOverrideTexture(null);
-        }
+        RenderHelper.instance.setOverrideTexture(renderer.overrideBlockTexture);
+        mop.getPart().renderBreaking(new Vec3i(x, y, z), RenderHelper.instance, renderer, PASS, mop);
+        RenderHelper.instance.setOverrideTexture(null);
     }
 
     @Override

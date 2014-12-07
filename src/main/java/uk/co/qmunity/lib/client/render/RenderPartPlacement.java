@@ -20,7 +20,6 @@ import org.lwjgl.opengl.GL11;
 import uk.co.qmunity.lib.item.ItemMultipart;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartRenderPlacement;
-import uk.co.qmunity.lib.part.IPartRenderable;
 import uk.co.qmunity.lib.part.compat.MultipartCompatibility;
 import uk.co.qmunity.lib.vec.Vec3d;
 import uk.co.qmunity.lib.vec.Vec3i;
@@ -100,23 +99,20 @@ public class RenderPartPlacement {
                     {
                         Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.locationBlocksTexture);
                         GL11.glTranslated(-part.getX(), -part.getY(), -part.getZ());
-                        if (part instanceof IPartRenderable) {
-                            Tessellator.instance.startDrawingQuads();
-                            RenderHelper.instance.setRenderCoords(world, part.getX(), part.getY(), part.getZ());
-                            RenderBlocks.getInstance().blockAccess = world;
-                            ((IPartRenderable) part).renderStatic(new Vec3i(part.getX(), part.getY(), part.getZ()), RenderHelper.instance,
-                                    RenderBlocks.getInstance(), 0);
-                            RenderBlocks.getInstance().blockAccess = null;
-                            RenderHelper.instance.reset();
-                            Tessellator.instance.draw();
-                        }
+                        Tessellator.instance.startDrawingQuads();
+                        RenderHelper.instance.setRenderCoords(world, part.getX(), part.getY(), part.getZ());
+                        RenderBlocks.getInstance().blockAccess = world;
+                        part.renderStatic(new Vec3i(part.getX(), part.getY(), part.getZ()), RenderHelper.instance,
+                                RenderBlocks.getInstance(), 0);
+                        RenderBlocks.getInstance().blockAccess = null;
+                        RenderHelper.instance.reset();
+                        Tessellator.instance.draw();
                     }
                     GL11.glPopMatrix();
 
                     GL11.glPushMatrix();
                     {
-                        if (part instanceof IPartRenderable)
-                            ((IPartRenderable) part).renderDynamic(new Vec3d(0, 0, 0), event.partialTicks, 0);
+                        part.renderDynamic(new Vec3d(0, 0, 0), event.partialTicks, 0);
                     }
                     GL11.glPopMatrix();
                 }

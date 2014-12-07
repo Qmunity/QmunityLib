@@ -23,7 +23,6 @@ import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartCollidable;
 import uk.co.qmunity.lib.part.IPartFace;
 import uk.co.qmunity.lib.part.IPartInteractable;
-import uk.co.qmunity.lib.part.IPartLightEmitter;
 import uk.co.qmunity.lib.part.IPartOccluding;
 import uk.co.qmunity.lib.part.IPartRedstone;
 import uk.co.qmunity.lib.part.IPartSelectable;
@@ -179,11 +178,8 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     public int getLightValue() {
 
         int val = 0;
-
         for (IPart p : getParts())
-            if (p instanceof IPartLightEmitter)
-                val = Math.max(val, ((IPartLightEmitter) p).getLightValue());
-
+            val = Math.max(val, p.getLightValue());
         return val;
     }
 

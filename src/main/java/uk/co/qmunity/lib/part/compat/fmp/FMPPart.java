@@ -32,7 +32,6 @@ import uk.co.qmunity.lib.part.IPartFace;
 import uk.co.qmunity.lib.part.IPartInteractable;
 import uk.co.qmunity.lib.part.IPartOccluding;
 import uk.co.qmunity.lib.part.IPartRedstone;
-import uk.co.qmunity.lib.part.IPartRenderable;
 import uk.co.qmunity.lib.part.IPartSelectable;
 import uk.co.qmunity.lib.part.IPartSolid;
 import uk.co.qmunity.lib.part.IPartTicking;
@@ -382,10 +381,9 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         renderer.blockAccess = getWorld();
 
         for (IPart p : getParts())
-            if (p.getParent() != null && p instanceof IPartRenderable)
-                if (((IPartRenderable) p).shouldRenderOnPass(pass))
-                    if (((IPartRenderable) p).renderStatic(new Vec3i((int) pos.x, (int) pos.y, (int) pos.z), RenderHelper.instance,
-                            renderer, pass))
+            if (p.getParent() != null)
+                if (p.shouldRenderOnPass(pass))
+                    if (p.renderStatic(new Vec3i((int) pos.x, (int) pos.y, (int) pos.z), RenderHelper.instance, renderer, pass))
                         did = true;
 
         renderer.blockAccess = null;
@@ -402,11 +400,11 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         {
             GL11.glTranslated(pos.x, pos.y, pos.z);
             for (IPart p : getParts()) {
-                if (p.getParent() != null && p instanceof IPartRenderable) {
+                if (p.getParent() != null) {
                     GL11.glPushMatrix();
 
-                    if (((IPartRenderable) p).shouldRenderOnPass(pass))
-                        ((IPartRenderable) p).renderDynamic(new Vec3d(0, 0, 0), frame, pass);
+                    if (p.shouldRenderOnPass(pass))
+                        p.renderDynamic(new Vec3d(0, 0, 0), frame, pass);
 
                     GL11.glPopMatrix();
                 }
@@ -706,6 +704,16 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
             return (float) (30 * mop.getPart().getHardness(player, mop));
         return 30;
     }
+
+    @Override
+    public int getLightValue() {
+
+        int val = 0;
+        for (IPart p : getParts())
+            val = Math.max(val, p.getLightValue());
+        return val;
+    }
+
 }
 
 interface IFMPPart {
