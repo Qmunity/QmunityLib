@@ -2,10 +2,11 @@ package uk.co.qmunity.lib.part;
 
 import java.util.List;
 
-import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
-import uk.co.qmunity.lib.vec.IWorldLocation;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
+import uk.co.qmunity.lib.vec.IWorldLocation;
 
 public interface IPart extends IWorldLocation {
 
@@ -32,5 +33,7 @@ public interface IPart extends IWorldLocation {
     public List<ItemStack> getDrops();
 
     public void breakAndDrop(boolean creative);
+
+    public double getHardness(EntityPlayer player, QMovingObjectPosition mop);
 
 }

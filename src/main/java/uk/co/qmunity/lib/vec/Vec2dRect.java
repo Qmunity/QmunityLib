@@ -52,4 +52,23 @@ public class Vec2dRect {
         return max.getY();
     }
 
+    public Vec2d getCenter() {
+
+        return getMin().clone().add(getMax()).div(2, 2);
+    }
+
+    public Vec2dRect rotate(double angle, Vec2d center) {
+
+        min = min.clone().sub(center).rotate(angle).add(center);
+        max = max.clone().sub(center).rotate(angle).add(center);
+
+        return this;
+    }
+
+    @Override
+    public Vec2dRect clone() {
+
+        return new Vec2dRect(min, max);
+    }
+
 }

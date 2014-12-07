@@ -3,13 +3,6 @@ package uk.co.qmunity.lib.block;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.co.qmunity.lib.QmunityLib;
-import uk.co.qmunity.lib.client.render.RenderMultipart;
-import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
-import uk.co.qmunity.lib.ref.Names;
-import uk.co.qmunity.lib.tile.TileMultipart;
-import uk.co.qmunity.lib.vec.Vec3d;
-import uk.co.qmunity.lib.vec.Vec3dCube;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -25,6 +18,14 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.QmunityLib;
+import uk.co.qmunity.lib.client.render.RenderMultipart;
+import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
+import uk.co.qmunity.lib.raytrace.RayTracer;
+import uk.co.qmunity.lib.ref.Names;
+import uk.co.qmunity.lib.tile.TileMultipart;
+import uk.co.qmunity.lib.vec.Vec3d;
+import uk.co.qmunity.lib.vec.Vec3dCube;
 
 public class BlockMultipart extends BlockContainer {
 
@@ -79,6 +80,12 @@ public class BlockMultipart extends BlockContainer {
         return RenderMultipart.RENDER_ID;
     }
 
+    @Override
+    public boolean renderAsNormalBlock() {
+
+        return false;
+    }
+
     public static TileMultipart get(IBlockAccess world, int x, int y, int z) {
 
         TileEntity te = world.getTileEntity(x, y, z);
@@ -92,11 +99,16 @@ public class BlockMultipart extends BlockContainer {
     @Override
     public MovingObjectPosition collisionRayTrace(World world, int x, int y, int z, Vec3 start, Vec3 end) {
 
+        return retrace(world, x, y, z, new Vec3d(start), new Vec3d(end));
+    }
+
+    private QMovingObjectPosition retrace(World world, int x, int y, int z, Vec3d start, Vec3d end) {
+
         TileMultipart te = get(world, x, y, z);
         if (te == null)
             return null;
 
-        QMovingObjectPosition mop = te.rayTrace(new Vec3d(start), new Vec3d(end));
+        QMovingObjectPosition mop = te.rayTrace(start, end);
         if (mop == null)
             return null;
 
@@ -265,5 +277,17 @@ public class BlockMultipart extends BlockContainer {
             return;
 
         te.onClicked(player);
+    }
+
+    @Override
+    public float getPlayerRelativeBlockHardness(EntityPlayer player, World world, int x, int y, int z) {
+
+        QMovingObjectPosition mop = retrace(world, x, y, z, RayTracer.instance().getStartVector(player),
+                RayTracer.instance().getEndVector(player));
+
+        if (mop == null || mop.getPart() == null)
+            return 1F;
+
+        return (float) mop.getPart().getHardness(player, mop);
     }
 }

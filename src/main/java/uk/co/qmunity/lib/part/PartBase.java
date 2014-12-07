@@ -3,12 +3,13 @@ package uk.co.qmunity.lib.part;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.co.qmunity.lib.helper.ItemHelper;
-import uk.co.qmunity.lib.part.compat.PartUpdateManager;
-import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+import uk.co.qmunity.lib.helper.ItemHelper;
+import uk.co.qmunity.lib.part.compat.PartUpdateManager;
+import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 
 public abstract class PartBase implements IPart {
 
@@ -106,6 +107,12 @@ public abstract class PartBase implements IPart {
                 ItemHelper.dropItem(getWorld(), getX(), getY(), getZ(), item);
 
         getParent().removePart(this);
+    }
+
+    @Override
+    public double getHardness(EntityPlayer player, QMovingObjectPosition mop) {
+
+        return 0.1;
     }
 
 }

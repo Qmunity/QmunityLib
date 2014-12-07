@@ -3,12 +3,12 @@ package uk.co.qmunity.lib.part.compat.fmp;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import uk.co.qmunity.lib.part.IMicroblock;
-import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.MicroblockShape;
+import uk.co.qmunity.lib.part.PartBase;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.vec.Vec3dCube;
 import codechicken.lib.vec.Cuboid6;
@@ -18,7 +18,7 @@ import codechicken.microblock.EdgeMicroblock;
 import codechicken.microblock.FaceMicroblock;
 import codechicken.microblock.HollowMicroblock;
 
-public class FMPMicroblock implements IMicroblock {
+public class FMPMicroblock extends PartBase implements IMicroblock {
 
     private CommonMicroblock microblock;
 
@@ -49,61 +49,13 @@ public class FMPMicroblock implements IMicroblock {
     }
 
     @Override
-    public ITilePartHolder getParent() {
-
-        return null;
-    }
-
-    @Override
-    public void setParent(ITilePartHolder parent) {
-
-    }
-
-    @Override
     public String getType() {
 
         return "fmpmicroblock";
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound tag) {
-
-    }
-
-    @Override
-    public void readFromNBT(NBTTagCompound tag) {
-
-    }
-
-    @Override
-    public void writeUpdateToNBT(NBTTagCompound tag) {
-
-    }
-
-    @Override
-    public void readUpdateFromNBT(NBTTagCompound tag) {
-
-    }
-
-    @Override
-    public void sendUpdatePacket() {
-
-    }
-
-    @Override
     public ItemStack getItem() {
-
-        return null;
-    }
-
-    @Override
-    public ItemStack getPickedItem(QMovingObjectPosition mop) {
-
-        return null;
-    }
-
-    @Override
-    public List<ItemStack> getDrops() {
 
         return null;
     }
@@ -146,6 +98,12 @@ public class FMPMicroblock implements IMicroblock {
             boxes.add(new Vec3dCube(c.toAABB()));
 
         return boxes;
+    }
+
+    @Override
+    public double getHardness(EntityPlayer player, QMovingObjectPosition mop) {
+
+        return 0;
     }
 
 }

@@ -34,6 +34,8 @@ public class RenderHelper {
 
     private int color = 0xFFFFFF;
 
+    private IIcon overrideTexture = null;
+
     public void reset() {
 
         setRenderCoords(null, 0, 0, 0);
@@ -45,6 +47,12 @@ public class RenderHelper {
         lightmap = new Map3D<Integer>(3, 3, 3, 0);
         renderFromInside = false;
         color = 0xFFFFFF;
+    }
+
+    public void fullReset() {
+
+        reset();
+        setOverrideTexture(null);
     }
 
     public void resetTextureRotations() {
@@ -60,6 +68,16 @@ public class RenderHelper {
     public void resetTransformations() {
 
         transformations.clear();
+    }
+
+    public void setOverrideTexture(IIcon texture) {
+
+        overrideTexture = texture;
+    }
+
+    public IIcon getOverrideTexture() {
+
+        return overrideTexture;
     }
 
     public void setRenderFromInside(boolean render) {
@@ -224,6 +242,9 @@ public class RenderHelper {
 
     public void renderFaceXNeg(Vec2dRect face, double x, IIcon icon) {
 
+        if (overrideTexture != null)
+            icon = overrideTexture;
+
         LightingHelper.loadLightmap(lightmap);
 
         Vec3d normal = this.normal.clone().transform(transformations);
@@ -233,18 +254,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(x, face.getMaxX(), face.getMaxY()).transform(transformations);
         Vec3d v4 = new Vec3d(x, face.getMaxX(), face.getMinY()).transform(transformations);
 
+        face = face.clone().rotate(90 * rotations[ForgeDirection.WEST.ordinal()], new Vec2d(0.5, 0.5));
+
         Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMinX()) * 16));
         Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMaxY() * 16), icon.getInterpolatedV((1 - face.getMinX()) * 16));
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
-
-        for (int i = 0; i < rotations[ForgeDirection.WEST.ordinal()]; i++) {
-            Vec2d v = t1;
-            t1 = t2;
-            t2 = t3;
-            t3 = t4;
-            t4 = v;
-        }
 
         if (renderFromInside) {
             Vec3d v = v2;
@@ -276,6 +291,9 @@ public class RenderHelper {
 
     public void renderFaceXPos(Vec2dRect face, double x, IIcon icon) {
 
+        if (overrideTexture != null)
+            icon = overrideTexture;
+
         LightingHelper.loadLightmap(lightmap);
 
         Vec3d normal = this.normal.clone().transform(transformations);
@@ -285,18 +303,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(x, face.getMaxX(), face.getMaxY()).transform(transformations);
         Vec3d v4 = new Vec3d(x, face.getMinX(), face.getMaxY()).transform(transformations);
 
+        face = face.clone().rotate(90 * rotations[ForgeDirection.EAST.ordinal()], new Vec2d(0.5, 0.5));
+
         Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMaxY() * 16), icon.getInterpolatedV((1 - face.getMinX()) * 16));
         Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMaxY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMinX()) * 16));
-
-        for (int i = 0; i < rotations[ForgeDirection.EAST.ordinal()]; i++) {
-            Vec2d v = t1;
-            t1 = t2;
-            t2 = t3;
-            t3 = t4;
-            t4 = v;
-        }
 
         if (renderFromInside) {
             Vec3d v = v2;
@@ -328,6 +340,9 @@ public class RenderHelper {
 
     public void renderFaceYNeg(Vec2dRect face, double y, IIcon icon) {
 
+        if (overrideTexture != null)
+            icon = overrideTexture;
+
         LightingHelper.loadLightmap(lightmap);
 
         Vec3d normal = this.normal.clone().transform(transformations);
@@ -337,18 +352,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(face.getMaxX(), y, face.getMaxY()).transform(transformations);
         Vec3d v4 = new Vec3d(face.getMinX(), y, face.getMaxY()).transform(transformations);
 
+        face = face.clone().rotate(90 * rotations[ForgeDirection.DOWN.ordinal()], new Vec2d(0.5, 0.5));
+
         Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMinY() * 16));
         Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMinY() * 16));
-
-        for (int i = 0; i < rotations[ForgeDirection.DOWN.ordinal()]; i++) {
-            Vec2d v = t1;
-            t1 = t2;
-            t2 = t3;
-            t3 = t4;
-            t4 = v;
-        }
 
         if (renderFromInside) {
             Vec3d v = v2;
@@ -380,6 +389,9 @@ public class RenderHelper {
 
     public void renderFaceYPos(Vec2dRect face, double y, IIcon icon) {
 
+        if (overrideTexture != null)
+            icon = overrideTexture;
+
         LightingHelper.loadLightmap(lightmap);
 
         Vec3d normal = this.normal.clone().transform(transformations);
@@ -389,18 +401,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(face.getMaxX(), y, face.getMaxY()).transform(transformations);
         Vec3d v4 = new Vec3d(face.getMaxX(), y, face.getMinY()).transform(transformations);
 
+        face = face.clone().rotate(90 * rotations[ForgeDirection.UP.ordinal()], new Vec2d(0.5, 0.5));
+
         Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMinY() * 16));
         Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMinY() * 16));
-
-        for (int i = 0; i < rotations[ForgeDirection.UP.ordinal()]; i++) {
-            Vec2d v = t1;
-            t1 = t2;
-            t2 = t3;
-            t3 = t4;
-            t4 = v;
-        }
 
         if (renderFromInside) {
             Vec3d v = v2;
@@ -432,6 +438,9 @@ public class RenderHelper {
 
     public void renderFaceZNeg(Vec2dRect face, double z, IIcon icon) {
 
+        if (overrideTexture != null)
+            icon = overrideTexture;
+
         LightingHelper.loadLightmap(lightmap);
 
         Vec3d normal = this.normal.clone().transform(transformations);
@@ -441,18 +450,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(face.getMaxX(), face.getMaxY(), z).transform(transformations);
         Vec3d v4 = new Vec3d(face.getMaxX(), face.getMinY(), z).transform(transformations);
 
+        face = face.clone().rotate(90 * rotations[ForgeDirection.NORTH.ordinal()], new Vec2d(0.5, 0.5));
+
         Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV((1 - face.getMinY()) * 16));
         Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMinY()) * 16));
-
-        for (int i = 0; i < rotations[ForgeDirection.NORTH.ordinal()]; i++) {
-            Vec2d v = t1;
-            t1 = t2;
-            t2 = t3;
-            t3 = t4;
-            t4 = v;
-        }
 
         if (renderFromInside) {
             Vec3d v = v2;
@@ -484,6 +487,9 @@ public class RenderHelper {
 
     public void renderFaceZPos(Vec2dRect face, double z, IIcon icon) {
 
+        if (overrideTexture != null)
+            icon = overrideTexture;
+
         LightingHelper.loadLightmap(lightmap);
 
         Vec3d normal = this.normal.clone().transform(transformations);
@@ -493,18 +499,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(face.getMaxX(), face.getMaxY(), z).transform(transformations);
         Vec3d v4 = new Vec3d(face.getMinX(), face.getMaxY(), z).transform(transformations);
 
+        face = face.clone().rotate(90 * rotations[ForgeDirection.SOUTH.ordinal()], new Vec2d(0.5, 0.5));
+
         Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMinY()) * 16));
         Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV((1 - face.getMinY()) * 16));
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
-
-        for (int i = 0; i < rotations[ForgeDirection.SOUTH.ordinal()]; i++) {
-            Vec2d v = t1;
-            t1 = t2;
-            t2 = t3;
-            t3 = t4;
-            t4 = v;
-        }
 
         if (renderFromInside) {
             Vec3d v = v2;

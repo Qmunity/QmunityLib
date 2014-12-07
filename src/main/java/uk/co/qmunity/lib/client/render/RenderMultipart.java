@@ -1,10 +1,12 @@
 package uk.co.qmunity.lib.client.render;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
 
 import org.lwjgl.opengl.GL11;
@@ -12,6 +14,7 @@ import org.lwjgl.opengl.GL11;
 import uk.co.qmunity.lib.block.BlockMultipart;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartRenderable;
+import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.tile.TileMultipart;
 import uk.co.qmunity.lib.vec.Vec3d;
 import uk.co.qmunity.lib.vec.Vec3i;
@@ -53,6 +56,14 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
 
         RenderHelper.instance.setRenderCoords(world, x, y, z);
 
+        if (renderer.overrideBlockTexture != null) {
+            MovingObjectPosition mop = Minecraft.getMinecraft().objectMouseOver;
+            if (mop.blockX == x && mop.blockY == y && mop.blockZ == z && mop instanceof QMovingObjectPosition
+                    && ((QMovingObjectPosition) mop).getPart() != null)
+                renderBreaking(world, x, y, z, renderer, ((QMovingObjectPosition) mop));
+            return false;
+        }
+
         TileMultipart te = BlockMultipart.get(world, x, y, z);
         if (te != null)
             for (IPart p : te.getParts())
@@ -60,9 +71,18 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
                     if (((IPartRenderable) p).shouldRenderOnPass(PASS))
                         ((IPartRenderable) p).renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, PASS);
 
-        RenderHelper.instance.reset();
+        RenderHelper.instance.fullReset();
 
         return true;
+    }
+
+    public static void renderBreaking(IBlockAccess world, int x, int y, int z, RenderBlocks renderer, QMovingObjectPosition mop) {
+
+        if (mop.getPart() instanceof IPartRenderable) {
+            RenderHelper.instance.setOverrideTexture(renderer.overrideBlockTexture);
+            ((IPartRenderable) mop.getPart()).renderBreaking(new Vec3i(x, y, z), RenderHelper.instance, renderer, PASS, mop);
+            RenderHelper.instance.setOverrideTexture(null);
+        }
     }
 
     @Override
