@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -23,6 +24,7 @@ import org.lwjgl.opengl.GL11;
 import uk.co.qmunity.lib.QLModInfo;
 import uk.co.qmunity.lib.QmunityLib;
 import uk.co.qmunity.lib.client.render.RenderHelper;
+import uk.co.qmunity.lib.client.render.RenderMultipart;
 import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartCollidable;
@@ -117,7 +119,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
             return null;
         new Cuboid6(qmop.getCube().toAABB()).setBlockBounds(tile().getBlockType());
         Vec3 v = qmop.hitVec.subtract(start);
-        return new ExtendedMOP(qmop, 0, v.xCoord * v.xCoord + v.yCoord * v.yCoord + v.zCoord + v.zCoord);
+        return new ExtendedMOP(qmop, 0, v.xCoord * v.xCoord + v.yCoord * v.yCoord + v.zCoord * v.zCoord);
     }
 
     private boolean firstTick = true;
@@ -373,6 +375,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         boolean did = false;
 
         RenderBlocks renderer = RenderBlocks.getInstance();
+
         RenderHelper.instance.setRenderCoords(getWorld(), (int) pos.x, (int) pos.y, (int) pos.z);
 
         renderer.blockAccess = getWorld();
@@ -409,6 +412,22 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
             }
         }
         GL11.glPopMatrix();
+    }
+
+    @Override
+    public void drawBreaking(RenderBlocks renderBlocks) {
+
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(Minecraft.getMinecraft().thePlayer), RayTracer.instance()
+                .getEndVector(Minecraft.getMinecraft().thePlayer));
+
+        if (mop == null || mop.getPart() == null)
+            return;
+
+        RenderHelper.instance.setRenderCoords(getWorld(), getX(), getY(), getZ());
+
+        RenderMultipart.renderBreaking(getWorld(), getX(), getY(), getZ(), renderBlocks, mop);
+
+        RenderHelper.instance.reset();
     }
 
     @Override
@@ -677,6 +696,15 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         return isSolid(ForgeDirection.getOrientation(side));
     }
 
+    @Override
+    public float getStrength(MovingObjectPosition hit, EntityPlayer player) {
+
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+
+        if (mop != null && mop.getPart() != null)
+            return (float) (30 * mop.getPart().getHardness(player, mop));
+        return 30;
+    }
 }
 
 interface IFMPPart {
