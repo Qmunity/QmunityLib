@@ -4,7 +4,7 @@ public enum MicroblockShape {
 
     FACE, //
     FACE_HOLLOW, //
-    FACE_CABLE, //
+    FACE_WIRE, //
     EDGE, //
     CORNER;
 

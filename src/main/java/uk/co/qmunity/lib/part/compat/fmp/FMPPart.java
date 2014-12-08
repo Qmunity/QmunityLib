@@ -50,6 +50,7 @@ import codechicken.lib.raytracer.IndexedCuboid6;
 import codechicken.lib.vec.Cuboid6;
 import codechicken.lib.vec.Vector3;
 import codechicken.microblock.CommonMicroblock;
+import codechicken.microblock.ISidedHollowConnect;
 import codechicken.multipart.INeighborTileChange;
 import codechicken.multipart.IRedstonePart;
 import codechicken.multipart.NormalOcclusionTest;
@@ -57,7 +58,8 @@ import codechicken.multipart.NormallyOccludedPart;
 import codechicken.multipart.TMultiPart;
 import codechicken.multipart.TNormalOcclusion;
 
-public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclusion, IRedstonePart, INeighborTileChange, IFMPPart {
+public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclusion, IRedstonePart, INeighborTileChange, IFMPPart,
+ISidedHollowConnect {
 
     private Map<String, IPart> parts = new HashMap<String, IPart>();
     private List<String> removed = new ArrayList<String>();
@@ -335,7 +337,6 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         }
 
         if (part instanceof IPartOccluding) {
-            System.out.println("a");
             for (Vec3dCube b : ((IPartOccluding) part).getOcclusionBoxes()) {
                 NormallyOccludedPart nop = new NormallyOccludedPart(new Cuboid6(b.toAABB()));
                 for (TMultiPart p : tile().jPartList())
@@ -712,6 +713,20 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         for (IPart p : getParts())
             val = Math.max(val, p.getLightValue());
         return val;
+    }
+
+    @Override
+    public int getHollowSize(int side) {
+
+        // int val = 0;
+        // for (IPart p : getParts())
+        // if (p instanceof IPartThruHole)
+        // val = Math.max(val, ((IPartThruHole) p).getHollowSize(ForgeDirection.getOrientation(side)));
+        // if (val <= 0 || val >= 12)
+        // return 2;
+        // return 5;
+        System.out.println("!!");
+        return 2;
     }
 
 }
