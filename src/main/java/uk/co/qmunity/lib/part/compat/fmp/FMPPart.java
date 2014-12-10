@@ -62,8 +62,8 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
 ISidedHollowConnect {
 
     private Map<String, IPart> parts = new HashMap<String, IPart>();
-    private List<String> removed = new ArrayList<String>();
     private List<IPart> added = new ArrayList<IPart>();
+    private boolean shouldDieInAFire = false;
 
     public FMPPart() {
 
@@ -89,7 +89,7 @@ ISidedHollowConnect {
 
         for (String s : this.parts.keySet()) {
             IPart p = this.parts.get(s);
-            if (p.getParent() != null && !removed.contains(s))
+            if (p.getParent() != null)
                 parts.add(p);
         }
 
@@ -142,8 +142,8 @@ ISidedHollowConnect {
                 ((IPartTicking) p).update();
         }
 
-        if (!world().isRemote)
-            sendDescUpdate();
+        if (!world().isRemote && shouldDieInAFire)
+            tile().remPart(this);
     }
 
     @Override
@@ -163,6 +163,9 @@ ISidedHollowConnect {
 
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
         readParts(l, true, false);
+
+        if (getParts().size() == 0)
+            shouldDieInAFire = true;
     }
 
     @Override
@@ -217,6 +220,8 @@ ISidedHollowConnect {
             IPart p = getPart(id);
             if (p == null) {
                 p = PartRegistry.createPart(tag.getString("type"), client);
+                if (p == null)
+                    continue;
                 p.setParent(this);
                 parts.put(id, p);
             }
@@ -277,8 +282,6 @@ ISidedHollowConnect {
             return false;
         if (!parts.containsValue(part))
             return false;
-        if (removed.contains(part))
-            return false;
 
         if (part instanceof IPartUpdateListener)
             ((IPartUpdateListener) part).onRemoved();
@@ -287,7 +290,6 @@ ISidedHollowConnect {
                 ((IPartUpdateListener) p).onPartChanged(part);
 
         String id = getIdentifier(part);
-        removed.add(id);
         parts.remove(id);
         part.setParent(null);
 
@@ -339,9 +341,8 @@ ISidedHollowConnect {
         if (part instanceof IPartOccluding) {
             for (Vec3dCube b : ((IPartOccluding) part).getOcclusionBoxes()) {
                 NormallyOccludedPart nop = new NormallyOccludedPart(new Cuboid6(b.toAABB()));
-                for (TMultiPart p : tile().jPartList())
-                    if (!p.occlusionTest(nop))
-                        return false;
+                if (!tile().canAddPart(nop))
+                    return false;
             }
         }
 
@@ -631,9 +632,8 @@ ISidedHollowConnect {
     @Override
     public void harvest(MovingObjectPosition hit, EntityPlayer player) {
 
-        if (world().isRemote) {
+        if (world().isRemote)
             return;
-        }
 
         QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
         if (mop != null) {

@@ -40,6 +40,7 @@ import uk.co.qmunity.lib.vec.Vec3dCube;
 public class TileMultipart extends TileEntity implements ITilePartHolder {
 
     private Map<String, IPart> parts = new HashMap<String, IPart>();
+    private boolean shouldDieInAFire = false;
 
     @Override
     public World getWorld() {
@@ -224,6 +225,9 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
         readParts(l, false, false);
+
+        if (getParts().size() == 0)
+            shouldDieInAFire = true;
     }
 
     public void writeUpdateToNBT(NBTTagCompound tag) {
@@ -270,6 +274,8 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             IPart p = getPart(id);
             if (p == null) {
                 p = PartRegistry.createPart(tag.getString("type"), client);
+                if (p == null)
+                    continue;
                 p.setParent(this);
                 parts.put(id, p);
             }
@@ -385,6 +391,9 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             if (p instanceof IPartTicking)
                 ((IPartTicking) p).update();
         }
+
+        if (shouldDieInAFire)
+            getWorld().setBlockToAir(getX(), getY(), getZ());
     }
 
     public List<Vec3dCube> getOcclusionBoxes() {

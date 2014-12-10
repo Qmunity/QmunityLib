@@ -58,27 +58,34 @@ public class RedstoneHelper {
 
     public static boolean canConnectVanilla(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
-        if (face != ForgeDirection.DOWN && face != ForgeDirection.UNKNOWN)
+        if (side == ForgeDirection.UNKNOWN)
             return false;
 
         Block block = world.getBlock(x, y, z);
         int meta = world.getBlockMetadata(x, y, z);
         int d = Direction.getMovementDirection(side.offsetX, side.offsetZ);
 
-        if (block == Blocks.unpowered_repeater || block == Blocks.powered_repeater)
+        if ((block == Blocks.unpowered_repeater || block == Blocks.powered_repeater) && face != ForgeDirection.DOWN
+                && face != ForgeDirection.UNKNOWN)
             if (d % 2 == meta % 2)
                 return true;
 
-        if (block instanceof BlockLever)
-            return true;
-
+        if (block instanceof BlockLever) {
+            meta = meta % 8;
+            ForgeDirection leverFace = ((meta == 0 || meta == 7) ? ForgeDirection.UP : ((meta == 5 || meta == 6) ? ForgeDirection.DOWN
+                    : (meta == 1 ? ForgeDirection.WEST : (meta == 2 ? ForgeDirection.EAST : (meta == 3 ? ForgeDirection.NORTH
+                            : (meta == 4 ? ForgeDirection.SOUTH : ForgeDirection.UNKNOWN))))));
+            if (face != ForgeDirection.UNKNOWN && face != leverFace)
+                return false;
+            return side != leverFace.getOpposite();
+        }
         return false;
     }
 
     private static boolean isVanillaBlock(World world, int x, int y, int z) {
 
         Block b = world.getBlock(x, y, z);
-        return b instanceof BlockRedstoneRepeater;
+        return b instanceof BlockRedstoneRepeater || b instanceof BlockLever || b instanceof BlockRedstoneWire;
     }
 
     public static int getOutputWeak(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
@@ -196,14 +203,14 @@ public class RedstoneHelper {
 
         Vec3i location = new Vec3i(x, y, z);
 
+        if (isVanillaBlock(world, x, y, z))
+            return canConnectVanilla(world, x, y, z, side, face);
+
         for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
             IMultipartCompat compat = s.getCompat();
             if (compat.isMultipart(world, location))
                 return compat.canConnectRedstone(world, location, side, face);
         }
-
-        if (isVanillaBlock(world, x, y, z))
-            return canConnectVanilla(world, x, y, z, side, face);
 
         return world.getBlock(x, y, z).canConnectRedstone(world, x, y, z, Direction.getMovementDirection(side.offsetX, side.offsetZ));
     }
