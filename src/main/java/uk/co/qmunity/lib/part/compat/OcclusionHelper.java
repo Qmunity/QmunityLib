@@ -34,8 +34,8 @@ public class OcclusionHelper {
 
         return new Vec3dCube((s1.offsetX == 0 && s2.offsetX == 0) ? s : (x ? 1 - s : 0), (s1.offsetY == 0 && s2.offsetY == 0) ? s
                 : (y ? 1 - s : 0), (s1.offsetZ == 0 && s2.offsetZ == 0) ? s : (z ? 1 - s : 0), (s1.offsetX == 0 && s2.offsetX == 0) ? 1 - s
-                : (x ? 1 : s), (s1.offsetY == 0 && s2.offsetY == 0) ? 1 - s : (y ? 1 : s), (s1.offsetZ == 0 && s2.offsetZ == 0) ? 1 - s
-                                : (z ? 1 : s));
+                        : (x ? 1 : s), (s1.offsetY == 0 && s2.offsetY == 0) ? 1 - s : (y ? 1 : s), (s1.offsetZ == 0 && s2.offsetZ == 0) ? 1 - s
+                : (z ? 1 : s));
     }
 
     public static Vec3dCube getFaceMicroblockBox(int size, int location) {
@@ -57,7 +57,7 @@ public class OcclusionHelper {
 
         return new Vec3dCube(d.offsetX > 0 ? 1 - s : (d.offsetX == 0 ? 0.5 - hs : 0), d.offsetY > 0 ? 1 - s : (d.offsetY == 0 ? 0.5 - hs
                 : 0), d.offsetZ > 0 ? 1 - s : (d.offsetZ == 0 ? 0.5 - hs : 0), d.offsetX < 0 ? s : (d.offsetX == 0 ? 0.5 + hs : 1),
-                d.offsetY < 0 ? s : (d.offsetY == 0 ? 0.5 + hs : 1), d.offsetZ < 0 ? s : (d.offsetZ == 0 ? 0.5 + hs : 1));
+                        d.offsetY < 0 ? s : (d.offsetY == 0 ? 0.5 + hs : 1), d.offsetZ < 0 ? s : (d.offsetZ == 0 ? 0.5 + hs : 1));
     }
 
     public static Vec3dCube getBox(MicroblockShape shape, int size, int location) {
