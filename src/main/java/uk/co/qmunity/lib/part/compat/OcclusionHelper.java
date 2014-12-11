@@ -32,10 +32,10 @@ public class OcclusionHelper {
 
         double s = (size * 2) / 16D;
 
-        return new Vec3dCube((s1.offsetX == 0 && s2.offsetX == 0) ? 0 : (x ? 1 - s : 0), (s1.offsetY == 0 && s2.offsetY == 0) ? 0
-                : (y ? 1 - s : 0), (s1.offsetZ == 0 && s2.offsetZ == 0) ? 0 : (z ? 1 - s : 0), (s1.offsetX == 0 && s2.offsetX == 0) ? 1
-                : (x ? 1 : s), (s1.offsetY == 0 && s2.offsetY == 0) ? 1 : (y ? 1 : s), (s1.offsetZ == 0 && s2.offsetZ == 0) ? 1 : (z ? 1
-                : s));
+        return new Vec3dCube((s1.offsetX == 0 && s2.offsetX == 0) ? s : (x ? 1 - s : 0), (s1.offsetY == 0 && s2.offsetY == 0) ? s
+                : (y ? 1 - s : 0), (s1.offsetZ == 0 && s2.offsetZ == 0) ? s : (z ? 1 - s : 0), (s1.offsetX == 0 && s2.offsetX == 0) ? 1 - s
+                : (x ? 1 : s), (s1.offsetY == 0 && s2.offsetY == 0) ? 1 - s : (y ? 1 : s), (s1.offsetZ == 0 && s2.offsetZ == 0) ? 1 - s
+                                : (z ? 1 : s));
     }
 
     public static Vec3dCube getFaceMicroblockBox(int size, int location) {
