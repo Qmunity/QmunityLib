@@ -38,6 +38,7 @@ import uk.co.qmunity.lib.part.IPartTicking;
 import uk.co.qmunity.lib.part.IPartUpdateListener;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.PartRegistry;
+import uk.co.qmunity.lib.part.compat.PartUpdateManager;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.raytrace.RayTracer;
 import uk.co.qmunity.lib.vec.Vec3d;
@@ -263,6 +264,8 @@ ISidedHollowConnect {
     @Override
     public void addPart(IPart part) {
 
+        int before = parts.size();
+
         parts.put(genIdentifier(), part);
         part.setParent(this);
         if (part instanceof IPartUpdateListener)
@@ -273,6 +276,11 @@ ISidedHollowConnect {
         for (IPart p : getParts())
             if (p != part && p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onPartChanged(part);
+
+        if (before > 0) {
+            PartUpdateManager.addPart(this, part);
+            System.out.println("Add!");
+        }
     }
 
     @Override

@@ -21,7 +21,6 @@ import codechicken.multipart.IFaceRedstonePart;
 import codechicken.multipart.IRedstonePart;
 import codechicken.multipart.NormallyOccludedPart;
 import codechicken.multipart.TMultiPart;
-import codechicken.multipart.TSlottedPart;
 import codechicken.multipart.TileMultipart;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -88,8 +87,7 @@ public class FMPCompat implements IMultipartCompat {
             isNew = true;
         }
 
-        if (!world.isRemote)
-            p.addPart(part);
+        p.addPart(part);
 
         if (isNew && !world.isRemote)
             TileMultipart.addPart(world, b, p);
@@ -153,7 +151,8 @@ public class FMPCompat implements IMultipartCompat {
         if (pass == 1 || solidFace)
             location.add(clickedFace);
 
-        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location)) {
+        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location)
+                || canBeMultipart(world, location)) {
             IPartPlacement placement = MultipartCompatibility.getPlacementForPart(part, world, location, clickedFace, mop, player);
             if (placement == null)
                 return false;
@@ -185,6 +184,12 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public boolean isMultipart(World world, Vec3i location) {
 
+        return TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ())) != null;
+    }
+
+    @Override
+    public boolean canBeMultipart(World world, Vec3i location) {
+
         return TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ())) != null;
     }
 
@@ -201,21 +206,19 @@ public class FMPCompat implements IMultipartCompat {
             return 0;
         }
 
+        TMultiPart slotPart = tmp.partMap(side.ordinal());
+        if (slotPart != null) {
+            if (slotPart instanceof IRedstonePart)
+                return ((IRedstonePart) slotPart).strongPowerLevel(side.ordinal());
+            return 0;
+        }
+
         int strong = 0;
 
-        for (TMultiPart p : tmp.jPartList()) {
-            if (p instanceof IRedstonePart) {
-                if (p instanceof IFaceRedstonePart) {
-                    if (((IFaceRedstonePart) p).getFace() == face.ordinal())
-                        strong = Math.max(strong, ((IRedstonePart) p).strongPowerLevel(side.ordinal()));
-                } else if (p instanceof TSlottedPart) {
-                    if (((TSlottedPart) p).getSlotMask() == 1 << side.ordinal())
-                        strong = Math.max(strong, ((IRedstonePart) p).strongPowerLevel(side.ordinal()));
-                } else {
+        for (TMultiPart p : tmp.jPartList())
+            if (p instanceof IRedstonePart && p instanceof IFaceRedstonePart)
+                if (((IFaceRedstonePart) p).getFace() == face.ordinal())
                     strong = Math.max(strong, ((IRedstonePart) p).strongPowerLevel(side.ordinal()));
-                }
-            }
-        }
 
         return strong;
     }
@@ -233,21 +236,19 @@ public class FMPCompat implements IMultipartCompat {
             return 0;
         }
 
+        TMultiPart slotPart = tmp.partMap(side.ordinal());
+        if (slotPart != null) {
+            if (slotPart instanceof IRedstonePart)
+                return ((IRedstonePart) slotPart).weakPowerLevel(side.ordinal());
+            return 0;
+        }
+
         int weak = 0;
 
-        for (TMultiPart p : tmp.jPartList()) {
-            if (p instanceof IRedstonePart) {
-                if (p instanceof IFaceRedstonePart) {
-                    if (((IFaceRedstonePart) p).getFace() == face.ordinal())
-                        weak = Math.max(weak, ((IRedstonePart) p).weakPowerLevel(side.ordinal()));
-                } else if (p instanceof TSlottedPart) {
-                    if (((TSlottedPart) p).getSlotMask() == 1 << side.ordinal())
-                        weak = Math.max(weak, ((IRedstonePart) p).weakPowerLevel(side.ordinal()));
-                } else {
+        for (TMultiPart p : tmp.jPartList())
+            if (p instanceof IRedstonePart && p instanceof IFaceRedstonePart)
+                if (((IFaceRedstonePart) p).getFace() == face.ordinal())
                     weak = Math.max(weak, ((IRedstonePart) p).weakPowerLevel(side.ordinal()));
-                }
-            }
-        }
 
         return weak;
     }
@@ -255,33 +256,26 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public boolean canConnectRedstone(World world, Vec3i location, ForgeDirection side, ForgeDirection face) {
 
+        if (!isMultipart(world, location))
+            return false;
+
         int s = Direction.getMovementDirection(side.offsetX, side.offsetZ);
-        int f = face.ordinal();
 
         TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
-        if (tmp == null)
-            return false;
 
         if (face == ForgeDirection.UNKNOWN)
             return tmp.canConnectRedstone(s);
 
-        if (!tmp.canConnectRedstone(s))
+        TMultiPart slotPart = tmp.partMap(side.ordinal());
+        if (slotPart != null) {
+            if (slotPart instanceof IRedstonePart)
+                return ((IRedstonePart) slotPart).canConnectRedstone(side.ordinal());
             return false;
-
-        for (TMultiPart p : tmp.jPartList()) {
-            if (p instanceof IRedstonePart) {
-                if (p instanceof IFaceRedstonePart) {
-                    if (((IFaceRedstonePart) p).getFace() == f && ((IRedstonePart) p).canConnectRedstone(s))
-                        return true;
-                } else if (p instanceof TSlottedPart) {
-                    if (((TSlottedPart) p).getSlotMask() == 1 << s && ((IRedstonePart) p).canConnectRedstone(s))
-                        return true;
-                } else {
-                    if (((IRedstonePart) p).canConnectRedstone(s))
-                        return true;
-                }
-            }
         }
+
+        for (TMultiPart p : tmp.jPartList())
+            if (p instanceof IRedstonePart && ((IRedstonePart) p).canConnectRedstone(s))
+                return true;
 
         return false;
     }

@@ -2,13 +2,13 @@ package uk.co.qmunity.lib.network.packet;
 
 import java.util.Map;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.PartRegistry;
 import uk.co.qmunity.lib.part.compat.MultipartCompatibility;
 import uk.co.qmunity.lib.vec.Vec3i;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 
 public class PacketCAddPart extends PacketCPart {
 

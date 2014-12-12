@@ -173,6 +173,12 @@ public class StandaloneCompat implements IMultipartCompat {
     }
 
     @Override
+    public boolean canBeMultipart(World world, Vec3i location) {
+
+        return false;
+    }
+
+    @Override
     public int getStrongRedstoneOuput(World world, Vec3i location, ForgeDirection side, ForgeDirection face) {
 
         TileMultipart te = BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());

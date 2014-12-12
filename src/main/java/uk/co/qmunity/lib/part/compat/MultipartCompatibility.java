@@ -28,7 +28,8 @@ public class MultipartCompatibility {
     public static boolean addPartToWorld(IPart part, World world, Vec3i location, boolean simulated) {
 
         for (MultipartSystem s : MultipartSystem.getAvailableSystems())
-            if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || s.getCompat().isMultipart(world, location))
+            if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || s.getCompat().isMultipart(world, location)
+                    || s.getCompat().canBeMultipart(world, location))
                 if (s.getCompat().addPartToWorld(part, world, location, simulated))
                     return true;
         return false;
@@ -37,7 +38,8 @@ public class MultipartCompatibility {
     public static boolean addPartToWorldBruteforce(IPart part, World world, Vec3i location) {
 
         for (MultipartSystem s : MultipartSystem.getAvailableSystems())
-            if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || s.getCompat().isMultipart(world, location))
+            if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || s.getCompat().isMultipart(world, location)
+                    || s.getCompat().canBeMultipart(world, location))
                 if (s.getCompat().addPartToWorldBruteforce(part, world, location))
                     return true;
         return false;
@@ -148,7 +150,7 @@ public class MultipartCompatibility {
     public static boolean checkOcclusion(World world, Vec3i location, Vec3dCube cube) {
 
         for (MultipartSystem s : MultipartSystem.getAvailableSystems())
-            if (s.getCompat().isMultipart(world, location))
+            if (s.getCompat().isMultipart(world, location) || s.getCompat().canBeMultipart(world, location))
                 return s.getCompat().checkOcclusion(world, location, cube);
 
         return false;
