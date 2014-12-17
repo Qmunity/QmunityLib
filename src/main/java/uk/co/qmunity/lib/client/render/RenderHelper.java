@@ -4,7 +4,6 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
-import uk.co.qmunity.lib.misc.Map3D;
 import uk.co.qmunity.lib.transform.Transformation;
 import uk.co.qmunity.lib.transform.TransformationList;
 import uk.co.qmunity.lib.vec.Vec2d;
@@ -19,6 +18,7 @@ public class RenderHelper {
 
     private IBlockAccess world = null;
     private Vec3i location = new Vec3i(0, 0, 0);
+    private LightingHelper lightingHelper = null;
 
     private TransformationList transformations = new TransformationList();
 
@@ -27,8 +27,6 @@ public class RenderHelper {
     private int[] rotations = new int[] { 0, 0, 0, 0, 0, 0 };
 
     private boolean[] sides = new boolean[] { true, true, true, true, true, true };
-
-    private Map3D<Integer> lightmap = new Map3D<Integer>(3, 3, 3, 0);
 
     private boolean renderFromInside = false;
 
@@ -44,7 +42,6 @@ public class RenderHelper {
         resetTextureRotations();
         resetRenderedSides();
         resetTransformations();
-        lightmap = new Map3D<Integer>(3, 3, 3, 0);
         renderFromInside = false;
         color = 0xFFFFFF;
     }
@@ -85,31 +82,12 @@ public class RenderHelper {
         renderFromInside = render;
     }
 
-    private int getMixedBrightnessForBlock(int x, int y, int z) {
-
-        if (world == null)
-            return 0xFF00FF;
-
-        return world.getBlock(location.getX() + x, location.getY() + y, location.getZ() + z).getMixedBrightnessForBlock(world,
-                location.getX() + x, location.getY() + y, location.getZ() + z);
-    }
-
     public void setRenderCoords(IBlockAccess world, int x, int y, int z) {
 
         this.world = world;
         location = new Vec3i(x, y, z);
-
-        for (int x_ = -1; x_ <= 1; x_++) {
-            for (int y_ = -1; y_ <= 1; y_++) {
-                for (int z_ = -1; z_ <= 1; z_++) {
-                    if (world != null) {
-                        setLightValue(x_, y_, z_, getMixedBrightnessForBlock(x_, y_, z_));
-                    } else {
-                        setLightValue(x_, y_, z_, 0xFF00FF);
-                    }
-                }
-            }
-        }
+        if (world != null)
+            lightingHelper = new LightingHelper(world, location);
     }
 
     public void addTransformation(Transformation transformation) {
@@ -161,29 +139,24 @@ public class RenderHelper {
         this.color = color;
     }
 
-    private void setLightValue(int x, int y, int z, int value) {
-
-        lightmap.set(x + 1, y + 1, z + 1, value);
-    }
-
-    @SuppressWarnings("unused")
-    private void addVertex(double x, double y, double z, double u, double v) {
+    public void addVertex(double x, double y, double z, double u, double v) {
 
         setTextureCoords(u, v);
         addVertex(x, y, z);
     }
 
-    private void setTextureCoords(double u, double v) {
+    public void setTextureCoords(double u, double v) {
 
         Tessellator.instance.setTextureUV(u, v);
     }
 
-    private void addVertex(double x, double y, double z) {
+    public void addVertex(double x, double y, double z) {
 
         Vec3d vertex = new Vec3d(x, y, z).transform(transformations);
+        Vec3d normal = this.normal;// .transform(transformations);
 
-        Vec3d normal = this.normal.transform(transformations);
-
+        Tessellator.instance.setBrightness(world != null ? lightingHelper.getVertexBrightness(vertex, normal) : 0xF000F0);
+        Tessellator.instance.setColorOpaque_I(color);
         Tessellator.instance.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
         Tessellator.instance.addVertex(vertex.getX(), vertex.getY(), vertex.getZ());
     }
@@ -250,10 +223,6 @@ public class RenderHelper {
         if (overrideTexture != null)
             icon = overrideTexture;
 
-        LightingHelper.loadLightmap(lightmap);
-
-        Vec3d normal = this.normal.clone().transform(transformations);
-
         Vec3d v1 = new Vec3d(x, face.getMinX(), face.getMinY()).transform(transformations);
         Vec3d v2 = new Vec3d(x, face.getMinX(), face.getMaxY()).transform(transformations);
         Vec3d v3 = new Vec3d(x, face.getMaxX(), face.getMaxY()).transform(transformations);
@@ -266,42 +235,13 @@ public class RenderHelper {
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
 
-        if (renderFromInside) {
-            Vec3d v = v2;
-            v2 = v4;
-            v4 = v;
-            Vec2d t = t2;
-            t2 = t4;
-            t4 = t;
-            normal = new Vec3d(0, 0, 0).sub(normal);
-        }
-
-        Tessellator t = Tessellator.instance;
-
-        t.setColorOpaque_I(color);
-        t.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v1, normal));
-        t.addVertexWithUV(v1.getX(), v1.getY(), v1.getZ(), t1.getX(), t1.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v2, normal));
-        t.addVertexWithUV(v2.getX(), v2.getY(), v2.getZ(), t2.getX(), t2.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v3, normal));
-        t.addVertexWithUV(v3.getX(), v3.getY(), v3.getZ(), t3.getX(), t3.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v4, normal));
-        t.addVertexWithUV(v4.getX(), v4.getY(), v4.getZ(), t4.getX(), t4.getY());
+        renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
 
     public void renderFaceXPos(Vec2dRect face, double x, IIcon icon) {
 
         if (overrideTexture != null)
             icon = overrideTexture;
-
-        LightingHelper.loadLightmap(lightmap);
-
-        Vec3d normal = this.normal.clone().transform(transformations);
 
         Vec3d v1 = new Vec3d(x, face.getMinX(), face.getMinY()).transform(transformations);
         Vec3d v2 = new Vec3d(x, face.getMaxX(), face.getMinY()).transform(transformations);
@@ -315,42 +255,13 @@ public class RenderHelper {
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMinX()) * 16));
 
-        if (renderFromInside) {
-            Vec3d v = v2;
-            v2 = v4;
-            v4 = v;
-            Vec2d t = t2;
-            t2 = t4;
-            t4 = t;
-            normal = new Vec3d(0, 0, 0).sub(normal);
-        }
-
-        Tessellator t = Tessellator.instance;
-
-        t.setColorOpaque_I(color);
-        t.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v1, normal));
-        t.addVertexWithUV(v1.getX(), v1.getY(), v1.getZ(), t1.getX(), t1.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v2, normal));
-        t.addVertexWithUV(v2.getX(), v2.getY(), v2.getZ(), t2.getX(), t2.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v3, normal));
-        t.addVertexWithUV(v3.getX(), v3.getY(), v3.getZ(), t3.getX(), t3.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v4, normal));
-        t.addVertexWithUV(v4.getX(), v4.getY(), v4.getZ(), t4.getX(), t4.getY());
+        renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
 
     public void renderFaceYNeg(Vec2dRect face, double y, IIcon icon) {
 
         if (overrideTexture != null)
             icon = overrideTexture;
-
-        LightingHelper.loadLightmap(lightmap);
-
-        Vec3d normal = this.normal.clone().transform(transformations);
 
         Vec3d v1 = new Vec3d(face.getMinX(), y, face.getMinY()).transform(transformations);
         Vec3d v2 = new Vec3d(face.getMaxX(), y, face.getMinY()).transform(transformations);
@@ -364,42 +275,13 @@ public class RenderHelper {
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
 
-        if (renderFromInside) {
-            Vec3d v = v2;
-            v2 = v4;
-            v4 = v;
-            Vec2d t = t2;
-            t2 = t4;
-            t4 = t;
-            normal = new Vec3d(0, 0, 0).sub(normal);
-        }
-
-        Tessellator t = Tessellator.instance;
-
-        t.setColorOpaque_I(color);
-        t.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v1, normal));
-        t.addVertexWithUV(v1.getX(), v1.getY(), v1.getZ(), t1.getX(), t1.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v2, normal));
-        t.addVertexWithUV(v2.getX(), v2.getY(), v2.getZ(), t2.getX(), t2.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v3, normal));
-        t.addVertexWithUV(v3.getX(), v3.getY(), v3.getZ(), t3.getX(), t3.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v4, normal));
-        t.addVertexWithUV(v4.getX(), v4.getY(), v4.getZ(), t4.getX(), t4.getY());
+        renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
 
     public void renderFaceYPos(Vec2dRect face, double y, IIcon icon) {
 
         if (overrideTexture != null)
             icon = overrideTexture;
-
-        LightingHelper.loadLightmap(lightmap);
-
-        Vec3d normal = this.normal.clone().transform(transformations);
 
         Vec3d v1 = new Vec3d(face.getMinX(), y, face.getMinY()).transform(transformations);
         Vec3d v2 = new Vec3d(face.getMinX(), y, face.getMaxY()).transform(transformations);
@@ -413,42 +295,13 @@ public class RenderHelper {
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMinY() * 16));
 
-        if (renderFromInside) {
-            Vec3d v = v2;
-            v2 = v4;
-            v4 = v;
-            Vec2d t = t2;
-            t2 = t4;
-            t4 = t;
-            normal = new Vec3d(0, 0, 0).sub(normal);
-        }
-
-        Tessellator t = Tessellator.instance;
-
-        t.setColorOpaque_I(color);
-        t.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v1, normal));
-        t.addVertexWithUV(v1.getX(), v1.getY(), v1.getZ(), t1.getX(), t1.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v2, normal));
-        t.addVertexWithUV(v2.getX(), v2.getY(), v2.getZ(), t2.getX(), t2.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v3, normal));
-        t.addVertexWithUV(v3.getX(), v3.getY(), v3.getZ(), t3.getX(), t3.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v4, normal));
-        t.addVertexWithUV(v4.getX(), v4.getY(), v4.getZ(), t4.getX(), t4.getY());
+        renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
 
     public void renderFaceZNeg(Vec2dRect face, double z, IIcon icon) {
 
         if (overrideTexture != null)
             icon = overrideTexture;
-
-        LightingHelper.loadLightmap(lightmap);
-
-        Vec3d normal = this.normal.clone().transform(transformations);
 
         Vec3d v1 = new Vec3d(face.getMinX(), face.getMinY(), z).transform(transformations);
         Vec3d v2 = new Vec3d(face.getMinX(), face.getMaxY(), z).transform(transformations);
@@ -462,42 +315,13 @@ public class RenderHelper {
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMinY()) * 16));
 
-        if (renderFromInside) {
-            Vec3d v = v2;
-            v2 = v4;
-            v4 = v;
-            Vec2d t = t2;
-            t2 = t4;
-            t4 = t;
-            normal = new Vec3d(0, 0, 0).sub(normal);
-        }
-
-        Tessellator t = Tessellator.instance;
-
-        t.setColorOpaque_I(color);
-        t.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v1, normal));
-        t.addVertexWithUV(v1.getX(), v1.getY(), v1.getZ(), t1.getX(), t1.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v2, normal));
-        t.addVertexWithUV(v2.getX(), v2.getY(), v2.getZ(), t2.getX(), t2.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v3, normal));
-        t.addVertexWithUV(v3.getX(), v3.getY(), v3.getZ(), t3.getX(), t3.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v4, normal));
-        t.addVertexWithUV(v4.getX(), v4.getY(), v4.getZ(), t4.getX(), t4.getY());
+        renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
 
     public void renderFaceZPos(Vec2dRect face, double z, IIcon icon) {
 
         if (overrideTexture != null)
             icon = overrideTexture;
-
-        LightingHelper.loadLightmap(lightmap);
-
-        Vec3d normal = this.normal.clone().transform(transformations);
 
         Vec3d v1 = new Vec3d(face.getMinX(), face.getMinY(), z).transform(transformations);
         Vec3d v2 = new Vec3d(face.getMaxX(), face.getMinY(), z).transform(transformations);
@@ -511,6 +335,11 @@ public class RenderHelper {
         Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
         Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
 
+        renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
+    }
+
+    private void renderFace(Vec3d v1, Vec3d v2, Vec3d v3, Vec3d v4, Vec2d t1, Vec2d t2, Vec2d t3, Vec2d t4) {
+
         if (renderFromInside) {
             Vec3d v = v2;
             v2 = v4;
@@ -521,21 +350,9 @@ public class RenderHelper {
             normal = new Vec3d(0, 0, 0).sub(normal);
         }
 
-        Tessellator t = Tessellator.instance;
-
-        t.setColorOpaque_I(color);
-        t.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v1, normal));
-        t.addVertexWithUV(v1.getX(), v1.getY(), v1.getZ(), t1.getX(), t1.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v2, normal));
-        t.addVertexWithUV(v2.getX(), v2.getY(), v2.getZ(), t2.getX(), t2.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v3, normal));
-        t.addVertexWithUV(v3.getX(), v3.getY(), v3.getZ(), t3.getX(), t3.getY());
-
-        t.setBrightness(LightingHelper.getBrightnessForVertex(v4, normal));
-        t.addVertexWithUV(v4.getX(), v4.getY(), v4.getZ(), t4.getX(), t4.getY());
+        addVertex(v1.getX(), v1.getY(), v1.getZ(), t1.getX(), t1.getY());
+        addVertex(v2.getX(), v2.getY(), v2.getZ(), t2.getX(), t2.getY());
+        addVertex(v3.getX(), v3.getY(), v3.getZ(), t3.getX(), t3.getY());
+        addVertex(v4.getX(), v4.getY(), v4.getZ(), t4.getX(), t4.getY());
     }
 }

@@ -1,113 +1,189 @@
 package uk.co.qmunity.lib.client.render;
 
 import net.minecraft.block.Block;
-import uk.co.qmunity.lib.misc.Map3D;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.IBlockAccess;
+import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.vec.Vec3d;
+import uk.co.qmunity.lib.vec.Vec3i;
 
+/**
+ * Most of the code in this class was made by ChickenBones. All credits go to him!
+ *
+ * @author ChickenBones
+ */
 public class LightingHelper {
 
-    public static int joinLights(int l1, int l2, int l3, int l4) {
+    private float[][] ao = new float[13][4];
+    private int[][] brightness = new int[13][4];
 
-        return (l1 + l2 + l3 + l4) >> 2 & 0xFF00FF;
+    private int sampledSides = 0;
+    private int computedSides = 0;
+
+    private float[] aoSamples = new float[27];
+    private int[] brightnessSamples = new int[27];
+
+    private static final int[][] ssamplem = new int[][] { { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, { 18, 19, 20, 21, 22, 23, 24, 25, 26 },
+            { 0, 9, 18, 1, 10, 19, 2, 11, 20 }, { 6, 15, 24, 7, 16, 25, 8, 17, 26 }, { 0, 3, 6, 9, 12, 15, 18, 21, 24 },
+            { 2, 5, 8, 11, 14, 17, 20, 23, 26 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 },
+            { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 1, 4, 7, 10, 13, 16, 19, 22, 25 },
+            { 1, 4, 7, 10, 13, 16, 19, 22, 25 }, { 13, 13, 13, 13, 13, 13, 13, 13, 13 } };
+    private static final int[][] qsamplem = new int[][] { { 0, 1, 3, 4 }, { 5, 1, 2, 4 }, { 6, 7, 3, 4 }, { 5, 7, 8, 4 } };
+    private static final float[] sideao = new float[] { 0.5F, 1F, 0.8F, 0.8F, 0.6F, 0.6F, 0.5F, 1F, 0.8F, 0.8F, 0.6F, 0.6F, 1F };
+
+    private IBlockAccess access;
+    private Vec3i pos;
+
+    public LightingHelper(IBlockAccess world, Vec3i location) {
+
+        access = world;
+        pos = location;
     }
 
-    public static int joinLights(int l1, int l2) {
+    public int[] getBrightness(int side) {
 
-        return joinLights(l1, l1, l2, l2);
+        sideSample(side);
+        return brightness[side];
     }
 
-    private static Map3D<Integer> lightmap = null;
+    public int[] getBrightness(Vec3d normal) {
 
-    public static void loadLightmap(Map3D<Integer> lightmap) {
+        normal = normal.normalize();
+        double x = normal.getX(), y = normal.getY(), z = normal.getZ();
 
-        LightingHelper.lightmap = lightmap;
+        ForgeDirection dir = ForgeDirection.UNKNOWN;
+
+        if (y > x && y > z)
+            dir = ForgeDirection.UP;
+        if (y < x && y < z)
+            dir = ForgeDirection.DOWN;
+        if (x > y && x > z)
+            dir = ForgeDirection.EAST;
+        if (x < y && x < z)
+            dir = ForgeDirection.WEST;
+        if (z > x && z > y)
+            dir = ForgeDirection.SOUTH;
+        if (z < x && z < y)
+            dir = ForgeDirection.NORTH;
+
+        return getBrightness(dir.ordinal());
     }
 
-    private static int getLightValue(int x, int y, int z) {
+    public float[] getAo(int side) {
 
-        return lightmap.get(x + 1, y + 1, z + 1);
+        sideSample(side);
+        return ao[side];
     }
 
-    @SuppressWarnings("unused")
-    private static Block getBlock(int x, int y, int z) {
+    public float[] getAo(Vec3d normal) {
 
-        RenderHelper h = RenderHelper.instance;
-        return h.getWorld().getBlock(h.getLocation().getX() + x, h.getLocation().getY(), h.getLocation().getZ());
+        normal = normal.normalize();
+        double x = normal.getX(), y = normal.getY(), z = normal.getZ();
+
+        ForgeDirection dir = ForgeDirection.UNKNOWN;
+
+        if (y > x && y > z)
+            dir = ForgeDirection.UP;
+        if (y < x && y < z)
+            dir = ForgeDirection.DOWN;
+        if (x > y && x > z)
+            dir = ForgeDirection.EAST;
+        if (x < y && x < z)
+            dir = ForgeDirection.WEST;
+        if (z > x && z > y)
+            dir = ForgeDirection.SOUTH;
+        if (z < x && z < y)
+            dir = ForgeDirection.NORTH;
+
+        return getAo(dir.ordinal());
     }
 
-    @SuppressWarnings("unused")
-    public static int getBrightnessForVertex(Vec3d vertex, Vec3d normal) {
+    public int getVertexBrightness(Vec3d vertex, Vec3d normal) {
 
-        if (lightmap == null)
-            return 0;
-        // normal = normal.normalize();
-        // Vec3i inormal = new Vec3i((int) Math.copySign(Math.ceil(Math.abs(normal.getX())), normal.getX()), (int) Math.copySign(
-        // Math.ceil(Math.abs(normal.getY())), normal.getY()), (int) Math.copySign(Math.ceil(Math.abs(normal.getZ())), normal.getZ()));
-        //
-        // int lightingX = 0;
-        // int lightingY = 0;
-        // int lightingZ = 0;
-        // if (inormal.getX() != 0) {
-        // int nx = inormal.getX();
-        //
-        // int X = getLightValue(nx, 0, 0);
-        // int YN = getLightValue(nx, -1, 0);
-        // int YP = getLightValue(nx, 1, 0);
-        // int ZN = getLightValue(nx, 0, -1);
-        // int ZP = getLightValue(nx, 0, 1);
-        // int YZNN = getLightValue(nx, -1, -1);
-        // int YZPN = getLightValue(nx, 1, -1);
-        // int YZNP = getLightValue(nx, -1, 1);
-        // int YZPP = getLightValue(nx, 1, 1);
-        //
-        // int surrounding = (int) ((vertex.getY() * (((int) ((YP + (vertex.getZ() * YZPP) + ((1 - vertex.getZ()) * YZPN))) / 2) & 0xFF00FF)) + ((1 -
-        // vertex
-        // .getY()) * (((int) ((YN + (vertex.getZ() * YZNP) + ((1 - vertex.getZ()) * YZNN))) / 2) & 0xFF00FF))) & 0xFF00FF;
-        //
-        // lightingX = joinLights(surrounding, X);
-        // }
-        // if (inormal.getY() != 0) {
-        // int ny = inormal.getY();
-        //
-        // int Y = getLightValue(0, ny, 0);
-        // int XN = getLightValue(-1, ny, 0);
-        // int XP = getLightValue(1, ny, 0);
-        // int ZN = getLightValue(0, ny, -1);
-        // int ZP = getLightValue(0, ny, 1);
-        // int XZNN = getLightValue(-1, ny, -1);
-        // int XZPN = getLightValue(1, ny, -1);
-        // int XZNP = getLightValue(-1, ny, 1);
-        // int XZPP = getLightValue(1, ny, 1);
-        //
-        // int surrounding = (int) ((vertex.getX() * (((int) ((XP + (vertex.getZ() * XZPP) + ((1 - vertex.getZ()) * XZPN))) / 2) & 0xFF00FF)) + ((1 -
-        // vertex
-        // .getX()) * (((int) ((XN + (vertex.getZ() * XZNP) + ((1 - vertex.getZ()) * XZNN))) / 2) & 0xFF00FF))) & 0xFF00FF;
-        //
-        // lightingY = joinLights(surrounding, Y);
-        // }
-        // if (inormal.getZ() != 0) {
-        // int nz = inormal.getZ();
-        //
-        // int Z = getLightValue(0, 0, nz);
-        // int XN = getLightValue(-1, 0, nz);
-        // int XP = getLightValue(1, 0, nz);
-        // int ZN = getLightValue(0, -1, nz);
-        // int ZP = getLightValue(0, 1, nz);
-        // int XYNN = getLightValue(-1, -1, nz);
-        // int XYPN = getLightValue(1, -1, nz);
-        // int XYNP = getLightValue(-1, 1, nz);
-        // int XYPP = getLightValue(1, 1, nz);
-        //
-        // int surrounding = (int) ((vertex.getX() * (((int) ((XP + (vertex.getY() * XYPP) + ((1 - vertex.getY()) * XYPN))) / 2) & 0xFF00FF)) + ((1 -
-        // vertex
-        // .getX()) * (((int) ((XN + (vertex.getY() * XYNP) + ((1 - vertex.getY()) * XYNN))) / 2) & 0xFF00FF))) & 0xFF00FF;
-        //
-        // lightingZ = joinLights(surrounding, Z);
-        // }
-        //
-        // int normalLighting = ((int) ((lightingX * Math.abs(normal.getX())) + (lightingY * Math.abs(normal.getY())) + (lightingZ * Math
-        // .abs(normal.getZ())))) & 0xFF00FF;
+        normal = normal.normalize();
+        double x = normal.getX(), y = normal.getY(), z = normal.getZ();
 
-        return 0xF000F0;
+        ForgeDirection dir = ForgeDirection.UNKNOWN;
+
+        if (y > x && y > z)
+            dir = ForgeDirection.UP;
+        if (y < x && y < z)
+            dir = ForgeDirection.DOWN;
+        if (x > y && x > z)
+            dir = ForgeDirection.EAST;
+        if (x < y && x < z)
+            dir = ForgeDirection.WEST;
+        if (z > x && z > y)
+            dir = ForgeDirection.SOUTH;
+        if (z < x && z < y)
+            dir = ForgeDirection.NORTH;
+
+        int[] b = getBrightness(dir.ordinal());
+        float[] ao = getAo(dir.ordinal());
+        float ao1 = 0.9F + (0.05F * sideao[dir.ordinal()]);
+
+        return mixAoBrightness(b[0], b[1], b[2], b[3], ao[0] * ao1, ao[1] * ao1, ao[2] * ao1, ao[3] * ao1) & 0xF500F5;
     }
+
+    private void sample(int side) {
+
+        if ((sampledSides & 1 << side) == 0) {
+            int x = pos.getX() + (side % 3) - 1;
+            int y = pos.getY() + (side / 9) - 1;
+            int z = pos.getZ() + (side / 3 % 3) - 1;
+            Block b = access.getBlock(x, y, z);
+            brightnessSamples[side] = access.getLightBrightnessForSkyBlocks(x, y, z, b.getLightValue(access, x, y, z));
+            aoSamples[side] = b.getAmbientOcclusionLightValue();
+            sampledSides |= 1 << side;
+        }
+    }
+
+    private void sideSample(int side) {
+
+        if ((computedSides & 1 << side) == 0) {
+            int[] ssample = ssamplem[side];
+            for (int q = 0; q < 4; q++) {
+                int[] qsample = qsamplem[q];
+                if (Minecraft.isAmbientOcclusionEnabled())
+                    interpolateSides(side, q, ssample[qsample[0]], ssample[qsample[1]], ssample[qsample[2]], ssample[qsample[3]]);
+                else
+                    interpolateSides(side, q, ssample[4], ssample[4], ssample[4], ssample[4]);
+            }
+            computedSides |= 1 << side;
+        }
+    }
+
+    private void interpolateSides(int s, int q, int a, int b, int c, int d) {
+
+        sample(a);
+        sample(b);
+        sample(c);
+        sample(d);
+        ao[s][q] = interpolateAO(aoSamples[a], aoSamples[b], aoSamples[c], aoSamples[d]) * sideao[s];
+        brightness[s][q] = interpolateBrightness(brightnessSamples[a], brightnessSamples[b], brightnessSamples[c], brightnessSamples[d]);
+    }
+
+    private static float interpolateAO(float a, float b, float c, float d) {
+
+        return (a + b + c + d) / 4F;
+    }
+
+    private static int interpolateBrightness(int a, int b, int c, int d) {
+
+        if (a == 0)
+            a = d;
+        if (b == 0)
+            b = d;
+        if (c == 0)
+            c = d;
+        return (a + b + c + d) >> 2 & 0xFF00FF;
+    }
+
+    private static int mixAoBrightness(int b1, int b2, int b3, int b4, double ao1, double ao2, double ao3, double ao4) {
+
+        int i1 = (int) ((b1 >> 16 & 255) * ao1 + (b2 >> 16 & 255) * ao2 + (b3 >> 16 & 255) * ao3 + (b4 >> 16 & 255) * ao4) & 255;
+        int j1 = (int) ((b1 & 255) * ao1 + (b2 & 255) * ao2 + (b3 & 255) * ao3 + (b4 & 255) * ao4) & 255;
+        return i1 << 16 | j1;
+    }
+
 }
