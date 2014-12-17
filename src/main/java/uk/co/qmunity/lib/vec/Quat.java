@@ -42,26 +42,6 @@ public class Quat {
         return w;
     }
 
-    public void setX(double x) {
-
-        this.x = x;
-    }
-
-    public void setY(double y) {
-
-        this.y = y;
-    }
-
-    public void setZ(double z) {
-
-        this.z = z;
-    }
-
-    public void setW(double w) {
-
-        this.w = w;
-    }
-
     public double length() {
 
         return Math.sqrt(x * x + y * y + z * z + w * w);
@@ -94,29 +74,23 @@ public class Quat {
         return new Quat(x_, y_, z_, w_);
     }
 
-    public Vec3d mul(Vec3d v) {
+    public Vec3d mul(Vec3d vec) {
 
-        double k0 = w * w - 0.5D;
-        double k1;
-        double rx, ry, rz;
+        double d = -x * vec.getX() - y * vec.getY() - z * vec.getZ();
+        double d1 = w * vec.getX() + y * vec.getZ() - z * vec.getY();
+        double d2 = w * vec.getY() - x * vec.getZ() + z * vec.getX();
+        double d3 = w * vec.getZ() + x * vec.getY() - y * vec.getX();
 
-        k1 = v.x * x;
-        k1 += v.y * y;
-        k1 += v.z * z;
+        return vec.set(d1 * w - d * x - d2 * z + d3 * y, d2 * w - d * y + d1 * z - d3 * x, d3 * w - d * z - d1 * y + d2 * x);
+    }
 
-        rx = v.x * k0 + x * k1;
-        ry = v.y * k0 + y * k1;
-        rz = v.z * k0 + z * k1;
+    public static Quat getRotation(double x, double y, double z) {
 
-        rx += w * (y * v.z - z * v.y);
-        ry += w * (z * v.x - x * v.z);
-        rz += w * (x * v.y - y * v.x);
+        Quat rx = new Quat(new Vec3d(1, 0, 0), Math.toRadians(x));
+        Quat ry = new Quat(new Vec3d(0, 1, 0), Math.toRadians(y));
+        Quat rz = new Quat(new Vec3d(0, 0, 1), Math.toRadians(z));
 
-        rx += rx;
-        ry += ry;
-        rz += rz;
-
-        return new Vec3d(rx, ry, rz);
+        return rx.mul(ry.mul(rz));
     }
 
 }

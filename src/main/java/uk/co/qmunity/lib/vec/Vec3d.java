@@ -412,6 +412,15 @@ public class Vec3d {
         return dx * dx + dy * dy + dz * dz;
     }
 
+    public Vec3d set(double x, double y, double z) {
+
+        setX(x);
+        setY(y);
+        setZ(z);
+
+        return this;
+    }
+
     public void setX(double x) {
 
         this.x = x;
