@@ -50,23 +50,42 @@ public class LightingHelper {
 
         normal = normal.normalize();
         double x = normal.getX(), y = normal.getY(), z = normal.getZ();
+        int[] brightness = new int[4];
 
-        ForgeDirection dir = ForgeDirection.UNKNOWN;
+        if (x < 0) {
+            int[] b = getBrightness(ForgeDirection.WEST.ordinal());
+            for (int i = 0; i < 4; i++)
+                brightness[i] += getProportion(b[i], -x);
+        }
+        if (x > 0) {
+            int[] b = getBrightness(ForgeDirection.EAST.ordinal());
+            for (int i = 0; i < 4; i++)
+                brightness[i] += getProportion(b[i], x);
+        }
 
-        if (y > x && y > z)
-            dir = ForgeDirection.UP;
-        if (y < x && y < z)
-            dir = ForgeDirection.DOWN;
-        if (x > y && x > z)
-            dir = ForgeDirection.EAST;
-        if (x < y && x < z)
-            dir = ForgeDirection.WEST;
-        if (z > x && z > y)
-            dir = ForgeDirection.SOUTH;
-        if (z < x && z < y)
-            dir = ForgeDirection.NORTH;
+        if (y < 0) {
+            int[] b = getBrightness(ForgeDirection.DOWN.ordinal());
+            for (int i = 0; i < 4; i++)
+                brightness[i] += getProportion(b[i], -y);
+        }
+        if (y > 0) {
+            int[] b = getBrightness(ForgeDirection.UP.ordinal());
+            for (int i = 0; i < 4; i++)
+                brightness[i] += getProportion(b[i], y);
+        }
 
-        return getBrightness(dir.ordinal());
+        if (z < 0) {
+            int[] b = getBrightness(ForgeDirection.NORTH.ordinal());
+            for (int i = 0; i < 4; i++)
+                brightness[i] += getProportion(b[i], -z);
+        }
+        if (z > 0) {
+            int[] b = getBrightness(ForgeDirection.SOUTH.ordinal());
+            for (int i = 0; i < 4; i++)
+                brightness[i] += getProportion(b[i], z);
+        }
+
+        return brightness;
     }
 
     public float[] getAo(int side) {
@@ -79,50 +98,50 @@ public class LightingHelper {
 
         normal = normal.normalize();
         double x = normal.getX(), y = normal.getY(), z = normal.getZ();
+        float[] ao = new float[4];
 
-        ForgeDirection dir = ForgeDirection.UNKNOWN;
+        if (x < 0) {
+            float[] b = getAo(ForgeDirection.WEST.ordinal());
+            for (int i = 0; i < 4; i++)
+                ao[i] += getProportion(b[i], -x);
+        }
+        if (x > 0) {
+            float[] b = getAo(ForgeDirection.EAST.ordinal());
+            for (int i = 0; i < 4; i++)
+                ao[i] += getProportion(b[i], x);
+        }
 
-        if (y > x && y > z)
-            dir = ForgeDirection.UP;
-        if (y < x && y < z)
-            dir = ForgeDirection.DOWN;
-        if (x > y && x > z)
-            dir = ForgeDirection.EAST;
-        if (x < y && x < z)
-            dir = ForgeDirection.WEST;
-        if (z > x && z > y)
-            dir = ForgeDirection.SOUTH;
-        if (z < x && z < y)
-            dir = ForgeDirection.NORTH;
+        if (y < 0) {
+            float[] b = getAo(ForgeDirection.DOWN.ordinal());
+            for (int i = 0; i < 4; i++)
+                ao[i] += getProportion(b[i], -y);
+        }
+        if (y > 0) {
+            float[] b = getAo(ForgeDirection.UP.ordinal());
+            for (int i = 0; i < 4; i++)
+                ao[i] += getProportion(b[i], y);
+        }
 
-        return getAo(dir.ordinal());
+        if (z < 0) {
+            float[] b = getAo(ForgeDirection.NORTH.ordinal());
+            for (int i = 0; i < 4; i++)
+                ao[i] += getProportion(b[i], -z);
+        }
+        if (z > 0) {
+            float[] b = getAo(ForgeDirection.SOUTH.ordinal());
+            for (int i = 0; i < 4; i++)
+                ao[i] += getProportion(b[i], z);
+        }
+
+        return ao;
     }
 
     public int getVertexBrightness(Vec3d vertex, Vec3d normal) {
 
-        normal = normal.normalize();
-        double x = normal.getX(), y = normal.getY(), z = normal.getZ();
+        int[] b = getBrightness(normal);
+        float[] ao = getAo(normal);
 
-        ForgeDirection dir = ForgeDirection.UNKNOWN;
-
-        if (y > x && y > z)
-            dir = ForgeDirection.UP;
-        if (y < x && y < z)
-            dir = ForgeDirection.DOWN;
-        if (x > y && x > z)
-            dir = ForgeDirection.EAST;
-        if (x < y && x < z)
-            dir = ForgeDirection.WEST;
-        if (z > x && z > y)
-            dir = ForgeDirection.SOUTH;
-        if (z < x && z < y)
-            dir = ForgeDirection.NORTH;
-
-        int[] b = getBrightness(dir.ordinal());
-        float[] ao = getAo(dir.ordinal());
-        float ao1 = 0.9F + (0.05F * sideao[dir.ordinal()]);
-
-        return mixAoBrightness(b[0], b[1], b[2], b[3], ao[0] * ao1, ao[1] * ao1, ao[2] * ao1, ao[3] * ao1) & 0xF500F5;
+        return mixAoBrightness(b[0], b[1], b[2], b[3], ao[0], ao[1], ao[2], ao[3]) & 0xF500F5;
     }
 
     private void sample(int side) {
@@ -184,6 +203,20 @@ public class LightingHelper {
         int i1 = (int) ((b1 >> 16 & 255) * ao1 + (b2 >> 16 & 255) * ao2 + (b3 >> 16 & 255) * ao3 + (b4 >> 16 & 255) * ao4) & 255;
         int j1 = (int) ((b1 & 255) * ao1 + (b2 & 255) * ao2 + (b3 & 255) * ao3 + (b4 & 255) * ao4) & 255;
         return i1 << 16 | j1;
+    }
+
+    private static int getProportion(int br, double amt) {
+
+        double a = getProportion((float) (br & 0x0000FF), amt);
+        double b = getProportion((float) ((br & 0x00FF00) >> 4), amt);
+        double c = getProportion((float) ((br & 0xFF0000) >> 8), amt);
+
+        return (int) a + (((int) b) << 4) + (((int) c) << 8);
+    }
+
+    private static float getProportion(float ao, double amt) {
+
+        return (float) (ao * amt);
     }
 
 }
