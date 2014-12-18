@@ -1,12 +1,14 @@
 package uk.co.qmunity.lib.network.packet;
 
+import java.util.Map;
+
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import uk.co.qmunity.lib.network.LocatedPacket;
 import uk.co.qmunity.lib.network.NetworkHandler;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.compat.MultipartCompatibility;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 
 public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
 
@@ -59,9 +61,19 @@ public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
         tag.setTag("data", t);
 
         String partId = null;
-        for (String id : holder.getPartMap().keySet())
-            if (holder.getPartMap().get(id) == part)
+        Map<String, IPart> parts = holder.getPartMap();
+        for (String id : parts.keySet()) {
+            if (parts.get(id) == part) {
                 partId = id;
+                break;
+            }
+        }
+        if (partId == null) {
+            System.out.println(part.getType() + " = " + part + ":");
+            for (String id : parts.keySet()) {
+                System.out.println(" - " + id + " = " + parts.get(id));
+            }
+        }
         tag.setString("partId", partId);
     }
 

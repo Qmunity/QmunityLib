@@ -22,7 +22,8 @@ public class PacketCRemovePart extends PacketCPart {
     @Override
     public void handle(EntityPlayer player) {
 
-        holder.removePart(holder.getPartMap().get(id));
+        if (holder != null)
+            holder.removePart(holder.getPartMap().get(id));
     }
 
     @Override
