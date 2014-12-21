@@ -277,9 +277,13 @@ ISidedHollowConnect {
             if (p != part && p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onPartChanged(part);
 
-        if (before > 0) {
+        if (before > 0)
             PartUpdateManager.addPart(this, part);
-            System.out.println("Add!");
+
+        if (tile() != null) {
+            for (int i = 0; i < 6; i++)
+                tile().notifyNeighborChange(i);
+            tile().notifyTileChange();
         }
     }
 
@@ -291,15 +295,24 @@ ISidedHollowConnect {
         if (!parts.containsValue(part))
             return false;
 
+        PartUpdateManager.removePart(this, part);
+
         if (part instanceof IPartUpdateListener)
             ((IPartUpdateListener) part).onRemoved();
-        for (IPart p : getParts())
-            if (p != part && p instanceof IPartUpdateListener)
-                ((IPartUpdateListener) p).onPartChanged(part);
 
         String id = getIdentifier(part);
         parts.remove(id);
         part.setParent(null);
+
+        for (IPart p : getParts())
+            if (p != part && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onPartChanged(part);
+
+        tile().markDirty();
+        getWorld().func_147479_m(getX(), getY(), getZ());
+        for (int i = 0; i < 6; i++)
+            tile().notifyNeighborChange(i);
+        tile().notifyTileChange();
 
         return true;
     }
@@ -390,11 +403,17 @@ ISidedHollowConnect {
 
         renderer.blockAccess = getWorld();
 
-        for (IPart p : getParts())
-            if (p.getParent() != null)
-                if (p.shouldRenderOnPass(pass))
-                    if (p.renderStatic(new Vec3i((int) pos.x, (int) pos.y, (int) pos.z), RenderHelper.instance, renderer, pass))
-                        did = true;
+        for (IPart p : getParts()) {
+            if (p.getParent() != null) {
+                if (p.shouldRenderOnPass(pass)) {
+                    p.renderStatic(new Vec3i((int) pos.x, (int) pos.y, (int) pos.z), RenderHelper.instance, renderer, pass);
+                    RenderHelper.instance.resetRenderedSides();
+                    RenderHelper.instance.resetTextureRotations();
+                    RenderHelper.instance.resetTransformations();
+                    RenderHelper.instance.setColor(0xFFFFFF);
+                }
+            }
+        }
 
         renderer.blockAccess = null;
 
@@ -567,11 +586,9 @@ ISidedHollowConnect {
 
         int max = 0;
 
-        for (IPart p : getParts()) {
-            if (p instanceof IPartRedstone) {
+        for (IPart p : getParts())
+            if (p instanceof IPartRedstone)
                 max = Math.max(max, ((IPartRedstone) p).getWeakPower(ForgeDirection.getOrientation(side)));
-            }
-        }
 
         return max;
     }

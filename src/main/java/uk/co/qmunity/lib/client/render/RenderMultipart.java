@@ -64,11 +64,19 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
         }
 
         TileMultipart te = BlockMultipart.get(world, x, y, z);
-        if (te != null)
-            for (IPart p : te.getParts())
-                if (p.getParent() != null)
-                    if (p.shouldRenderOnPass(PASS))
+        if (te != null) {
+            for (IPart p : te.getParts()) {
+                if (p.getParent() != null) {
+                    if (p.shouldRenderOnPass(PASS)) {
                         p.renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, PASS);
+                        RenderHelper.instance.resetRenderedSides();
+                        RenderHelper.instance.resetTextureRotations();
+                        RenderHelper.instance.resetTransformations();
+                        RenderHelper.instance.setColor(0xFFFFFF);
+                    }
+                }
+            }
+        }
 
         RenderHelper.instance.fullReset();
 

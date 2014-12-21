@@ -68,12 +68,8 @@ public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
                 break;
             }
         }
-        if (partId == null) {
-            System.out.println(part.getType() + " = " + part + ":");
-            for (String id : parts.keySet()) {
-                System.out.println(" - " + id + " = " + parts.get(id));
-            }
-        }
+        if (partId == null)
+            return;
         tag.setString("partId", partId);
     }
 

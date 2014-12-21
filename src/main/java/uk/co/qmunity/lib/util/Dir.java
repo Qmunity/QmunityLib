@@ -20,12 +20,9 @@ public enum Dir {
 
         ForgeDirection dir = d;
         for (int i = 0; i < rotation; i++)
-            dir = dir.getRotation(face.getOpposite());
+            dir = dir.getRotation(ForgeDirection.DOWN);
 
-        Vec3d v = new Vec3d(0, 0, 0).add(dir);
-        v.rotateUndo(face, Vec3d.center);
-
-        return v.toForgeDirection();
+        return new Vec3d(0, 0, 0).add(dir).rotateUndo(face, new Vec3d(0, 0, 0)).toForgeDirection();
     }
 
     public ForgeDirection getFD() {
@@ -35,12 +32,9 @@ public enum Dir {
 
     public static Dir getDirection(ForgeDirection direction, ForgeDirection face, int rotation) {
 
-        Vec3d v = new Vec3d(0, 0, 0).add(direction);
-        v.rotate(face, Vec3d.center);
-
-        ForgeDirection dir = v.toForgeDirection();
+        ForgeDirection dir = new Vec3d(0, 0, 0).add(direction).rotate(face, new Vec3d(0, 0, 0)).toForgeDirection();
         for (int i = 0; i < rotation; i++)
-            dir = dir.getRotation(face);
+            dir = dir.getRotation(ForgeDirection.UP);
 
         return fromFD(dir);
     }

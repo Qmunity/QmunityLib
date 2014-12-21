@@ -134,13 +134,14 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
         if (part instanceof IPartUpdateListener)
             ((IPartUpdateListener) part).onRemoved();
-        for (IPart p : getParts())
-            if (p != part && p instanceof IPartUpdateListener)
-                ((IPartUpdateListener) p).onPartChanged(part);
 
         String id = getIdentifier(part);
         parts.remove(id);
         part.setParent(null);
+
+        for (IPart p : getParts())
+            if (p != part && p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onPartChanged(part);
 
         markDirty();
         getWorld().func_147479_m(getX(), getY(), getZ());

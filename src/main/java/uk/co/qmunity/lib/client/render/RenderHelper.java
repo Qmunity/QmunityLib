@@ -153,7 +153,7 @@ public class RenderHelper {
     public void addVertex(double x, double y, double z) {
 
         Vec3d vertex = new Vec3d(x, y, z).transform(transformations);
-        Vec3d normal = this.normal;// .transform(transformations);
+        Vec3d normal = this.normal.clone().add(0.5, 0.5, 0.5).transform(transformations).sub(0.5, 0.5, 0.5);
 
         Tessellator.instance.setBrightness(world != null ? lightingHelper.getVertexBrightness(vertex, normal) : 0xF000F0);
         Tessellator.instance.setColorOpaque_I(color);
@@ -223,10 +223,10 @@ public class RenderHelper {
         if (overrideTexture != null)
             icon = overrideTexture;
 
-        Vec3d v1 = new Vec3d(x, face.getMinX(), face.getMinY()).transform(transformations);
-        Vec3d v2 = new Vec3d(x, face.getMinX(), face.getMaxY()).transform(transformations);
-        Vec3d v3 = new Vec3d(x, face.getMaxX(), face.getMaxY()).transform(transformations);
-        Vec3d v4 = new Vec3d(x, face.getMaxX(), face.getMinY()).transform(transformations);
+        Vec3d v1 = new Vec3d(x, face.getMinX(), face.getMinY());
+        Vec3d v2 = new Vec3d(x, face.getMinX(), face.getMaxY());
+        Vec3d v3 = new Vec3d(x, face.getMaxX(), face.getMaxY());
+        Vec3d v4 = new Vec3d(x, face.getMaxX(), face.getMinY());
 
         face = face.clone().rotate(90 * rotations[ForgeDirection.WEST.ordinal()], new Vec2d(0.5, 0.5));
 
@@ -243,10 +243,10 @@ public class RenderHelper {
         if (overrideTexture != null)
             icon = overrideTexture;
 
-        Vec3d v1 = new Vec3d(x, face.getMinX(), face.getMinY()).transform(transformations);
-        Vec3d v2 = new Vec3d(x, face.getMaxX(), face.getMinY()).transform(transformations);
-        Vec3d v3 = new Vec3d(x, face.getMaxX(), face.getMaxY()).transform(transformations);
-        Vec3d v4 = new Vec3d(x, face.getMinX(), face.getMaxY()).transform(transformations);
+        Vec3d v1 = new Vec3d(x, face.getMinX(), face.getMinY());
+        Vec3d v2 = new Vec3d(x, face.getMaxX(), face.getMinY());
+        Vec3d v3 = new Vec3d(x, face.getMaxX(), face.getMaxY());
+        Vec3d v4 = new Vec3d(x, face.getMinX(), face.getMaxY());
 
         face = face.clone().rotate(90 * rotations[ForgeDirection.EAST.ordinal()], new Vec2d(0.5, 0.5));
 
@@ -263,10 +263,10 @@ public class RenderHelper {
         if (overrideTexture != null)
             icon = overrideTexture;
 
-        Vec3d v1 = new Vec3d(face.getMinX(), y, face.getMinY()).transform(transformations);
-        Vec3d v2 = new Vec3d(face.getMaxX(), y, face.getMinY()).transform(transformations);
-        Vec3d v3 = new Vec3d(face.getMaxX(), y, face.getMaxY()).transform(transformations);
-        Vec3d v4 = new Vec3d(face.getMinX(), y, face.getMaxY()).transform(transformations);
+        Vec3d v1 = new Vec3d(face.getMinX(), y, face.getMinY());
+        Vec3d v2 = new Vec3d(face.getMaxX(), y, face.getMinY());
+        Vec3d v3 = new Vec3d(face.getMaxX(), y, face.getMaxY());
+        Vec3d v4 = new Vec3d(face.getMinX(), y, face.getMaxY());
 
         face = face.clone().rotate(rotations[ForgeDirection.DOWN.ordinal()] * 90, new Vec2d(0.5, 0.5));
 
@@ -283,10 +283,10 @@ public class RenderHelper {
         if (overrideTexture != null)
             icon = overrideTexture;
 
-        Vec3d v1 = new Vec3d(face.getMinX(), y, face.getMinY()).transform(transformations);
-        Vec3d v2 = new Vec3d(face.getMinX(), y, face.getMaxY()).transform(transformations);
-        Vec3d v3 = new Vec3d(face.getMaxX(), y, face.getMaxY()).transform(transformations);
-        Vec3d v4 = new Vec3d(face.getMaxX(), y, face.getMinY()).transform(transformations);
+        Vec3d v1 = new Vec3d(face.getMinX(), y, face.getMinY());
+        Vec3d v2 = new Vec3d(face.getMinX(), y, face.getMaxY());
+        Vec3d v3 = new Vec3d(face.getMaxX(), y, face.getMaxY());
+        Vec3d v4 = new Vec3d(face.getMaxX(), y, face.getMinY());
 
         face = face.clone().rotate(rotations[ForgeDirection.UP.ordinal()] * 90, new Vec2d(0.5, 0.5));
 
@@ -303,10 +303,10 @@ public class RenderHelper {
         if (overrideTexture != null)
             icon = overrideTexture;
 
-        Vec3d v1 = new Vec3d(face.getMinX(), face.getMinY(), z).transform(transformations);
-        Vec3d v2 = new Vec3d(face.getMinX(), face.getMaxY(), z).transform(transformations);
-        Vec3d v3 = new Vec3d(face.getMaxX(), face.getMaxY(), z).transform(transformations);
-        Vec3d v4 = new Vec3d(face.getMaxX(), face.getMinY(), z).transform(transformations);
+        Vec3d v1 = new Vec3d(face.getMinX(), face.getMinY(), z);
+        Vec3d v2 = new Vec3d(face.getMinX(), face.getMaxY(), z);
+        Vec3d v3 = new Vec3d(face.getMaxX(), face.getMaxY(), z);
+        Vec3d v4 = new Vec3d(face.getMaxX(), face.getMinY(), z);
 
         face = face.clone().rotate(90 * rotations[ForgeDirection.NORTH.ordinal()], new Vec2d(0.5, 0.5));
 
@@ -323,10 +323,10 @@ public class RenderHelper {
         if (overrideTexture != null)
             icon = overrideTexture;
 
-        Vec3d v1 = new Vec3d(face.getMinX(), face.getMinY(), z).transform(transformations);
-        Vec3d v2 = new Vec3d(face.getMaxX(), face.getMinY(), z).transform(transformations);
-        Vec3d v3 = new Vec3d(face.getMaxX(), face.getMaxY(), z).transform(transformations);
-        Vec3d v4 = new Vec3d(face.getMinX(), face.getMaxY(), z).transform(transformations);
+        Vec3d v1 = new Vec3d(face.getMinX(), face.getMinY(), z);
+        Vec3d v2 = new Vec3d(face.getMaxX(), face.getMinY(), z);
+        Vec3d v3 = new Vec3d(face.getMaxX(), face.getMaxY(), z);
+        Vec3d v4 = new Vec3d(face.getMinX(), face.getMaxY(), z);
 
         face = face.clone().rotate(90 * rotations[ForgeDirection.SOUTH.ordinal()], new Vec2d(0.5, 0.5));
 
@@ -340,6 +340,8 @@ public class RenderHelper {
 
     private void renderFace(Vec3d v1, Vec3d v2, Vec3d v3, Vec3d v4, Vec2d t1, Vec2d t2, Vec2d t3, Vec2d t4) {
 
+        Vec3d normal = this.normal;
+
         if (renderFromInside) {
             Vec3d v = v2;
             v2 = v4;
@@ -347,12 +349,14 @@ public class RenderHelper {
             Vec2d t = t2;
             t2 = t4;
             t4 = t;
-            normal = new Vec3d(0, 0, 0).sub(normal);
+            this.normal = new Vec3d(0, 0, 0).sub(normal);
         }
 
         addVertex(v1.getX(), v1.getY(), v1.getZ(), t1.getX(), t1.getY());
         addVertex(v2.getX(), v2.getY(), v2.getZ(), t2.getX(), t2.getY());
         addVertex(v3.getX(), v3.getY(), v3.getZ(), t3.getX(), t3.getY());
         addVertex(v4.getX(), v4.getY(), v4.getZ(), t4.getX(), t4.getY());
+
+        this.normal = normal;
     }
 }
