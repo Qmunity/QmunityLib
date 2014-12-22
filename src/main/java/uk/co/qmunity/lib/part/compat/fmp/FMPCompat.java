@@ -39,7 +39,7 @@ public class FMPCompat implements IMultipartCompat {
         FMPPart p = (FMPPart) getPartHolder(world, location);
         boolean isNew = false;
         if (p == null) {
-            p = new FMPPart();
+            p = new FMPPart(simulated);
             isNew = true;
         }
 

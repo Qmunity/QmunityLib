@@ -30,7 +30,7 @@ public class StandaloneCompat implements IMultipartCompat {
         TileMultipart te = BlockMultipart.get(world, location.getX(), location.getY(), location.getZ());
         boolean newTe = false;
         if (te == null) {
-            te = new TileMultipart();
+            te = new TileMultipart(simulated);
             te.xCoord = location.getX();
             te.yCoord = location.getY();
             te.zCoord = location.getZ();

@@ -2,12 +2,12 @@ package uk.co.qmunity.lib.part.compat.fmp;
 
 import java.util.Arrays;
 
+import net.minecraft.block.Block;
+import net.minecraft.world.World;
 import uk.co.qmunity.lib.QLModInfo;
 import uk.co.qmunity.lib.block.BlockMultipart;
 import uk.co.qmunity.lib.init.QLBlocks;
 import uk.co.qmunity.lib.tile.TileMultipart;
-import net.minecraft.block.Block;
-import net.minecraft.world.World;
 import codechicken.lib.vec.BlockCoord;
 import codechicken.multipart.MultiPartRegistry;
 import codechicken.multipart.MultiPartRegistry.IPartConverter;

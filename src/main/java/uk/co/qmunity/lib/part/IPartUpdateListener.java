@@ -42,4 +42,9 @@ public interface IPartUpdateListener extends IPart {
      */
     public void onUnloaded();
 
+    /**
+     * Called when the part container has been converted to another multipart system
+     */
+    public void onConverted();
+
 }

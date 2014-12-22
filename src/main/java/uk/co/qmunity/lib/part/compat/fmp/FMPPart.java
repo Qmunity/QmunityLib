@@ -64,13 +64,25 @@ ISidedHollowConnect {
 
     private Map<String, IPart> parts = new HashMap<String, IPart>();
     private List<IPart> added = new ArrayList<IPart>();
+
     private boolean shouldDieInAFire = false;
+    private boolean loaded = false;
+
+    private final boolean simulated;
+
+    public FMPPart(boolean simulated) {
+
+        this.simulated = simulated;
+    }
 
     public FMPPart() {
 
+        this(false);
     }
 
     public FMPPart(Map<String, IPart> parts) {
+
+        this();
 
         this.parts = parts;
         for (String s : parts.keySet())
@@ -130,18 +142,18 @@ ISidedHollowConnect {
     public void update() {
 
         for (IPart p : getParts()) {
-            if (firstTick) {
+            if (firstTick && loaded) {
                 for (IPart p_ : added)
                     if (p_ == p)
                         ((IPartUpdateListener) p).onAdded();
                 if (p instanceof IPartUpdateListener) {
                     ((IPartUpdateListener) p).onLoaded();
                 }
-                firstTick = false;
             }
             if (p instanceof IPartTicking)
                 ((IPartTicking) p).update();
         }
+        firstTick = false;
 
         if (!world().isRemote && shouldDieInAFire)
             tile().remPart(this);
@@ -167,6 +179,8 @@ ISidedHollowConnect {
 
         if (getParts().size() == 0)
             shouldDieInAFire = true;
+
+        loaded = true;
     }
 
     @Override
@@ -268,22 +282,25 @@ ISidedHollowConnect {
 
         parts.put(genIdentifier(), part);
         part.setParent(this);
-        if (part instanceof IPartUpdateListener)
-            if (tile() != null)
-                ((IPartUpdateListener) part).onAdded();
-            else
-                added.add(part);
-        for (IPart p : getParts())
-            if (p != part && p instanceof IPartUpdateListener)
-                ((IPartUpdateListener) p).onPartChanged(part);
 
-        if (before > 0)
-            PartUpdateManager.addPart(this, part);
+        if (!simulated) {
+            if (part instanceof IPartUpdateListener)
+                if (tile() != null)
+                    ((IPartUpdateListener) part).onAdded();
+                else
+                    added.add(part);
+            for (IPart p : getParts())
+                if (p != part && p instanceof IPartUpdateListener)
+                    ((IPartUpdateListener) p).onPartChanged(part);
 
-        if (tile() != null) {
-            for (int i = 0; i < 6; i++)
-                tile().notifyNeighborChange(i);
-            tile().notifyTileChange();
+            if (before > 0)
+                PartUpdateManager.addPart(this, part);
+
+            if (tile() != null) {
+                for (int i = 0; i < 6; i++)
+                    tile().notifyNeighborChange(i);
+                tile().notifyTileChange();
+            }
         }
     }
 
@@ -295,24 +312,28 @@ ISidedHollowConnect {
         if (!parts.containsValue(part))
             return false;
 
-        PartUpdateManager.removePart(this, part);
+        if (!simulated) {
+            PartUpdateManager.removePart(this, part);
 
-        if (part instanceof IPartUpdateListener)
-            ((IPartUpdateListener) part).onRemoved();
+            if (part instanceof IPartUpdateListener)
+                ((IPartUpdateListener) part).onRemoved();
+        }
 
         String id = getIdentifier(part);
         parts.remove(id);
         part.setParent(null);
 
-        for (IPart p : getParts())
-            if (p != part && p instanceof IPartUpdateListener)
-                ((IPartUpdateListener) p).onPartChanged(part);
+        if (!simulated) {
+            for (IPart p : getParts())
+                if (p != part && p instanceof IPartUpdateListener)
+                    ((IPartUpdateListener) p).onPartChanged(part);
 
-        tile().markDirty();
-        getWorld().func_147479_m(getX(), getY(), getZ());
-        for (int i = 0; i < 6; i++)
-            tile().notifyNeighborChange(i);
-        tile().notifyTileChange();
+            tile().markDirty();
+            getWorld().func_147479_m(getX(), getY(), getZ());
+            for (int i = 0; i < 6; i++)
+                tile().notifyNeighborChange(i);
+            tile().notifyTileChange();
+        }
 
         return true;
     }
@@ -500,6 +521,10 @@ ISidedHollowConnect {
     public void onNeighborChanged() {
 
         super.onNeighborChanged();
+
+        if (simulated)
+            return;
+
         onUpdate();
 
         for (IPart p : getParts())
@@ -511,6 +536,10 @@ ISidedHollowConnect {
     public void onPartChanged(TMultiPart part) {
 
         super.onPartChanged(part);
+
+        if (simulated)
+            return;
+
         onUpdate();
 
         for (IPart p : getParts())
@@ -519,6 +548,9 @@ ISidedHollowConnect {
     }
 
     private void onUpdate() {
+
+        if (simulated)
+            return;
 
         for (IPart p : getParts())
             if (p != null && p instanceof IPartFace)
@@ -596,6 +628,9 @@ ISidedHollowConnect {
     @Override
     public void onNeighborTileChanged(int arg0, boolean arg1) {
 
+        if (simulated)
+            return;
+
         for (IPart p : getParts())
             if (p != null && p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onNeighborTileChange();
@@ -610,6 +645,9 @@ ISidedHollowConnect {
     @Override
     public void onAdded() {
 
+        if (simulated)
+            return;
+
         for (IPart p : getParts())
             if (p != null && p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onAdded();
@@ -617,6 +655,9 @@ ISidedHollowConnect {
 
     @Override
     public void onRemoved() {
+
+        if (simulated)
+            return;
 
         for (IPart p : getParts())
             if (p != null && p instanceof IPartUpdateListener)
@@ -628,6 +669,9 @@ ISidedHollowConnect {
 
         super.onChunkLoad();
 
+        if (simulated)
+            return;
+
         for (IPart p : getParts())
             if (p != null && p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onLoaded();
@@ -637,6 +681,9 @@ ISidedHollowConnect {
     public void onChunkUnload() {
 
         super.onChunkUnload();
+
+        if (simulated)
+            return;
 
         for (IPart p : getParts())
             if (p != null && p instanceof IPartUpdateListener)
