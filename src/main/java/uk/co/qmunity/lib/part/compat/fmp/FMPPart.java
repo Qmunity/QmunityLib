@@ -181,6 +181,9 @@ ISidedHollowConnect {
             shouldDieInAFire = true;
 
         loaded = true;
+
+        if (tile() != null && getWorld() != null)
+            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
     }
 
     @Override
@@ -204,6 +207,9 @@ ISidedHollowConnect {
 
         NBTTagList l = packet.readNBTTagCompound().getTagList("parts", new NBTTagCompound().getId());
         readParts(l, true, true);
+
+        if (tile() != null && getWorld() != null)
+            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
     }
 
     private void writeParts(NBTTagList l, boolean update) {

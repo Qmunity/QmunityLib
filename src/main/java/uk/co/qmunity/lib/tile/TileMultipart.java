@@ -135,7 +135,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                 PartUpdateManager.addPart(this, part);
 
             markDirty();
-            getWorld().func_147479_m(getX(), getY(), getZ());
+            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
         }
     }
 
@@ -164,7 +164,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                     ((IPartUpdateListener) p).onPartChanged(part);
 
             markDirty();
-            getWorld().func_147479_m(getX(), getY(), getZ());
+            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
         }
 
         return true;
@@ -251,6 +251,9 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         if (getParts().size() == 0)
             shouldDieInAFire = true;
         loaded = true;
+
+        if (getWorld() != null)
+            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
     }
 
     public void writeUpdateToNBT(NBTTagCompound tag) {
@@ -264,6 +267,9 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
         readParts(l, true, true);
+
+        if (getWorld() != null)
+            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
     }
 
     private void writeParts(NBTTagList l, boolean update) {
