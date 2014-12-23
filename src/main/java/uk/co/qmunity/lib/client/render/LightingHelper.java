@@ -46,107 +46,42 @@ public class LightingHelper {
         return brightness[side];
     }
 
-    public int[] getBrightness(Vec3d normal) {
-
-        normal = normal.normalize();
-        double x = normal.getX(), y = normal.getY(), z = normal.getZ();
-        int[] brightness = new int[4];
-
-        if (x < 0) {
-            int[] b = getBrightness(ForgeDirection.WEST.ordinal());
-            for (int i = 0; i < 4; i++)
-                brightness[i] += getProportion(b[i], -x);
-        }
-        if (x > 0) {
-            int[] b = getBrightness(ForgeDirection.EAST.ordinal());
-            for (int i = 0; i < 4; i++)
-                brightness[i] += getProportion(b[i], x);
-        }
-
-        if (y < 0) {
-            int[] b = getBrightness(ForgeDirection.DOWN.ordinal());
-            for (int i = 0; i < 4; i++)
-                brightness[i] += getProportion(b[i], -y);
-        }
-        if (y > 0) {
-            int[] b = getBrightness(ForgeDirection.UP.ordinal());
-            for (int i = 0; i < 4; i++)
-                brightness[i] += getProportion(b[i], y);
-        }
-
-        if (z < 0) {
-            int[] b = getBrightness(ForgeDirection.NORTH.ordinal());
-            for (int i = 0; i < 4; i++)
-                brightness[i] += getProportion(b[i], -z);
-        }
-        if (z > 0) {
-            int[] b = getBrightness(ForgeDirection.SOUTH.ordinal());
-            for (int i = 0; i < 4; i++)
-                brightness[i] += getProportion(b[i], z);
-        }
-
-        return brightness;
-    }
-
     public float[] getAo(int side) {
 
-        // sideSample(side);
-        // return ao[side];
-
-        float ao = sideao[side];
-        ao *= ao;
-
-        return new float[] { ao, ao, ao, ao };
+        sideSample(side);
+        return ao[side];
     }
 
-    public float[] getAo(Vec3d normal) {
+    public int getVertexBrightness(Vec3d vertex, int side) {
 
-        normal = normal.normalize();
-        double x = normal.getX(), y = normal.getY(), z = normal.getZ();
-        float[] ao = new float[4];
+        int[] b = getBrightness(side);
+        float[] ao = getAo(side);
 
-        if (x < 0) {
-            float[] b = getAo(ForgeDirection.WEST.ordinal());
-            for (int i = 0; i < 4; i++)
-                ao[i] += getProportion(b[i], -x);
-        }
-        if (x > 0) {
-            float[] b = getAo(ForgeDirection.EAST.ordinal());
-            for (int i = 0; i < 4; i++)
-                ao[i] += getProportion(b[i], x);
-        }
-
-        if (y < 0) {
-            float[] b = getAo(ForgeDirection.DOWN.ordinal());
-            for (int i = 0; i < 4; i++)
-                ao[i] += getProportion(b[i], -y);
-        }
-        if (y > 0) {
-            float[] b = getAo(ForgeDirection.UP.ordinal());
-            for (int i = 0; i < 4; i++)
-                ao[i] += getProportion(b[i], y);
-        }
-
-        if (z < 0) {
-            float[] b = getAo(ForgeDirection.NORTH.ordinal());
-            for (int i = 0; i < 4; i++)
-                ao[i] += getProportion(b[i], -z);
-        }
-        if (z > 0) {
-            float[] b = getAo(ForgeDirection.SOUTH.ordinal());
-            for (int i = 0; i < 4; i++)
-                ao[i] += getProportion(b[i], z);
-        }
-
-        return ao;
+        return getProportion(mixAoBrightness(b[0], b[1], b[2], b[3], ao[0], ao[1], ao[2], ao[3]), sideao[side] * sideao[side]) & 0xF000F0;
     }
 
     public int getVertexBrightness(Vec3d vertex, Vec3d normal) {
 
-        int[] b = getBrightness(normal);
-        float[] ao = getAo(normal);
+        normal = normal.normalize();
+        double x = normal.getX(), y = normal.getY(), z = normal.getZ();
+        int br = 0;
 
-        return mixAoBrightness(b[0], b[1], b[2], b[3], ao[0], ao[1], ao[2], ao[3]) & 0xF500F5;
+        if (x < 0)
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.WEST.ordinal()), -x);
+        if (x > 0)
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.EAST.ordinal()), x);
+
+        if (y < 0)
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.DOWN.ordinal()), -y);
+        if (y > 0)
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.UP.ordinal()), y);
+
+        if (z < 0)
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.NORTH.ordinal()), -z);
+        if (z > 0)
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.SOUTH.ordinal()), z);
+
+        return br & 0xF000F0;
     }
 
     private void sample(int side) {
