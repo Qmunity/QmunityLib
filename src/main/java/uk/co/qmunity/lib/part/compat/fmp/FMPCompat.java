@@ -1,11 +1,15 @@
 package uk.co.qmunity.lib.part.compat.fmp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartFace;
 import uk.co.qmunity.lib.part.IPartPlacement;
@@ -17,6 +21,7 @@ import uk.co.qmunity.lib.vec.Vec3dCube;
 import uk.co.qmunity.lib.vec.Vec3i;
 import codechicken.lib.vec.BlockCoord;
 import codechicken.lib.vec.Cuboid6;
+import codechicken.microblock.CommonMicroblock;
 import codechicken.multipart.IFaceRedstonePart;
 import codechicken.multipart.IRedstonePart;
 import codechicken.multipart.NormallyOccludedPart;
@@ -316,5 +321,22 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public void postInit(FMLPostInitializationEvent event) {
 
+    }
+
+    @Override
+    public List<IMicroblock> getMicroblocks(World world, Vec3i location) {
+
+        List<IMicroblock> microblocks = new ArrayList<IMicroblock>();
+
+        TileMultipart tmp = TileMultipart.getTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+
+        if (tmp == null)
+            return microblocks;
+
+        for (TMultiPart p : tmp.jPartList())
+            if (p instanceof CommonMicroblock)
+                microblocks.add(new FMPMicroblock((CommonMicroblock) p));
+
+        return microblocks;
     }
 }

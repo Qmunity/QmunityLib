@@ -38,6 +38,7 @@ import uk.co.qmunity.lib.part.IPartTicking;
 import uk.co.qmunity.lib.part.IPartUpdateListener;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.PartRegistry;
+import uk.co.qmunity.lib.part.compat.MultipartSystem;
 import uk.co.qmunity.lib.part.compat.PartUpdateManager;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.raytrace.RayTracer;
@@ -50,7 +51,6 @@ import codechicken.lib.raytracer.ExtendedMOP;
 import codechicken.lib.raytracer.IndexedCuboid6;
 import codechicken.lib.vec.Cuboid6;
 import codechicken.lib.vec.Vector3;
-import codechicken.microblock.CommonMicroblock;
 import codechicken.microblock.ISidedHollowConnect;
 import codechicken.multipart.INeighborTileChange;
 import codechicken.multipart.IRedstonePart;
@@ -750,13 +750,13 @@ ISidedHollowConnect {
     @Override
     public List<IMicroblock> getMicroblocks() {
 
-        List<IMicroblock> microblocks = new ArrayList<IMicroblock>();
+        return MultipartSystem.FMP.getCompat().getMicroblocks(getWorld(), new Vec3i(this));
+    }
 
-        for (TMultiPart p : tile().jPartList())
-            if (p instanceof CommonMicroblock)
-                microblocks.add(new FMPMicroblock((CommonMicroblock) p));
+    @Override
+    public boolean isSimulated() {
 
-        return microblocks;
+        return simulated;
     }
 
     public boolean isSolid(ForgeDirection face) {

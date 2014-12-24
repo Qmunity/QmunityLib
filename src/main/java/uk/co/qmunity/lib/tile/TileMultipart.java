@@ -589,4 +589,10 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         return microblocks;
     }
 
+    @Override
+    public boolean isSimulated() {
+
+        return simulated;
+    }
+
 }

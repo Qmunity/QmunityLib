@@ -1,5 +1,6 @@
 package uk.co.qmunity.lib.part.compat;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +108,22 @@ public class MultipartCompatibility {
 
     public static List<IMicroblock> getMicroblocks(World world, int x, int y, int z) {
 
-        return null;
+        return getMicroblocks(world, new Vec3i(x, y, z));
+    }
+
+    public static List<IMicroblock> getMicroblocks(World world, Vec3i location) {
+
+        List<IMicroblock> l = new ArrayList<IMicroblock>();
+
+        for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
+            List<IMicroblock> ls = s.getCompat().getMicroblocks(world, location);
+            if (ls != null)
+                for (IMicroblock m : ls)
+                    if (!l.contains(m))
+                        l.add(m);
+        }
+
+        return l;
     }
 
     public static IPart getPart(World world, Vec3i location, String type) {

@@ -1,9 +1,12 @@
 package uk.co.qmunity.lib.part.compat;
 
+import java.util.List;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.vec.Vec3dCube;
@@ -42,5 +45,7 @@ public interface IMultipartCompat {
     public void init(FMLInitializationEvent event);
 
     public void postInit(FMLPostInitializationEvent event);
+
+    public List<IMicroblock> getMicroblocks(World world, Vec3i location);
 
 }

@@ -83,4 +83,9 @@ public interface ITilePartHolder extends IWorldLocation {
      */
     public List<IMicroblock> getMicroblocks();
 
+    /**
+     * Gets whether or not this tile is simulated (not in world). Used for part placement and displaying a ghost image of the part before placing it.
+     */
+    public boolean isSimulated();
+
 }
