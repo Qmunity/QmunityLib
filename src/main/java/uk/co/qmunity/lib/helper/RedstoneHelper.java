@@ -83,6 +83,9 @@ public class RedstoneHelper {
         if (block instanceof BlockRedstoneComparator && (face == ForgeDirection.DOWN || face == ForgeDirection.UNKNOWN))
             return side != ForgeDirection.UP;
 
+        if (block instanceof BlockRedstoneWire)
+            return face == ForgeDirection.UNKNOWN || face == ForgeDirection.DOWN;
+
         return false;
     }
 
