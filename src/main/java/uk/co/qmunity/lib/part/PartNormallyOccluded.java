@@ -8,11 +8,16 @@ import net.minecraft.item.ItemStack;
 
 public final class PartNormallyOccluded extends PartBase implements IPartOccluding {
 
-    private Vec3dCube cube;
+    private List<Vec3dCube> cubes;
 
     public PartNormallyOccluded(Vec3dCube cube) {
 
-        this.cube = cube;
+        this.cubes = Arrays.asList(cube);
+    }
+
+    public PartNormallyOccluded(List<Vec3dCube> cubes) {
+
+        this.cubes = cubes;
     }
 
     @Override
@@ -30,7 +35,6 @@ public final class PartNormallyOccluded extends PartBase implements IPartOccludi
     @Override
     public List<Vec3dCube> getOcclusionBoxes() {
 
-        return Arrays.asList(cube);
+        return cubes;
     }
-
 }
