@@ -4,8 +4,10 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.misc.Pair;
 import uk.co.qmunity.lib.transform.Transformation;
 import uk.co.qmunity.lib.transform.TransformationList;
+import uk.co.qmunity.lib.transform.Translation;
 import uk.co.qmunity.lib.vec.Vec2d;
 import uk.co.qmunity.lib.vec.Vec2dRect;
 import uk.co.qmunity.lib.vec.Vec3d;
@@ -34,6 +36,8 @@ public class RenderHelper {
 
     private IIcon overrideTexture = null;
 
+    private ExtensionRendering renderingMethod = ExtensionRendering.SAME_TEXTURE;
+
     public void reset() {
 
         setRenderCoords(null, 0, 0, 0);
@@ -44,6 +48,7 @@ public class RenderHelper {
         resetTransformations();
         renderFromInside = false;
         color = 0xFFFFFF;
+        renderingMethod = ExtensionRendering.SAME_TEXTURE;
     }
 
     public void fullReset() {
@@ -139,6 +144,17 @@ public class RenderHelper {
         this.color = color;
     }
 
+    public void setRenderingMethod(ExtensionRendering renderingMethod) {
+
+        if (renderingMethod != null)
+            this.renderingMethod = renderingMethod;
+    }
+
+    public ExtensionRendering getRenderingMethod() {
+
+        return renderingMethod;
+    }
+
     public void addVertex(double x, double y, double z, double u, double v) {
 
         setTextureCoords(u, v);
@@ -187,6 +203,35 @@ public class RenderHelper {
     }
 
     public void renderBox(Vec3dCube cube, IIcon down, IIcon up, IIcon west, IIcon east, IIcon north, IIcon south) {
+
+        if (cube.getMinX() < 0 || cube.getMinY() < 0 || cube.getMinZ() < 0 || cube.getMaxX() > 1 || cube.getMaxY() > 1 || cube.getMaxZ() > 1) {
+            if (renderingMethod == ExtensionRendering.SAME_TEXTURE) {
+                LightingHelper h = lightingHelper;
+
+                for (Pair<Pair<Vec3dCube, Translation>, boolean[]> data : cube.splitInto1x1()) {
+                    sides = data.getValue();
+                    Translation t = data.getKey().getValue();
+                    addTransformation(t);
+
+                    if (t.getX() == 0 && t.getY() == 0 && t.getZ() == 0) {
+                        this.lightingHelper = h;
+                    } else {
+                        this.lightingHelper = new LightingHelper(getWorld(), location.getRelative((int) t.getX(), (int) t.getY(), (int) t.getZ()));
+                    }
+                    renderBox_do(data.getKey().getKey(), down, up, west, east, north, south);
+
+                    transformations.remove(transformations.size() - 1);
+                }
+                resetRenderedSides();
+
+                this.lightingHelper = h;
+            }
+        } else {
+            renderBox_do(cube, down, up, west, east, north, south);
+        }
+    }
+
+    public void renderBox_do(Vec3dCube cube, IIcon down, IIcon up, IIcon west, IIcon east, IIcon north, IIcon south) {
 
         Tessellator.instance.addTranslation(location.getX(), location.getY(), location.getZ());
 

@@ -1,12 +1,15 @@
 package uk.co.qmunity.lib.vec;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.misc.Pair;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.transform.Transformation;
+import uk.co.qmunity.lib.transform.Translation;
 
 public class Vec3dCube {
 
@@ -256,5 +259,64 @@ public class Vec3dCube {
     public Vec3dCube transform(Transformation transformation) {
 
         return transformation.apply(this);
+    }
+
+    public boolean occlusionTest(Vec3dCube cube) {
+
+        return !toAABB().intersectsWith(cube.toAABB());
+    }
+
+    public List<Pair<Pair<Vec3dCube, Translation>, boolean[]>> splitInto1x1() {
+
+        List<Pair<Pair<Vec3dCube, Translation>, boolean[]>> cubes = new ArrayList<Pair<Pair<Vec3dCube, Translation>, boolean[]>>();
+
+        int minx = (int) Math.floor(getMinX());
+        int miny = (int) Math.floor(getMinY());
+        int minz = (int) Math.floor(getMinZ());
+        int maxx = (int) Math.ceil(getMaxX());
+        int maxy = (int) Math.ceil(getMaxY());
+        int maxz = (int) Math.ceil(getMaxZ());
+
+        for (int x = minx; x < maxx; x++) {
+            for (int y = miny; y < maxy; y++) {
+                for (int z = minz; z < maxz; z++) {
+                    Translation t = new Translation(x, y, z);
+                    Vec3dCube cube = new Vec3dCube(0, 0, 0, 1, 1, 1);
+                    boolean[] sides = new boolean[6];
+
+                    if (x == minx) {
+                        cube.getMin().setX(getMinX() - minx);
+                        sides[4] = true;
+                    }
+                    if (y == miny) {
+                        cube.getMin().setY(getMinY() - miny);
+                        sides[0] = true;
+                    }
+                    if (z == minz) {
+                        cube.getMin().setZ(getMinZ() - minz);
+                        sides[2] = true;
+                    }
+
+                    if (x == maxx - 1) {
+                        cube.getMax().setX(getMaxX() - (maxx - 1));
+                        sides[5] = true;
+                    }
+                    if (y == maxy - 1) {
+                        cube.getMax().setY(getMaxY() - (maxy - 1));
+                        sides[1] = true;
+                    }
+                    if (z == maxz - 1) {
+                        cube.getMax().setZ(getMaxZ() - (maxz - 1));
+                        sides[3] = true;
+                    }
+                    
+                    cube.fix();
+
+                    cubes.add(new Pair<Pair<Vec3dCube, Translation>, boolean[]>(new Pair<Vec3dCube, Translation>(cube, t), sides));
+                }
+            }
+        }
+
+        return cubes;
     }
 }

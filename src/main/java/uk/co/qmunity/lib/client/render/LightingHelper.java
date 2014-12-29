@@ -9,7 +9,7 @@ import uk.co.qmunity.lib.vec.Vec3i;
 
 /**
  * Most of the code in this class was made by ChickenBones. All credits go to him!
- *
+ * 
  * @author ChickenBones
  */
 public class LightingHelper {
@@ -24,10 +24,10 @@ public class LightingHelper {
     private int[] brightnessSamples = new int[27];
 
     private static final int[][] ssamplem = new int[][] { { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, { 18, 19, 20, 21, 22, 23, 24, 25, 26 },
-        { 0, 9, 18, 1, 10, 19, 2, 11, 20 }, { 6, 15, 24, 7, 16, 25, 8, 17, 26 }, { 0, 3, 6, 9, 12, 15, 18, 21, 24 },
-        { 2, 5, 8, 11, 14, 17, 20, 23, 26 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 },
-        { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 1, 4, 7, 10, 13, 16, 19, 22, 25 },
-        { 1, 4, 7, 10, 13, 16, 19, 22, 25 }, { 13, 13, 13, 13, 13, 13, 13, 13, 13 } };
+            { 0, 9, 18, 1, 10, 19, 2, 11, 20 }, { 6, 15, 24, 7, 16, 25, 8, 17, 26 }, { 0, 3, 6, 9, 12, 15, 18, 21, 24 },
+            { 2, 5, 8, 11, 14, 17, 20, 23, 26 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 },
+            { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 1, 4, 7, 10, 13, 16, 19, 22, 25 },
+            { 1, 4, 7, 10, 13, 16, 19, 22, 25 }, { 13, 13, 13, 13, 13, 13, 13, 13, 13 } };
     private static final int[][] qsamplem = new int[][] { { 0, 1, 3, 4 }, { 5, 1, 2, 4 }, { 6, 7, 3, 4 }, { 5, 7, 8, 4 } };
     private static final float[] sideao = new float[] { 0.5F, 1F, 0.8F, 0.8F, 0.6F, 0.6F, 0.5F, 1F, 0.8F, 0.8F, 0.6F, 0.6F, 1F };
 
@@ -55,9 +55,18 @@ public class LightingHelper {
     public int getVertexBrightness(Vec3d vertex, int side) {
 
         int[] b = getBrightness(side);
-        float[] ao = getAo(side);
+        return interpolateBrightness(b[0], b[1], b[2], b[3]);
+    }
 
-        return getProportion(mixAoBrightness(b[0], b[1], b[2], b[3], ao[0], ao[1], ao[2], ao[3]), sideao[side] * sideao[side]) & 0xF000F0;
+    public float getVertexAo(Vec3d vertex, int side) {
+
+        float[] ao = getAo(side);
+        return interpolateAO(ao[0], ao[1], ao[2], ao[3]);
+    }
+
+    public int getVertexTotalBrightness(Vec3d vertex, int side) {
+
+        return getProportion(getVertexBrightness(vertex, side), getVertexAo(vertex, side));
     }
 
     public int getVertexBrightness(Vec3d vertex, Vec3d normal) {
@@ -67,19 +76,19 @@ public class LightingHelper {
         int br = 0;
 
         if (x < 0)
-            br += getProportion(getVertexBrightness(vertex, ForgeDirection.WEST.ordinal()), -x);
+            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.WEST.ordinal()), -x);
         if (x > 0)
-            br += getProportion(getVertexBrightness(vertex, ForgeDirection.EAST.ordinal()), x);
+            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.EAST.ordinal()), x);
 
         if (y < 0)
-            br += getProportion(getVertexBrightness(vertex, ForgeDirection.DOWN.ordinal()), -y);
+            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.DOWN.ordinal()), -y);
         if (y > 0)
-            br += getProportion(getVertexBrightness(vertex, ForgeDirection.UP.ordinal()), y);
+            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.UP.ordinal()), y);
 
         if (z < 0)
-            br += getProportion(getVertexBrightness(vertex, ForgeDirection.NORTH.ordinal()), -z);
+            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.NORTH.ordinal()), -z);
         if (z > 0)
-            br += getProportion(getVertexBrightness(vertex, ForgeDirection.SOUTH.ordinal()), z);
+            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.SOUTH.ordinal()), z);
 
         return br & 0xF000F0;
     }
@@ -118,7 +127,7 @@ public class LightingHelper {
         sample(b);
         sample(c);
         sample(d);
-        ao[s][q] = interpolateAO(aoSamples[a], aoSamples[b], aoSamples[c], aoSamples[d]) * sideao[s];
+        ao[s][q] = interpolateAO(aoSamples[a], aoSamples[b], aoSamples[c], aoSamples[d]) * sideao[s] * sideao[s];
         brightness[s][q] = interpolateBrightness(brightnessSamples[a], brightnessSamples[b], brightnessSamples[c], brightnessSamples[d]);
     }
 
