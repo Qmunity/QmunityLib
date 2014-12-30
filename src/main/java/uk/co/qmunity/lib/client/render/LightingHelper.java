@@ -9,7 +9,7 @@ import uk.co.qmunity.lib.vec.Vec3i;
 
 /**
  * Most of the code in this class was made by ChickenBones. All credits go to him!
- * 
+ *
  * @author ChickenBones
  */
 public class LightingHelper {
@@ -24,10 +24,10 @@ public class LightingHelper {
     private int[] brightnessSamples = new int[27];
 
     private static final int[][] ssamplem = new int[][] { { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, { 18, 19, 20, 21, 22, 23, 24, 25, 26 },
-            { 0, 9, 18, 1, 10, 19, 2, 11, 20 }, { 6, 15, 24, 7, 16, 25, 8, 17, 26 }, { 0, 3, 6, 9, 12, 15, 18, 21, 24 },
-            { 2, 5, 8, 11, 14, 17, 20, 23, 26 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 },
-            { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 1, 4, 7, 10, 13, 16, 19, 22, 25 },
-            { 1, 4, 7, 10, 13, 16, 19, 22, 25 }, { 13, 13, 13, 13, 13, 13, 13, 13, 13 } };
+        { 0, 9, 18, 1, 10, 19, 2, 11, 20 }, { 6, 15, 24, 7, 16, 25, 8, 17, 26 }, { 0, 3, 6, 9, 12, 15, 18, 21, 24 },
+        { 2, 5, 8, 11, 14, 17, 20, 23, 26 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 },
+        { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 1, 4, 7, 10, 13, 16, 19, 22, 25 },
+        { 1, 4, 7, 10, 13, 16, 19, 22, 25 }, { 13, 13, 13, 13, 13, 13, 13, 13, 13 } };
     private static final int[][] qsamplem = new int[][] { { 0, 1, 3, 4 }, { 5, 1, 2, 4 }, { 6, 7, 3, 4 }, { 5, 7, 8, 4 } };
     private static final float[] sideao = new float[] { 0.5F, 1F, 0.8F, 0.8F, 0.6F, 0.6F, 0.5F, 1F, 0.8F, 0.8F, 0.6F, 0.6F, 1F };
 
@@ -145,13 +145,6 @@ public class LightingHelper {
         if (c == 0)
             c = d;
         return (a + b + c + d) >> 2 & 0xFF00FF;
-    }
-
-    private static int mixAoBrightness(int b1, int b2, int b3, int b4, double ao1, double ao2, double ao3, double ao4) {
-
-        int i1 = (int) ((b1 >> 16 & 255) * ao1 + (b2 >> 16 & 255) * ao2 + (b3 >> 16 & 255) * ao3 + (b4 >> 16 & 255) * ao4) & 255;
-        int j1 = (int) ((b1 & 255) * ao1 + (b2 & 255) * ao2 + (b3 & 255) * ao3 + (b4 & 255) * ao4) & 255;
-        return i1 << 16 | j1;
     }
 
     private static int getProportion(int br, double amt) {

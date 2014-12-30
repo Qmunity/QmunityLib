@@ -8,7 +8,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
-import uk.co.qmunity.lib.part.IPartAdvancedOcclusion;
 import uk.co.qmunity.lib.part.IPartOccluding;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.MicroblockShape;
@@ -66,8 +65,8 @@ public class OcclusionHelper {
 
         double s = (size * 2) / 16D;
 
-        return new Vec3dCube(face.offsetX > 0 ? 1 - s : 0, face.offsetY > 0 ? 1 - s : 0, face.offsetZ > 0 ? 1 - s : 0, face.offsetX < 0 ? s : 1,
-                face.offsetY < 0 ? s : 1, face.offsetZ < 0 ? s : 1);
+        return new Vec3dCube(face.offsetX > 0 ? 1 - s : 0, face.offsetY > 0 ? 1 - s : 0, face.offsetZ > 0 ? 1 - s : 0, face.offsetX < 0 ? s
+                : 1, face.offsetY < 0 ? s : 1, face.offsetZ < 0 ? s : 1);
     }
 
     public static Vec3dCube getEdgeMicroblockBox(int size, ForgeDirection side1, ForgeDirection side2) {
@@ -78,10 +77,11 @@ public class OcclusionHelper {
 
         double s = (size * 2) / 16D;
 
-        return new Vec3dCube((side1.offsetX == 0 && side2.offsetX == 0) ? s : (x ? 1 - s : 0), (side1.offsetY == 0 && side2.offsetY == 0) ? s
-                : (y ? 1 - s : 0), (side1.offsetZ == 0 && side2.offsetZ == 0) ? s : (z ? 1 - s : 0),
-                (side1.offsetX == 0 && side2.offsetX == 0) ? 1 - s : (x ? 1 : s), (side1.offsetY == 0 && side2.offsetY == 0) ? 1 - s : (y ? 1 : s),
-                (side1.offsetZ == 0 && side2.offsetZ == 0) ? 1 - s : (z ? 1 : s));
+        return new Vec3dCube((side1.offsetX == 0 && side2.offsetX == 0) ? s : (x ? 1 - s : 0),
+                (side1.offsetY == 0 && side2.offsetY == 0) ? s : (y ? 1 - s : 0), (side1.offsetZ == 0 && side2.offsetZ == 0) ? s
+                        : (z ? 1 - s : 0), (side1.offsetX == 0 && side2.offsetX == 0) ? 1 - s : (x ? 1 : s),
+                                (side1.offsetY == 0 && side2.offsetY == 0) ? 1 - s : (y ? 1 : s), (side1.offsetZ == 0 && side2.offsetZ == 0) ? 1 - s
+                                        : (z ? 1 : s));
     }
 
     public static Vec3dCube getCornerMicroblockBox(int size, ForgeDirection side1, ForgeDirection side2, ForgeDirection side3) {
