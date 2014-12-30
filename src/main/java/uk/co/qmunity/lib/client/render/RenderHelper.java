@@ -204,7 +204,8 @@ public class RenderHelper {
 
     public void renderBox(Vec3dCube cube, IIcon down, IIcon up, IIcon west, IIcon east, IIcon north, IIcon south) {
 
-        if (cube.getMinX() < 0 || cube.getMinY() < 0 || cube.getMinZ() < 0 || cube.getMaxX() > 1 || cube.getMaxY() > 1 || cube.getMaxZ() > 1) {
+        if (cube.getMinX() < 0 || cube.getMinY() < 0 || cube.getMinZ() < 0 || cube.getMaxX() > 1 || cube.getMaxY() > 1
+                || cube.getMaxZ() > 1) {
             if (renderingMethod == ExtensionRendering.SAME_TEXTURE) {
                 LightingHelper h = lightingHelper;
 
@@ -214,9 +215,10 @@ public class RenderHelper {
                     addTransformation(t);
 
                     if (t.getX() == 0 && t.getY() == 0 && t.getZ() == 0) {
-                        this.lightingHelper = h;
+                        lightingHelper = h;
                     } else {
-                        this.lightingHelper = new LightingHelper(getWorld(), location.getRelative((int) t.getX(), (int) t.getY(), (int) t.getZ()));
+                        lightingHelper = new LightingHelper(getWorld(),
+                                location.getRelative((int) t.getX(), (int) t.getY(), (int) t.getZ()));
                     }
                     renderBox_do(data.getKey().getKey(), down, up, west, east, north, south);
 
@@ -224,7 +226,7 @@ public class RenderHelper {
                 }
                 resetRenderedSides();
 
-                this.lightingHelper = h;
+                lightingHelper = h;
             }
         } else {
             renderBox_do(cube, down, up, west, east, north, south);
@@ -273,12 +275,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(x, face.getMaxX(), face.getMaxY());
         Vec3d v4 = new Vec3d(x, face.getMaxX(), face.getMinY());
 
-        face = face.clone().rotate(90 * rotations[ForgeDirection.WEST.ordinal()], new Vec2d(0.5, 0.5));
+        double a = rotations[ForgeDirection.WEST.ordinal()] * 90;
 
-        Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMinX()) * 16));
-        Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMaxY() * 16), icon.getInterpolatedV((1 - face.getMinX()) * 16));
-        Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
-        Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
+        Vec2d t1 = UVHelper.rotateUV(new Vec2d(face.getMinY(), 1 - face.getMinX()), a, icon);
+        Vec2d t2 = UVHelper.rotateUV(new Vec2d(face.getMaxY(), 1 - face.getMinX()), a, icon);
+        Vec2d t3 = UVHelper.rotateUV(new Vec2d(face.getMaxY(), 1 - face.getMaxX()), a, icon);
+        Vec2d t4 = UVHelper.rotateUV(new Vec2d(face.getMinY(), 1 - face.getMaxX()), a, icon);
 
         renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
@@ -293,12 +295,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(x, face.getMaxX(), face.getMaxY());
         Vec3d v4 = new Vec3d(x, face.getMinX(), face.getMaxY());
 
-        face = face.clone().rotate(90 * rotations[ForgeDirection.EAST.ordinal()], new Vec2d(0.5, 0.5));
+        double a = rotations[ForgeDirection.EAST.ordinal()] * 90;
 
-        Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMaxY() * 16), icon.getInterpolatedV((1 - face.getMinX()) * 16));
-        Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMaxY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
-        Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMaxX()) * 16));
-        Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinY() * 16), icon.getInterpolatedV((1 - face.getMinX()) * 16));
+        Vec2d t1 = UVHelper.rotateUV(new Vec2d(face.getMaxY(), 1 - face.getMinX()), a, icon);
+        Vec2d t2 = UVHelper.rotateUV(new Vec2d(face.getMaxY(), 1 - face.getMaxX()), a, icon);
+        Vec2d t3 = UVHelper.rotateUV(new Vec2d(face.getMinY(), 1 - face.getMaxX()), a, icon);
+        Vec2d t4 = UVHelper.rotateUV(new Vec2d(face.getMinY(), 1 - face.getMinX()), a, icon);
 
         renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
@@ -313,12 +315,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(face.getMaxX(), y, face.getMaxY());
         Vec3d v4 = new Vec3d(face.getMinX(), y, face.getMaxY());
 
-        face = face.clone().rotate(rotations[ForgeDirection.DOWN.ordinal()] * 90, new Vec2d(0.5, 0.5));
+        double a = rotations[ForgeDirection.DOWN.ordinal()] * 90;
 
-        Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMinY() * 16));
-        Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMinY() * 16));
-        Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
-        Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
+        Vec2d t1 = UVHelper.rotateUV(new Vec2d(face.getMinX(), face.getMinY()), a, icon);
+        Vec2d t2 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), face.getMinY()), a, icon);
+        Vec2d t3 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), face.getMaxY()), a, icon);
+        Vec2d t4 = UVHelper.rotateUV(new Vec2d(face.getMinX(), face.getMaxY()), a, icon);
 
         renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
@@ -333,12 +335,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(face.getMaxX(), y, face.getMaxY());
         Vec3d v4 = new Vec3d(face.getMaxX(), y, face.getMinY());
 
-        face = face.clone().rotate(rotations[ForgeDirection.UP.ordinal()] * 90, new Vec2d(0.5, 0.5));
+        double a = rotations[ForgeDirection.UP.ordinal()] * 90;
 
-        Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMinY() * 16));
-        Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
-        Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMaxY() * 16));
-        Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV(face.getMinY() * 16));
+        Vec2d t1 = UVHelper.rotateUV(new Vec2d(face.getMinX(), face.getMinY()), a, icon);
+        Vec2d t2 = UVHelper.rotateUV(new Vec2d(face.getMinX(), face.getMaxY()), a, icon);
+        Vec2d t3 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), face.getMaxY()), a, icon);
+        Vec2d t4 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), face.getMinY()), a, icon);
 
         renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
@@ -353,12 +355,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(face.getMaxX(), face.getMaxY(), z);
         Vec3d v4 = new Vec3d(face.getMaxX(), face.getMinY(), z);
 
-        face = face.clone().rotate(90 * rotations[ForgeDirection.NORTH.ordinal()], new Vec2d(0.5, 0.5));
+        double a = rotations[ForgeDirection.NORTH.ordinal()] * 90;
 
-        Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV((1 - face.getMinY()) * 16));
-        Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
-        Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
-        Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMinY()) * 16));
+        Vec2d t1 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), 1 - face.getMinY()), a, icon);
+        Vec2d t2 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), 1 - face.getMaxY()), a, icon);
+        Vec2d t3 = UVHelper.rotateUV(new Vec2d(face.getMinX(), 1 - face.getMaxY()), a, icon);
+        Vec2d t4 = UVHelper.rotateUV(new Vec2d(face.getMinX(), 1 - face.getMinY()), a, icon);
 
         renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
@@ -373,12 +375,12 @@ public class RenderHelper {
         Vec3d v3 = new Vec3d(face.getMaxX(), face.getMaxY(), z);
         Vec3d v4 = new Vec3d(face.getMinX(), face.getMaxY(), z);
 
-        face = face.clone().rotate(90 * rotations[ForgeDirection.SOUTH.ordinal()], new Vec2d(0.5, 0.5));
+        double a = rotations[ForgeDirection.SOUTH.ordinal()] * 90;
 
-        Vec2d t1 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMinY()) * 16));
-        Vec2d t2 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV((1 - face.getMinY()) * 16));
-        Vec2d t3 = new Vec2d(icon.getInterpolatedU(face.getMaxX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
-        Vec2d t4 = new Vec2d(icon.getInterpolatedU(face.getMinX() * 16), icon.getInterpolatedV((1 - face.getMaxY()) * 16));
+        Vec2d t1 = UVHelper.rotateUV(new Vec2d(face.getMinX(), 1 - face.getMinY()), a, icon);
+        Vec2d t2 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), 1 - face.getMinY()), a, icon);
+        Vec2d t3 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), 1 - face.getMaxY()), a, icon);
+        Vec2d t4 = UVHelper.rotateUV(new Vec2d(face.getMinX(), 1 - face.getMaxY()), a, icon);
 
         renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
