@@ -21,6 +21,8 @@ public class OcclusionHelper {
 
         if (shape == MicroblockShape.FACE)
             return new PartNormallyOccluded(getFaceMicroblockBox(size, sides[0]));
+        if (shape == MicroblockShape.FACE_HOLLOW)
+            return new PartNormallyOccluded(getHollowFaceMicroblockBox(size, sides[0]));
         if (shape == MicroblockShape.EDGE)
             return new PartNormallyOccluded(getEdgeMicroblockBox(size, sides[0], sides[1]));
         if (shape == MicroblockShape.CORNER)
@@ -69,6 +71,17 @@ public class OcclusionHelper {
                 : 1, face.offsetY < 0 ? s : 1, face.offsetZ < 0 ? s : 1);
     }
 
+    public static Vec3dCube getHollowFaceMicroblockBox(int size, ForgeDirection face) {
+
+        double s = 2 / 16D;
+        double d = size / 32D;
+
+        return new Vec3dCube(face.offsetX > 0 ? 1 - s : (face.offsetX < 0 ? 0 : 0.5 - d), face.offsetY > 0 ? 1 - s : (face.offsetY < 0 ? 0
+                : 0.5 - d), face.offsetZ > 0 ? 1 - s : (face.offsetZ < 0 ? 0 : 0.5 - d), face.offsetX < 0 ? s : (face.offsetX > 0 ? 1
+                : 0.5 + d), face.offsetY < 0 ? s : (face.offsetY > 0 ? 1 : 0.5 + d), face.offsetZ < 0 ? s
+                : (face.offsetZ > 0 ? 1 : 0.5 + d));
+    }
+
     public static Vec3dCube getEdgeMicroblockBox(int size, ForgeDirection side1, ForgeDirection side2) {
 
         boolean x = side1.offsetX > 0 || side2.offsetX > 0;
@@ -80,8 +93,8 @@ public class OcclusionHelper {
         return new Vec3dCube((side1.offsetX == 0 && side2.offsetX == 0) ? s : (x ? 1 - s : 0),
                 (side1.offsetY == 0 && side2.offsetY == 0) ? s : (y ? 1 - s : 0), (side1.offsetZ == 0 && side2.offsetZ == 0) ? s
                         : (z ? 1 - s : 0), (side1.offsetX == 0 && side2.offsetX == 0) ? 1 - s : (x ? 1 : s),
-                                (side1.offsetY == 0 && side2.offsetY == 0) ? 1 - s : (y ? 1 : s), (side1.offsetZ == 0 && side2.offsetZ == 0) ? 1 - s
-                                        : (z ? 1 : s));
+                (side1.offsetY == 0 && side2.offsetY == 0) ? 1 - s : (y ? 1 : s), (side1.offsetZ == 0 && side2.offsetZ == 0) ? 1 - s
+                        : (z ? 1 : s));
     }
 
     public static Vec3dCube getCornerMicroblockBox(int size, ForgeDirection side1, ForgeDirection side2, ForgeDirection side3) {
@@ -191,7 +204,7 @@ public class OcclusionHelper {
     public static boolean occlusionTest(Collection<IPart> parts, IPart part) {
 
         for (IPart p : parts)
-            if (occlusionTest(p, part))
+            if (p.occlusionTest(part) || part.occlusionTest(p))
                 return true;
 
         return false;
@@ -203,26 +216,11 @@ public class OcclusionHelper {
             IPartOccluding p1 = (IPartOccluding) part;
             IPartOccluding p2 = (IPartOccluding) part2;
 
-            // if (p1 instanceof IPartAdvancedOcclusion)
-            // if (((IPartAdvancedOcclusion) p1).occlusionTest(p2))
-            // return true;
-            //
-            // if (p2 instanceof IPartAdvancedOcclusion)
-            // if (((IPartAdvancedOcclusion) p2).occlusionTest(p1))
-            // return true;
-            //
-            // if (p1 instanceof IPartAdvancedOcclusion || p2 instanceof IPartAdvancedOcclusion)
-            // return false;
-
             for (Vec3dCube c1 : p1.getOcclusionBoxes())
                 for (Vec3dCube c2 : p2.getOcclusionBoxes())
                     if (!c1.occlusionTest(c2))
                         return true;
-
-            return false;
         }
-
-        System.out.println("WAT");
 
         return false;
     }

@@ -31,6 +31,7 @@ import uk.co.qmunity.lib.part.IPartTicking;
 import uk.co.qmunity.lib.part.IPartUpdateListener;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.PartRegistry;
+import uk.co.qmunity.lib.part.compat.OcclusionHelper;
 import uk.co.qmunity.lib.part.compat.PartUpdateManager;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.raytrace.RayTracer;
@@ -105,15 +106,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                     return false;
         }
 
-        if (part instanceof IPartOccluding) {
-            List<Vec3dCube> l = getOcclusionBoxes();
-            for (Vec3dCube b : ((IPartOccluding) part).getOcclusionBoxes())
-                for (Vec3dCube c : l)
-                    if (b.toAABB().intersectsWith(c.toAABB()))
-                        return false;
-        }
-
-        return true;
+        return !OcclusionHelper.occlusionTest(this, part);
     }
 
     @Override

@@ -3,8 +3,9 @@ package uk.co.qmunity.lib.part;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.qmunity.lib.vec.Vec3dCube;
 import net.minecraft.item.ItemStack;
+import uk.co.qmunity.lib.part.compat.OcclusionHelper;
+import uk.co.qmunity.lib.vec.Vec3dCube;
 
 public final class PartNormallyOccluded extends PartBase implements IPartOccluding {
 
@@ -12,7 +13,7 @@ public final class PartNormallyOccluded extends PartBase implements IPartOccludi
 
     public PartNormallyOccluded(Vec3dCube cube) {
 
-        this.cubes = Arrays.asList(cube);
+        cubes = Arrays.asList(cube);
     }
 
     public PartNormallyOccluded(List<Vec3dCube> cubes) {
@@ -36,5 +37,11 @@ public final class PartNormallyOccluded extends PartBase implements IPartOccludi
     public List<Vec3dCube> getOcclusionBoxes() {
 
         return cubes;
+    }
+
+    @Override
+    public boolean occlusionTest(IPart part) {
+
+        return OcclusionHelper.occlusionTest(this, part);
     }
 }

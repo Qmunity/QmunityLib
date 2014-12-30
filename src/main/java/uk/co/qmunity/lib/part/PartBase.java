@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import uk.co.qmunity.lib.client.render.RenderHelper;
 import uk.co.qmunity.lib.helper.ItemHelper;
+import uk.co.qmunity.lib.part.compat.OcclusionHelper;
 import uk.co.qmunity.lib.part.compat.PartUpdateManager;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.vec.Vec3d;
@@ -165,6 +166,12 @@ public abstract class PartBase implements IPart {
     public Vec3dCube getRenderBounds() {
 
         return new Vec3dCube(0, 0, 0, 1, 1, 1);
+    }
+
+    @Override
+    public boolean occlusionTest(IPart part) {
+
+        return OcclusionHelper.occlusionTest(this, part);
     }
 
 }

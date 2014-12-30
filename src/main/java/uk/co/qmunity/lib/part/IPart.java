@@ -124,4 +124,9 @@ public interface IPart extends IWorldLocation {
     @SideOnly(Side.CLIENT)
     public Vec3dCube getRenderBounds();
 
+    /**
+     * Checks if the part passed as an argument occludes in any way this part. Return false if it does, true if it doesn't.
+     */
+    public boolean occlusionTest(IPart part);
+
 }

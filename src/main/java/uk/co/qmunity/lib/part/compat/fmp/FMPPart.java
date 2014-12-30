@@ -34,11 +34,13 @@ import uk.co.qmunity.lib.part.IPartOccluding;
 import uk.co.qmunity.lib.part.IPartRedstone;
 import uk.co.qmunity.lib.part.IPartSelectable;
 import uk.co.qmunity.lib.part.IPartSolid;
+import uk.co.qmunity.lib.part.IPartThruHole;
 import uk.co.qmunity.lib.part.IPartTicking;
 import uk.co.qmunity.lib.part.IPartUpdateListener;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.PartRegistry;
 import uk.co.qmunity.lib.part.compat.MultipartSystem;
+import uk.co.qmunity.lib.part.compat.OcclusionHelper;
 import uk.co.qmunity.lib.part.compat.PartUpdateManager;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.raytrace.RayTracer;
@@ -394,7 +396,7 @@ ISidedHollowConnect {
             }
         }
 
-        return true;
+        return !OcclusionHelper.occlusionTest(this, part);
     }
 
     @Override
@@ -697,6 +699,14 @@ ISidedHollowConnect {
     }
 
     @Override
+    public void onConverted() {
+
+        for (IPart p : getParts())
+            if (p instanceof IPartUpdateListener)
+                ((IPartUpdateListener) p).onConverted();
+    }
+
+    @Override
     public ItemStack pickItem(MovingObjectPosition hit) {
 
         QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(QmunityLib.proxy.getPlayer()), RayTracer.instance()
@@ -796,15 +806,13 @@ ISidedHollowConnect {
     @Override
     public int getHollowSize(int side) {
 
-        // int val = 0;
-        // for (IPart p : getParts())
-        // if (p instanceof IPartThruHole)
-        // val = Math.max(val, ((IPartThruHole) p).getHollowSize(ForgeDirection.getOrientation(side)));
-        // if (val <= 0 || val >= 12)
-        // return 2;
-        // return 5;
-        System.out.println("!!");
-        return 2;
+        int val = 0;
+        for (IPart p : getParts())
+            if (p instanceof IPartThruHole)
+                val = Math.max(val, ((IPartThruHole) p).getHollowSize(ForgeDirection.getOrientation(side)));
+        if (val <= 0 || val >= 12)
+            return val;
+        return 4;
     }
 
 }
