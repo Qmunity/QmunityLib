@@ -32,7 +32,7 @@ public class RedstoneHelper {
             if (BlockRedstoneWire.isPowerProviderOrWire(world, x, y, z, d)
                     || BlockRedstoneWire.isPowerProviderOrWire(world, x + side.offsetX + side.offsetX, y + side.offsetY + side.offsetY, z
                             + side.offsetZ + side.offsetZ, (d + 2) % 4)) {
-                return block.isProvidingStrongPower(world, x, y, z, side.ordinal());
+                return world.getBlockMetadata(x, y, z);
             }
         }
         if (block instanceof BlockRedstoneComparator)
