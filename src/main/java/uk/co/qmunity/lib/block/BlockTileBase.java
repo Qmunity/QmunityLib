@@ -1,8 +1,8 @@
 package uk.co.qmunity.lib.block;
 
 import uk.co.qmunity.lib.misc.ForgeDirectionUtils;
-import uk.co.qmunity.lib.tileentity.IRotatable;
-import uk.co.qmunity.lib.tileentity.TileBase;
+import uk.co.qmunity.lib.tile.IRotatable;
+import uk.co.qmunity.lib.tile.TileBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;

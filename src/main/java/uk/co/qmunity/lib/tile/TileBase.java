@@ -15,7 +15,7 @@
  *     along with Blue Power.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package uk.co.qmunity.lib.tileentity;
+package uk.co.qmunity.lib.tile;
 
 import java.util.ArrayList;
 import java.util.List;
