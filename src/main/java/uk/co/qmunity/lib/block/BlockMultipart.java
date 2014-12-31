@@ -27,6 +27,8 @@ import uk.co.qmunity.lib.ref.Names;
 import uk.co.qmunity.lib.tile.TileMultipart;
 import uk.co.qmunity.lib.vec.Vec3d;
 import uk.co.qmunity.lib.vec.Vec3dCube;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class BlockMultipart extends BlockContainer {
 
@@ -50,6 +52,7 @@ public class BlockMultipart extends BlockContainer {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public boolean isBlockNormalCube() {
 
         return false;
@@ -62,6 +65,7 @@ public class BlockMultipart extends BlockContainer {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public boolean canRenderInPass(int pass) {
 
         RenderMultipart.PASS = pass;
@@ -70,18 +74,21 @@ public class BlockMultipart extends BlockContainer {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public int getRenderBlockPass() {
 
         return 1;
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public int getRenderType() {
 
         return RenderMultipart.RENDER_ID;
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public boolean renderAsNormalBlock() {
 
         return false;
@@ -121,12 +128,14 @@ public class BlockMultipart extends BlockContainer {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public boolean addDestroyEffects(World world, int x, int y, int z, int meta, EffectRenderer effectRenderer) {
 
         return true;
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public boolean addHitEffects(World worldObj, MovingObjectPosition target, EffectRenderer effectRenderer) {
 
         return true;
@@ -293,6 +302,7 @@ public class BlockMultipart extends BlockContainer {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister reg) {
 
         blockIcon = null;

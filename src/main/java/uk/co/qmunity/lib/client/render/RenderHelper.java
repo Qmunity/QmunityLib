@@ -13,7 +13,10 @@ import uk.co.qmunity.lib.vec.Vec2dRect;
 import uk.co.qmunity.lib.vec.Vec3d;
 import uk.co.qmunity.lib.vec.Vec3dCube;
 import uk.co.qmunity.lib.vec.Vec3i;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
+@SideOnly(Side.CLIENT)
 public class RenderHelper {
 
     public static final RenderHelper instance = new RenderHelper();
@@ -38,6 +41,8 @@ public class RenderHelper {
 
     private ExtensionRendering renderingMethod = ExtensionRendering.SAME_TEXTURE;
 
+    private Transformation vertexTransformation = null;
+
     public void reset() {
 
         setRenderCoords(null, 0, 0, 0);
@@ -49,6 +54,7 @@ public class RenderHelper {
         renderFromInside = false;
         color = 0xFFFFFF;
         renderingMethod = ExtensionRendering.SAME_TEXTURE;
+        vertexTransformation = null;
     }
 
     public void fullReset() {
@@ -168,10 +174,14 @@ public class RenderHelper {
 
     public void addVertex(double x, double y, double z) {
 
-        Vec3d vertex = new Vec3d(x, y, z).transform(transformations);
+        Vec3d vertex = new Vec3d(x, y, z);
+        if (vertexTransformation != null)
+            vertex = vertex.transform(vertexTransformation);
+        vertex = vertex.transform(transformations);
         Vec3d normal = this.normal.clone().add(0.5, 0.5, 0.5).transform(transformations).sub(0.5, 0.5, 0.5);
 
-        Tessellator.instance.setBrightness(world != null ? lightingHelper.getVertexBrightness(vertex, normal) : 0xF000F0);
+        Tessellator.instance.setBrightness(world != null && lightingHelper != null ? lightingHelper.getVertexBrightness(vertex, normal)
+                : 0xF000F0);
         Tessellator.instance.setColorOpaque_I(color);
         Tessellator.instance.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
         Tessellator.instance.addVertex(vertex.getX(), vertex.getY(), vertex.getZ());
@@ -211,18 +221,19 @@ public class RenderHelper {
 
                 for (Pair<Pair<Vec3dCube, Translation>, boolean[]> data : cube.splitInto1x1()) {
                     sides = data.getValue();
-                    Translation t = data.getKey().getValue();
-                    addTransformation(t);
+                    Translation tr = data.getKey().getValue();
 
-                    if (t.getX() == 0 && t.getY() == 0 && t.getZ() == 0) {
+                    if (tr.getX() == 0 && tr.getY() == 0 && tr.getZ() == 0) {
                         lightingHelper = h;
                     } else {
+                        Vec3d t = new Vec3d(tr.getX(), tr.getY(), tr.getZ()).transform(transformations);
                         lightingHelper = new LightingHelper(getWorld(),
-                                location.getRelative((int) t.getX(), (int) t.getY(), (int) t.getZ()));
+                                new Vec3i((int) t.getX(), (int) t.getY(), (int) t.getZ()).add(getLocation()));
                     }
-                    renderBox_do(data.getKey().getKey(), down, up, west, east, north, south);
 
-                    transformations.remove(transformations.size() - 1);
+                    vertexTransformation = tr;
+                    renderBox_do(data.getKey().getKey(), down, up, west, east, north, south);
+                    vertexTransformation = null;
                 }
                 resetRenderedSides();
 

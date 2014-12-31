@@ -1,17 +1,20 @@
 package uk.co.qmunity.lib.proxy;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.common.MinecraftForge;
 import uk.co.qmunity.lib.client.render.RenderMultipart;
 import uk.co.qmunity.lib.client.render.RenderPartPlacement;
 import uk.co.qmunity.lib.client.render.RenderParticle;
 import uk.co.qmunity.lib.effect.EntityFXParticle;
 import uk.co.qmunity.lib.tile.TileMultipart;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.common.MinecraftForge;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
+@SideOnly(Side.CLIENT)
 public class ClientProxy extends CommonProxy {
 
     @Override

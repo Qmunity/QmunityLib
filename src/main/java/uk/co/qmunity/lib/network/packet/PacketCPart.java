@@ -9,6 +9,8 @@ import uk.co.qmunity.lib.network.NetworkHandler;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.compat.MultipartCompatibility;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
 
@@ -37,6 +39,7 @@ public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
     public abstract void readData(NBTTagCompound tag);
 
     @Override
+    @SideOnly(Side.CLIENT)
     public final void handleClientSide(PacketCPart message, EntityPlayer player) {
 
         message.holder = MultipartCompatibility.getPartHolder(player.worldObj, x, y, z);

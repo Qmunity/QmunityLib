@@ -60,6 +60,8 @@ import codechicken.multipart.NormalOcclusionTest;
 import codechicken.multipart.NormallyOccludedPart;
 import codechicken.multipart.TMultiPart;
 import codechicken.multipart.TNormalOcclusion;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclusion, IRedstonePart, INeighborTileChange, IFMPPart,
 ISidedHollowConnect {
@@ -422,6 +424,7 @@ ISidedHollowConnect {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public boolean renderStatic(Vector3 pos, int pass) {
 
         boolean did = false;
@@ -452,6 +455,7 @@ ISidedHollowConnect {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void renderDynamic(Vector3 pos, float frame, int pass) {
 
         GL11.glPushMatrix();
@@ -472,6 +476,7 @@ ISidedHollowConnect {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void drawBreaking(RenderBlocks renderBlocks) {
 
         QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(Minecraft.getMinecraft().thePlayer), RayTracer.instance()
