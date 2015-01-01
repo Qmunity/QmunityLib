@@ -316,8 +316,11 @@ public class BlockMultipart extends BlockContainer {
 
         TileMultipart te = get(world, x, y, z);
         if (te != null) {
-            for (IPart p : te.getParts())
-                l.addAll(p.getDrops());
+            for (IPart p : te.getParts()) {
+                List<ItemStack> d = p.getDrops();
+                if (d != null)
+                    l.addAll(d);
+            }
         }
 
         return l;

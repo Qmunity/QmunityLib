@@ -64,7 +64,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclusion, IRedstonePart, INeighborTileChange, IFMPPart,
-ISidedHollowConnect {
+        ISidedHollowConnect {
 
     private Map<String, IPart> parts = new HashMap<String, IPart>();
     private List<IPart> added = new ArrayList<IPart>();
