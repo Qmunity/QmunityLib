@@ -18,6 +18,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.client.render.RenderMultipart;
 import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartCollidable;
@@ -589,6 +590,13 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     public boolean isSimulated() {
 
         return simulated;
+    }
+
+    @Override
+    public boolean shouldRenderInPass(int pass) {
+
+        RenderMultipart.pass = pass;
+        return true;
     }
 
 }

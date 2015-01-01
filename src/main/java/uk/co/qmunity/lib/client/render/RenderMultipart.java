@@ -25,7 +25,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler {
 
-    public static int PASS = 0;
+    public static int pass = 0;
     public static final int RENDER_ID = RenderingRegistry.getNextAvailableRenderId();
 
     @Override
@@ -40,7 +40,7 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
                 if (p.getParent() != null) {
                     GL11.glPushMatrix();
 
-                    p.renderDynamic(new Vec3d(0, 0, 0), delta, PASS);
+                    p.renderDynamic(new Vec3d(0, 0, 0), delta, pass);
 
                     GL11.glPopMatrix();
                 }
@@ -70,8 +70,8 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
         if (te != null) {
             for (IPart p : te.getParts()) {
                 if (p.getParent() != null) {
-                    if (p.shouldRenderOnPass(PASS)) {
-                        p.renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, PASS);
+                    if (p.shouldRenderOnPass(pass)) {
+                        p.renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, pass);
                         RenderHelper.instance.resetRenderedSides();
                         RenderHelper.instance.resetTextureRotations();
                         RenderHelper.instance.resetTransformations();
@@ -89,7 +89,7 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
     public static void renderBreaking(IBlockAccess world, int x, int y, int z, RenderBlocks renderer, QMovingObjectPosition mop) {
 
         RenderHelper.instance.setOverrideTexture(renderer.overrideBlockTexture);
-        mop.getPart().renderBreaking(new Vec3i(x, y, z), RenderHelper.instance, renderer, PASS, mop);
+        mop.getPart().renderBreaking(new Vec3i(x, y, z), RenderHelper.instance, renderer, pass, mop);
         RenderHelper.instance.setOverrideTexture(null);
     }
 

@@ -69,7 +69,7 @@ public class BlockMultipart extends BlockContainer {
     @SideOnly(Side.CLIENT)
     public boolean canRenderInPass(int pass) {
 
-        RenderMultipart.PASS = pass;
+        RenderMultipart.pass = pass;
 
         return true;
     }
