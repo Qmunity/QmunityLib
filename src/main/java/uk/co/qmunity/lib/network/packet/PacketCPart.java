@@ -42,6 +42,9 @@ public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
     @SideOnly(Side.CLIENT)
     public final void handleClientSide(PacketCPart message, EntityPlayer player) {
 
+        if (message == null || player == null)
+            return;
+
         message.holder = MultipartCompatibility.getPartHolder(player.worldObj, x, y, z);
         if (message.holder != null && message.holder.getPartMap().containsKey(message.partId))
             message.part = message.holder.getPartMap().get(message.partId);

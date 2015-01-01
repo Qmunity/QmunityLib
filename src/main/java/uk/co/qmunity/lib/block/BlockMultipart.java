@@ -21,6 +21,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.QmunityLib;
 import uk.co.qmunity.lib.client.render.RenderMultipart;
+import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.raytrace.RayTracer;
 import uk.co.qmunity.lib.ref.Names;
@@ -306,5 +307,19 @@ public class BlockMultipart extends BlockContainer {
     public void registerBlockIcons(IIconRegister reg) {
 
         blockIcon = null;
+    }
+
+    @Override
+    public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
+
+        ArrayList<ItemStack> l = new ArrayList<ItemStack>();
+
+        TileMultipart te = get(world, x, y, z);
+        if (te != null) {
+            for (IPart p : te.getParts())
+                l.addAll(p.getDrops());
+        }
+
+        return l;
     }
 }
