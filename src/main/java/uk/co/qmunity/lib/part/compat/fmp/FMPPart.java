@@ -27,6 +27,7 @@ import uk.co.qmunity.lib.client.render.RenderHelper;
 import uk.co.qmunity.lib.client.render.RenderMultipart;
 import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
+import uk.co.qmunity.lib.part.IPartCenter;
 import uk.co.qmunity.lib.part.IPartCollidable;
 import uk.co.qmunity.lib.part.IPartFace;
 import uk.co.qmunity.lib.part.IPartInteractable;
@@ -58,13 +59,16 @@ import codechicken.multipart.INeighborTileChange;
 import codechicken.multipart.IRedstonePart;
 import codechicken.multipart.NormalOcclusionTest;
 import codechicken.multipart.NormallyOccludedPart;
+import codechicken.multipart.PartMap;
 import codechicken.multipart.TMultiPart;
 import codechicken.multipart.TNormalOcclusion;
+import codechicken.multipart.TSlottedPart;
+import codechicken.multipart.scalatraits.TSlottedTile;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclusion, IRedstonePart, INeighborTileChange, IFMPPart,
-        ISidedHollowConnect {
+ISidedHollowConnect, TSlottedPart {
 
     private Map<String, IPart> parts = new HashMap<String, IPart>();
     private List<IPart> added = new ArrayList<IPart>();
@@ -311,6 +315,8 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
                     tile().notifyNeighborChange(i);
                 tile().notifyTileChange();
             }
+
+            refreshSlots();
         }
     }
 
@@ -343,9 +349,27 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
             for (int i = 0; i < 6; i++)
                 tile().notifyNeighborChange(i);
             tile().notifyTileChange();
+
+            refreshSlots();
         }
 
         return true;
+    }
+
+    private void refreshSlots() {
+
+        if (tile() instanceof TSlottedTile) {
+            TSlottedTile t = (TSlottedTile) tile();
+            TMultiPart[] old = t.v_partMap();
+            TMultiPart[] parts = new TMultiPart[old.length];
+
+            for (int i = 0; i < old.length; i++)
+                if (old[i] != null && old[i] != this)
+                    parts[i] = old[i];
+
+            t.v_partMap_$eq(parts);
+            t.bindPart(this);
+        }
     }
 
     private String genIdentifier() {
@@ -812,12 +836,26 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     public int getHollowSize(int side) {
 
         int val = 0;
-        for (IPart p : getParts())
-            if (p instanceof IPartThruHole)
+        boolean found = false;
+        for (IPart p : getParts()) {
+            if (p instanceof IPartThruHole) {
                 val = Math.max(val, ((IPartThruHole) p).getHollowSize(ForgeDirection.getOrientation(side)));
-        if (val <= 0 || val >= 12)
+                found = true;
+            }
+        }
+        if (found && (val > 0 || val < 12))
             return val;
-        return 4;
+        return 8;
+    }
+
+    @Override
+    public int getSlotMask() {
+
+        for (IPart p : getParts())
+            if (p instanceof IPartCenter)
+                return PartMap.CENTER.mask;
+
+        return 0;
     }
 
 }

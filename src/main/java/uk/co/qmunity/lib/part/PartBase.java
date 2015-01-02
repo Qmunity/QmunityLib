@@ -87,7 +87,7 @@ public abstract class PartBase implements IPart {
     @Override
     public void sendUpdatePacket() {
 
-        if (parent != null)
+        if (parent != null && getWorld() != null)
             PartUpdateManager.sendPartUpdate(parent, this);
     }
 

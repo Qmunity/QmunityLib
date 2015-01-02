@@ -42,7 +42,7 @@ public class Pair<K, V> implements Entry<K, V> {
         if (!(obj instanceof Pair<?, ?>))
             return false;
 
-        return getKey().equals(((Entry<?, ?>) obj).getKey()) && getValue().equals(((Entry<?, ?>) obj).getValue());
+        return getKey().equals(((Pair<?, ?>) obj).getKey()) && getValue().equals(((Pair<?, ?>) obj).getValue());
     }
 
 }

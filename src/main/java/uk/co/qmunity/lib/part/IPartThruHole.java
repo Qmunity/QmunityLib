@@ -7,7 +7,7 @@ import net.minecraftforge.common.util.ForgeDirection;
  *
  * @author amadornes
  */
-public interface IPartThruHole extends IPart {
+public interface IPartThruHole extends IPartCenter {
 
     public int getHollowSize(ForgeDirection side);
 
