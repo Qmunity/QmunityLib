@@ -193,7 +193,7 @@ public class RenderHelper {
         if (vertexTransformation != null)
             vertex = vertex.transform(vertexTransformation);
         vertex = vertex.transform(transformations);
-        Vec3d normal = this.normal.clone()/* .add(0.5, 0.5, 0.5).transform(transformations).sub(0.5, 0.5, 0.5) */;
+        Vec3d normal = this.normal.clone().add(0.5, 0.5, 0.5).transform(transformations).sub(0.5, 0.5, 0.5);
 
         Tessellator.instance.setBrightness(world != null && lightingHelper != null ? (ignoreLighting ? lightingHelper.getFaceBrightness(
                 lightingOverride, normal) : lightingHelper.getVertexBrightness(vertex, normal)) : 0xF000F0);
