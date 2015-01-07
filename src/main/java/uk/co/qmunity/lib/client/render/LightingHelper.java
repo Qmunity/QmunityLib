@@ -27,10 +27,10 @@ public class LightingHelper {
     private int[] brightnessSamples = new int[27];
 
     private static final int[][] ssamplem = new int[][] { { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, { 18, 19, 20, 21, 22, 23, 24, 25, 26 },
-            { 0, 9, 18, 1, 10, 19, 2, 11, 20 }, { 6, 15, 24, 7, 16, 25, 8, 17, 26 }, { 0, 3, 6, 9, 12, 15, 18, 21, 24 },
-            { 2, 5, 8, 11, 14, 17, 20, 23, 26 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 },
-            { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 1, 4, 7, 10, 13, 16, 19, 22, 25 },
-            { 1, 4, 7, 10, 13, 16, 19, 22, 25 }, { 13, 13, 13, 13, 13, 13, 13, 13, 13 } };
+        { 0, 9, 18, 1, 10, 19, 2, 11, 20 }, { 6, 15, 24, 7, 16, 25, 8, 17, 26 }, { 0, 3, 6, 9, 12, 15, 18, 21, 24 },
+        { 2, 5, 8, 11, 14, 17, 20, 23, 26 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 }, { 9, 10, 11, 12, 13, 14, 15, 16, 17 },
+        { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 3, 12, 21, 4, 13, 22, 5, 14, 23 }, { 1, 4, 7, 10, 13, 16, 19, 22, 25 },
+        { 1, 4, 7, 10, 13, 16, 19, 22, 25 }, { 13, 13, 13, 13, 13, 13, 13, 13, 13 } };
     private static final int[][] qsamplem = new int[][] { { 0, 1, 3, 4 }, { 5, 1, 2, 4 }, { 6, 7, 3, 4 }, { 5, 7, 8, 4 } };
     private static final float[] sideao = new float[] { 0.5F, 1F, 0.8F, 0.8F, 0.6F, 0.6F, 0.5F, 1F, 0.8F, 0.8F, 0.6F, 0.6F, 1F };
 
@@ -94,6 +94,31 @@ public class LightingHelper {
             br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.SOUTH.ordinal()), z);
 
         return br & 0xF000F0;
+    }
+
+    public int getFaceBrightness(int brightness, Vec3d normal) {
+
+        float ao = 0;
+
+        normal = normal.normalize();
+        double x = normal.getX(), y = normal.getY(), z = normal.getZ();
+
+        if (x < 0)
+            ao += sideao[ForgeDirection.WEST.ordinal()] * -x;
+        if (x > 0)
+            ao += sideao[ForgeDirection.EAST.ordinal()] * -x;
+
+        if (y < 0)
+            ao += sideao[ForgeDirection.DOWN.ordinal()] * -y;
+        if (y > 0)
+            ao += sideao[ForgeDirection.UP.ordinal()] * y;
+
+        if (z < 0)
+            ao += sideao[ForgeDirection.NORTH.ordinal()] * -z;
+        if (z > 0)
+            ao += sideao[ForgeDirection.SOUTH.ordinal()] * z;
+
+        return getProportion(brightness, ao);
     }
 
     private void sample(int side) {

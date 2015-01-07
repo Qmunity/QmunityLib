@@ -27,15 +27,11 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- *
- * This file was originally created for Framez and has full permission to be included in QmunityLib.
- *
- * @author amadornes
- *
- */
 @SideOnly(Side.CLIENT)
 public class RenderPartPlacement {
+
+    private Framebuffer fb = null;
+    private int width = 0, height = 0;
 
     @SubscribeEvent
     public void onRenderTick(RenderWorldLastEvent event) {
@@ -67,11 +63,16 @@ public class RenderPartPlacement {
         if (!MultipartCompatibility.placePartInWorld(part, world, location, faceHit, player, item, true))
             return;
 
+        if (fb == null || width != Minecraft.getMinecraft().displayWidth || height != Minecraft.getMinecraft().displayHeight) {
+            width = Minecraft.getMinecraft().displayWidth;
+            height = Minecraft.getMinecraft().displayHeight;
+            fb = new Framebuffer(width, height, true);
+        }
+
         GL11.glPushMatrix();
         {
 
             Minecraft.getMinecraft().getFramebuffer().unbindFramebuffer();
-            Framebuffer fb = new Framebuffer(Minecraft.getMinecraft().displayWidth, Minecraft.getMinecraft().displayHeight, true);
             GL11.glPushMatrix();
             {
                 GL11.glLoadIdentity();
@@ -81,10 +82,7 @@ public class RenderPartPlacement {
 
                 GL11.glMatrixMode(GL11.GL_MODELVIEW);
                 GL11.glLoadIdentity();
-
                 GL11.glClearColor(0, 0, 0, 0);
-
-                // Vec3dCube getRenderBounds = ((IPartRenderable) part).getRenderBounds().clone().expand(0.001);
 
                 GL11.glPushMatrix();
                 {
@@ -98,26 +96,28 @@ public class RenderPartPlacement {
 
                     GL11.glTranslated(x, y, z);
 
-                    GL11.glPushMatrix();
-                    {
-                        Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.locationBlocksTexture);
-                        GL11.glTranslated(-part.getX(), -part.getY(), -part.getZ());
-                        Tessellator.instance.startDrawingQuads();
-                        RenderHelper.instance.setRenderCoords(world, part.getX(), part.getY(), part.getZ());
-                        RenderBlocks.getInstance().blockAccess = world;
+                    Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.locationBlocksTexture);
+                    Tessellator.instance.addTranslation(-part.getX(), -part.getY(), -part.getZ());
+                    Tessellator.instance.startDrawingQuads();
+                    RenderHelper.instance.setRenderCoords(world, part.getX(), part.getY(), part.getZ());
+                    RenderBlocks.getInstance().blockAccess = world;
+
+                    if (part.shouldRenderOnPass(0))
                         part.renderStatic(new Vec3i(part.getX(), part.getY(), part.getZ()), RenderHelper.instance,
                                 RenderBlocks.getInstance(), 0);
-                        RenderBlocks.getInstance().blockAccess = null;
-                        RenderHelper.instance.reset();
-                        Tessellator.instance.draw();
-                    }
-                    GL11.glPopMatrix();
+                    if (part.shouldRenderOnPass(1))
+                        part.renderStatic(new Vec3i(part.getX(), part.getY(), part.getZ()), RenderHelper.instance,
+                                RenderBlocks.getInstance(), 1);
 
-                    GL11.glPushMatrix();
-                    {
+                    RenderBlocks.getInstance().blockAccess = null;
+                    RenderHelper.instance.reset();
+                    Tessellator.instance.draw();
+                    Tessellator.instance.addTranslation(part.getX(), part.getY(), part.getZ());
+
+                    if (part.shouldRenderOnPass(0))
                         part.renderDynamic(new Vec3d(0, 0, 0), event.partialTicks, 0);
-                    }
-                    GL11.glPopMatrix();
+                    if (part.shouldRenderOnPass(1))
+                        part.renderDynamic(new Vec3d(0, 0, 0), event.partialTicks, 1);
                 }
                 GL11.glPopMatrix();
 
@@ -135,14 +135,10 @@ public class RenderPartPlacement {
                 GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
                 GL11.glMatrixMode(GL11.GL_PROJECTION);
                 GL11.glLoadIdentity();
-                GL11.glOrtho(0.0D, scaledresolution.getScaledWidth_double(), scaledresolution.getScaledHeight_double(), 0.0D, 1000.0D,
-                        3000.0D);
+                GL11.glOrtho(0, scaledresolution.getScaledWidth_double(), scaledresolution.getScaledHeight_double(), 0, 0.1, 10000D);
                 GL11.glMatrixMode(GL11.GL_MODELVIEW);
                 GL11.glLoadIdentity();
                 GL11.glTranslatef(0.0F, 0.0F, -2000.0F);
-
-                GL11.glEnable(GL11.GL_BLEND);
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
                 fb.bindFramebufferTexture();
                 {
@@ -173,7 +169,6 @@ public class RenderPartPlacement {
             GL11.glPopMatrix();
 
             fb.framebufferClear();
-            fb.deleteFramebuffer();
 
             Minecraft.getMinecraft().getFramebuffer().bindFramebuffer(true);
         }

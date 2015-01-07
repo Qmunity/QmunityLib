@@ -41,6 +41,9 @@ public class RenderHelper {
 
     private ExtensionRendering renderingMethod = ExtensionRendering.SAME_TEXTURE;
 
+    private boolean ignoreLighting = false;
+    private int lightingOverride = 0;
+
     private Transformation vertexTransformation = null;
 
     public void reset() {
@@ -54,6 +57,8 @@ public class RenderHelper {
         renderFromInside = false;
         color = 0xFFFFFF;
         renderingMethod = ExtensionRendering.SAME_TEXTURE;
+        ignoreLighting = false;
+        lightingOverride = 0;
         vertexTransformation = null;
     }
 
@@ -161,6 +166,16 @@ public class RenderHelper {
         return renderingMethod;
     }
 
+    public void setIgnoreLighting(boolean ignoreLighting) {
+
+        this.ignoreLighting = ignoreLighting;
+    }
+
+    public void setLightingOverride(int lightingOverride) {
+
+        this.lightingOverride = lightingOverride;
+    }
+
     public void addVertex(double x, double y, double z, double u, double v) {
 
         setTextureCoords(u, v);
@@ -178,10 +193,10 @@ public class RenderHelper {
         if (vertexTransformation != null)
             vertex = vertex.transform(vertexTransformation);
         vertex = vertex.transform(transformations);
-        Vec3d normal = this.normal.clone().add(0.5, 0.5, 0.5).transform(transformations).sub(0.5, 0.5, 0.5);
+        Vec3d normal = this.normal.clone()/* .add(0.5, 0.5, 0.5).transform(transformations).sub(0.5, 0.5, 0.5) */;
 
-        Tessellator.instance.setBrightness(world != null && lightingHelper != null ? lightingHelper.getVertexBrightness(vertex, normal)
-                : 0xF000F0);
+        Tessellator.instance.setBrightness(world != null && lightingHelper != null ? (ignoreLighting ? lightingHelper.getFaceBrightness(
+                lightingOverride, normal) : lightingHelper.getVertexBrightness(vertex, normal)) : 0xF000F0);
         Tessellator.instance.setColorOpaque_I(color);
         Tessellator.instance.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
         Tessellator.instance.addVertex(vertex.getX(), vertex.getY(), vertex.getZ());
