@@ -18,16 +18,20 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.DrawBlockHighlightEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.QmunityLib;
 import uk.co.qmunity.lib.client.render.RenderMultipart;
 import uk.co.qmunity.lib.part.IPart;
+import uk.co.qmunity.lib.part.IPartSelectableCustom;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.raytrace.RayTracer;
 import uk.co.qmunity.lib.ref.Names;
 import uk.co.qmunity.lib.tile.TileMultipart;
 import uk.co.qmunity.lib.vec.Vec3d;
 import uk.co.qmunity.lib.vec.Vec3dCube;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -38,6 +42,8 @@ public class BlockMultipart extends BlockContainer {
         super(Material.ground);
 
         setBlockName(Names.Unlocalized.Blocks.MULTIPART);
+
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
     @Override
@@ -324,5 +330,24 @@ public class BlockMultipart extends BlockContainer {
         }
 
         return l;
+    }
+
+    @SubscribeEvent
+    public void onDrawHighlight(DrawBlockHighlightEvent event) {
+
+        try {
+            if (!(event.player.worldObj.getBlock(event.target.blockX, event.target.blockY, event.target.blockZ) instanceof BlockMultipart))
+                return;
+
+            QMovingObjectPosition mop = retrace(event.player.worldObj, event.target.blockX, event.target.blockY, event.target.blockZ,
+                    RayTracer.instance().getStartVector(event.player), RayTracer.instance().getEndVector(event.player));
+            if (mop == null)
+                return;
+            if (mop.getPart() == null || !(mop.getPart() instanceof IPartSelectableCustom))
+                return;
+            if (((IPartSelectableCustom) mop.getPart()).drawSelectionBoxes(mop))
+                event.setCanceled(true);
+        } catch (Exception ex) {
+        }
     }
 }

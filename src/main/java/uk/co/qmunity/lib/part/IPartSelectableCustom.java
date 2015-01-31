@@ -3,8 +3,6 @@ package uk.co.qmunity.lib.part;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 
 /**
- * NOT IMPLEMENTED YET.<br>
- * <br>
  * Interface implemented by parts that want to draw a custom selection box when their raytrace succeeds.
  *
  * @author amadornes
@@ -12,10 +10,8 @@ import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 public interface IPartSelectableCustom extends IPartSelectable {
 
     /**
-     * NOT IMPLEMENTED YET.<br>
-     * <br>
-     * Draws the custom selection box/es for the specified raytrace.
+     * Draws the custom selection box/es for the specified raytrace. Return false if you want QmunityLib to handle the rendering by itself.
      */
-    public boolean NOTIMPLEMENTED_drawSelectionBoxes(QMovingObjectPosition mop);
+    public boolean drawSelectionBoxes(QMovingObjectPosition mop);
 
 }
