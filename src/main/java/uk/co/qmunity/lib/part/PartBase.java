@@ -1,5 +1,8 @@
 package uk.co.qmunity.lib.part;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +14,6 @@ import net.minecraft.world.World;
 import uk.co.qmunity.lib.client.render.RenderHelper;
 import uk.co.qmunity.lib.helper.ItemHelper;
 import uk.co.qmunity.lib.part.compat.OcclusionHelper;
-import uk.co.qmunity.lib.part.compat.PartUpdateManager;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.vec.Vec3d;
 import uk.co.qmunity.lib.vec.Vec3dCube;
@@ -75,20 +77,37 @@ public abstract class PartBase implements IPart {
     }
 
     @Override
-    public void writeUpdateToNBT(NBTTagCompound tag) {
+    public void writeUpdateData(DataOutput buffer, int channel) throws IOException {
 
+        if (channel == -1)
+            writeUpdateData(buffer);
     }
 
     @Override
-    public void readUpdateFromNBT(NBTTagCompound tag) {
+    public void readUpdateData(DataInput buffer, int channel) throws IOException {
 
+        if (channel == -1)
+            readUpdateData(buffer);
     }
 
     @Override
-    public void sendUpdatePacket() {
+    public void sendUpdatePacket(int channel) {
 
         if (parent != null && getWorld() != null)
-            PartUpdateManager.sendPartUpdate(parent, this);
+            parent.sendUpdatePacket(this, channel);
+    }
+
+    public void writeUpdateData(DataOutput buffer) throws IOException {
+
+    }
+
+    public void readUpdateData(DataInput buffer) throws IOException {
+
+    }
+
+    public void sendUpdatePacket() {
+
+        sendUpdatePacket(-1);
     }
 
     @Override

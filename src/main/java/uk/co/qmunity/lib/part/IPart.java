@@ -1,5 +1,8 @@
 package uk.co.qmunity.lib.part;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.List;
 
 import net.minecraft.client.renderer.RenderBlocks;
@@ -51,17 +54,17 @@ public interface IPart extends IWorldLocation {
     /**
      * Writes the part's data to an NBT tag, which will be sent to the clients around it.
      */
-    public void writeUpdateToNBT(NBTTagCompound tag);
+    public void writeUpdateData(DataOutput buffer, int channel) throws IOException;
 
     /**
      * Reads the part's data from an NBT tag, which has been sent by the server to the client.
      */
-    public void readUpdateFromNBT(NBTTagCompound tag);
+    public void readUpdateData(DataInput buffer, int channel) throws IOException;
 
     /**
      * Sends a part update to all the surrounding clients.
      */
-    public void sendUpdatePacket();
+    public void sendUpdatePacket(int channel);
 
     /**
      * Gets the itemstack that places this part.

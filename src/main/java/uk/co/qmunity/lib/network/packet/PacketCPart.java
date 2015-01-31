@@ -1,9 +1,11 @@
 package uk.co.qmunity.lib.network.packet;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 import uk.co.qmunity.lib.network.LocatedPacket;
 import uk.co.qmunity.lib.network.NetworkHandler;
 import uk.co.qmunity.lib.part.IPart;
@@ -16,8 +18,7 @@ public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
 
     protected ITilePartHolder holder = null;
     protected IPart part = null;
-
-    private String partId = null;
+    protected String partId = null;
 
     public PacketCPart(ITilePartHolder holder, IPart part) {
 
@@ -34,37 +35,39 @@ public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
 
     public abstract void handle(EntityPlayer player);
 
-    public abstract void writeData(NBTTagCompound tag);
+    public abstract void writeData(DataOutput buffer) throws IOException;
 
-    public abstract void readData(NBTTagCompound tag);
+    public abstract void readData(DataInput buffer) throws IOException;
 
     @Override
     @SideOnly(Side.CLIENT)
-    public final void handleClientSide(PacketCPart message, EntityPlayer player) {
+    public final void handleClientSide(EntityPlayer player) {
 
-        if (message == null || player == null)
-            return;
+        holder = MultipartCompatibility.getPartHolder(player.worldObj, x, y, z);
+        if (holder != null && holder.getPartMap().containsKey(partId))
+            part = holder.getPartMap().get(partId);
 
-        message.holder = MultipartCompatibility.getPartHolder(player.worldObj, x, y, z);
-        if (message.holder != null && message.holder.getPartMap().containsKey(message.partId))
-            message.part = message.holder.getPartMap().get(message.partId);
-
-        message.handle(player);
+        doHandle(player);
     }
 
     @Override
-    public final void handleServerSide(PacketCPart message, EntityPlayer player) {
+    public final void handleServerSide(EntityPlayer player) {
 
     }
 
+    public void doHandle(EntityPlayer player) {
+
+        holder = MultipartCompatibility.getPartHolder(player.worldObj, x, y, z);
+        if (holder != null)
+            part = holder.getPartMap().get(partId);
+
+        handle(player);
+    }
+
     @Override
-    public final void write(NBTTagCompound tag) {
+    public void write(DataOutput buffer) throws IOException {
 
-        super.write(tag);
-
-        NBTTagCompound t = new NBTTagCompound();
-        writeData(t);
-        tag.setTag("data", t);
+        super.write(buffer);
 
         String partId = null;
         Map<String, IPart> parts = holder.getPartMap();
@@ -74,20 +77,26 @@ public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
                 break;
             }
         }
-        if (partId == null)
+        if (partId == null) {
+            buffer.writeBoolean(false);
             return;
-        tag.setString("partId", partId);
+        }
+        buffer.writeBoolean(true);
+        buffer.writeUTF(partId);
+
+        writeData(buffer);
     }
 
     @Override
-    public final void read(NBTTagCompound tag) {
+    public void read(DataInput buffer) throws IOException {
 
-        super.read(tag);
+        super.read(buffer);
+        if (!buffer.readBoolean())
+            return;
 
-        NBTTagCompound t = tag.getCompoundTag("data");
-        readData(t);
+        partId = buffer.readUTF();
 
-        partId = tag.getString("partId");
+        readData(buffer);
     }
 
     public void send() {

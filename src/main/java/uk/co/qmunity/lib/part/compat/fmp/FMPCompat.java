@@ -11,7 +11,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
-import uk.co.qmunity.lib.part.IPartFace;
 import uk.co.qmunity.lib.part.IPartPlacement;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.compat.IMultipartCompat;
@@ -156,25 +155,13 @@ public class FMPCompat implements IMultipartCompat {
         if (pass == 1 || solidFace)
             location.add(clickedFace);
 
-        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location)
-                || canBeMultipart(world, location)) {
+        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location)) {
             IPartPlacement placement = MultipartCompatibility.getPlacementForPart(part, world, location, clickedFace, mop, player);
             if (placement == null)
                 return false;
-            if (!simulated) {
-                if (!placement.placePart(part, world, location, this, true))
-                    return false;
-                if (part instanceof IPartFace && !((IPartFace) part).canStay())
-                    return false;
-                if (placement.placePart(part, world, location, this, false))
-                    return true;
-            } else {
-                if (placement.placePart(part, world, location, this, simulated)) {
-                    if (part instanceof IPartFace && !((IPartFace) part).canStay())
-                        return false;
-                    return true;
-                }
-            }
+            if (!simulated && !placement.placePart(part, world, location, this, true))
+                return false;
+            return placement.placePart(part, world, location, this, simulated);
         }
 
         return false;

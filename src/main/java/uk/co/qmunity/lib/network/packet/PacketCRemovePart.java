@@ -1,13 +1,14 @@
 package uk.co.qmunity.lib.network.packet;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
+import net.minecraft.entity.player.EntityPlayer;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.ITilePartHolder;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 
 public class PacketCRemovePart extends PacketCPart {
-
-    private String id;
 
     public PacketCRemovePart(ITilePartHolder holder, IPart part) {
 
@@ -23,23 +24,17 @@ public class PacketCRemovePart extends PacketCPart {
     public void handle(EntityPlayer player) {
 
         if (holder != null)
-            holder.removePart(holder.getPartMap().get(id));
+            holder.removePart(holder.getPartMap().get(partId));
     }
 
     @Override
-    public void writeData(NBTTagCompound tag) {
+    public void writeData(DataOutput buffer) throws IOException {
 
-        String partId = null;
-        for (String id : holder.getPartMap().keySet())
-            if (holder.getPartMap().get(id) == part)
-                partId = id;
-        tag.setString("id", partId);
     }
 
     @Override
-    public void readData(NBTTagCompound tag) {
+    public void readData(DataInput buffer) throws IOException {
 
-        id = tag.getString("id");
     }
 
 }

@@ -111,6 +111,17 @@ public class RenderHelper {
         transformations.add(transformation);
     }
 
+    public void removeTransformation() {
+
+        transformations.remove(transformations.size() - 1);
+    }
+
+    public void removeTransformations(int amount) {
+
+        for (int i = 0; i < amount && transformations.size() > 0; i++)
+            transformations.remove(transformations.size() - 1);
+    }
+
     public void setNormal(double x, double y, double z) {
 
         normal = new Vec3d(x, y, z);
@@ -194,6 +205,8 @@ public class RenderHelper {
             vertex = vertex.transform(vertexTransformation);
         vertex = vertex.transform(transformations);
         Vec3d normal = this.normal.clone().add(0.5, 0.5, 0.5).transform(transformations).sub(0.5, 0.5, 0.5);
+        Vec3d normalTranslations = new Vec3d(0.5, 0.5, 0.5).transform(transformations).sub(0.5, 0.5, 0.5);
+        normal.sub(normalTranslations);
 
         Tessellator.instance.setBrightness(world != null && lightingHelper != null ? (ignoreLighting ? lightingHelper.getFaceBrightness(
                 lightingOverride, normal) : lightingHelper.getVertexBrightness(vertex, normal)) : 0xF000F0);
@@ -295,6 +308,8 @@ public class RenderHelper {
 
         if (overrideTexture != null)
             icon = overrideTexture;
+        if (icon == null)
+            return;
 
         Vec3d v1 = new Vec3d(x, face.getMinX(), face.getMinY());
         Vec3d v2 = new Vec3d(x, face.getMinX(), face.getMaxY());
@@ -315,6 +330,8 @@ public class RenderHelper {
 
         if (overrideTexture != null)
             icon = overrideTexture;
+        if (icon == null)
+            return;
 
         Vec3d v1 = new Vec3d(x, face.getMinX(), face.getMinY());
         Vec3d v2 = new Vec3d(x, face.getMaxX(), face.getMinY());
@@ -335,6 +352,8 @@ public class RenderHelper {
 
         if (overrideTexture != null)
             icon = overrideTexture;
+        if (icon == null)
+            return;
 
         Vec3d v1 = new Vec3d(face.getMinX(), y, face.getMinY());
         Vec3d v2 = new Vec3d(face.getMaxX(), y, face.getMinY());
@@ -355,6 +374,8 @@ public class RenderHelper {
 
         if (overrideTexture != null)
             icon = overrideTexture;
+        if (icon == null)
+            return;
 
         Vec3d v1 = new Vec3d(face.getMinX(), y, face.getMinY());
         Vec3d v2 = new Vec3d(face.getMinX(), y, face.getMaxY());
@@ -375,6 +396,8 @@ public class RenderHelper {
 
         if (overrideTexture != null)
             icon = overrideTexture;
+        if (icon == null)
+            return;
 
         Vec3d v1 = new Vec3d(face.getMinX(), face.getMinY(), z);
         Vec3d v2 = new Vec3d(face.getMinX(), face.getMaxY(), z);
@@ -395,6 +418,8 @@ public class RenderHelper {
 
         if (overrideTexture != null)
             icon = overrideTexture;
+        if (icon == null)
+            return;
 
         Vec3d v1 = new Vec3d(face.getMinX(), face.getMinY(), z);
         Vec3d v2 = new Vec3d(face.getMaxX(), face.getMinY(), z);

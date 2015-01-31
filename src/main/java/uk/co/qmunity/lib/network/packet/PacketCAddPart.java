@@ -1,9 +1,15 @@
 package uk.co.qmunity.lib.network.packet;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.ITilePartHolder;
 import uk.co.qmunity.lib.part.PartRegistry;
@@ -13,8 +19,7 @@ import uk.co.qmunity.lib.vec.Vec3i;
 public class PacketCAddPart extends PacketCPart {
 
     private String type;
-    private String id;
-    private NBTTagCompound data;
+    private byte[] data;
 
     public PacketCAddPart(ITilePartHolder holder, IPart part) {
 
@@ -38,39 +43,41 @@ public class PacketCAddPart extends PacketCPart {
             return;
         Map<String, IPart> map = holder.getPartMap();
 
-        String newId = null;
+        String oldId = null;
         for (String id : holder.getPartMap().keySet())
             if (holder.getPartMap().get(id) == part)
-                newId = id;
+                oldId = id;
 
-        map.remove(newId);
-        map.put(id, part);
+        map.remove(oldId);
+        map.put(partId, part);
 
-        part.readUpdateFromNBT(data);
+        try {
+            part.readUpdateData(new DataInputStream(new ByteArrayInputStream(data)), -1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void writeData(NBTTagCompound tag) {
+    public void writeData(DataOutput buffer) throws IOException {
 
-        tag.setString("type", part.getType());
+        buffer.writeUTF(part.getType());
 
-        String partId = null;
-        for (String id : holder.getPartMap().keySet())
-            if (holder.getPartMap().get(id) == part)
-                partId = id;
-        tag.setString("id", partId);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        part.writeUpdateData(new DataOutputStream(os), -1);
+        data = os.toByteArray();
 
-        NBTTagCompound data = new NBTTagCompound();
-        part.writeUpdateToNBT(data);
-        tag.setTag("data", data);
+        buffer.writeInt(data.length);
+        buffer.write(data);
     }
 
     @Override
-    public void readData(NBTTagCompound tag) {
+    public void readData(DataInput buffer) throws IOException {
 
-        type = tag.getString("type");
-        id = tag.getString("id");
-        data = tag.getCompoundTag("data");
+        type = buffer.readUTF();
+
+        data = new byte[buffer.readInt()];
+        buffer.readFully(data);
     }
 
 }

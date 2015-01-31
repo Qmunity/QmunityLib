@@ -1,5 +1,7 @@
 package uk.co.qmunity.lib.vec;
 
+import java.awt.Rectangle;
+
 public class Vec2dRect {
 
     private Vec2d min;
@@ -20,6 +22,11 @@ public class Vec2dRect {
 
         min = new Vec2d(x1, y1);
         max = new Vec2d(x2, y2);
+    }
+
+    public Vec2dRect(Rectangle rect) {
+
+        this(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
     }
 
     public Vec2d getMin() {
@@ -69,6 +76,11 @@ public class Vec2dRect {
     public Vec2dRect clone() {
 
         return new Vec2dRect(min, max);
+    }
+
+    public Vec3dCube extrude(double height) {
+
+        return new Vec3dCube(getMinX(), 0, getMinY(), getMaxX(), height, getMaxY());
     }
 
 }

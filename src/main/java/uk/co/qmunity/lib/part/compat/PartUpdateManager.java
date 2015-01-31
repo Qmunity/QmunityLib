@@ -10,14 +10,14 @@ public class PartUpdateManager {
 
     private static boolean enabled = true;
 
-    public static void sendPartUpdate(ITilePartHolder holder, IPart part) {
+    public static void sendPartUpdate(ITilePartHolder holder, IPart part, int channel) {
 
         if (part.getWorld().isRemote)
             return;
         if (!enabled)
             return;
 
-        new PacketCUpdatePart(part.getParent(), part).send();
+        new PacketCUpdatePart(part.getParent(), part, channel).send();
     }
 
     public static void addPart(ITilePartHolder holder, IPart part) {

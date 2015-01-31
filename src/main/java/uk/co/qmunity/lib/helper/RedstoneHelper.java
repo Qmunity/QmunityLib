@@ -231,7 +231,12 @@ public class RedstoneHelper {
                 return compat.canConnectRedstone(world, location, side, face);
         }
 
-        return world.getBlock(x, y, z).canConnectRedstone(world, x, y, z, Direction.getMovementDirection(side.offsetX, side.offsetZ));
+        try {
+            return world.getBlock(x, y, z).canConnectRedstone(world, x, y, z, Direction.getMovementDirection(side.offsetX, side.offsetZ));
+        } catch (Exception ex) {
+            // ex.printStackTrace();
+        }
+        return false;
     }
 
     public static boolean canConnect(World world, int x, int y, int z, ForgeDirection side) {

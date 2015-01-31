@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import net.minecraft.client.Minecraft;
@@ -29,7 +30,6 @@ import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartCenter;
 import uk.co.qmunity.lib.part.IPartCollidable;
-import uk.co.qmunity.lib.part.IPartFace;
 import uk.co.qmunity.lib.part.IPartInteractable;
 import uk.co.qmunity.lib.part.IPartOccluding;
 import uk.co.qmunity.lib.part.IPartRedstone;
@@ -75,6 +75,7 @@ ISidedHollowConnect, TSlottedPart {
 
     private boolean shouldDieInAFire = false;
     private boolean loaded = false;
+    private boolean converted = false;
 
     private final boolean simulated;
 
@@ -149,21 +150,32 @@ ISidedHollowConnect, TSlottedPart {
     @Override
     public void update() {
 
-        for (IPart p : getParts()) {
-            if (firstTick && loaded) {
-                for (IPart p_ : added)
-                    if (p_ == p)
-                        ((IPartUpdateListener) p).onAdded();
-                if (p instanceof IPartUpdateListener) {
-                    ((IPartUpdateListener) p).onLoaded();
+        if (firstTick) {
+            if (converted) {
+                for (IPart p : getParts())
+                    if (p instanceof IPartUpdateListener)
+                        ((IPartUpdateListener) p).onConverted();
+            } else {
+                if (!loaded) {
+                    for (IPart p : added)
+                        if (p instanceof IPartUpdateListener)
+                            ((IPartUpdateListener) p).onAdded();
+                } else {
+                    for (IPart p : added)
+                        ((IPartUpdateListener) p).onLoaded();
                 }
             }
+
+            if (!world().isRemote)
+                sendDescUpdate();
+            firstTick = false;
+        }
+        for (IPart p : getParts()) {
             if (p instanceof IPartTicking)
                 ((IPartTicking) p).update();
         }
-        firstTick = false;
 
-        if (!world().isRemote && shouldDieInAFire)
+        if (!world().isRemote && (shouldDieInAFire || getParts().size() == 0))
             tile().remPart(this);
     }
 
@@ -173,7 +185,17 @@ ISidedHollowConnect, TSlottedPart {
         super.save(tag);
 
         NBTTagList l = new NBTTagList();
-        writeParts(l, false);
+        for (Entry<String, IPart> e : getPartMap().entrySet()) {
+            NBTTagCompound t = new NBTTagCompound();
+
+            t.setString("id", e.getKey());
+            t.setString("type", e.getValue().getType());
+            NBTTagCompound data = new NBTTagCompound();
+            e.getValue().writeToNBT(data);
+            t.setTag("data", data);
+
+            l.appendTag(t);
+        }
         tag.setTag("parts", l);
     }
 
@@ -183,7 +205,22 @@ ISidedHollowConnect, TSlottedPart {
         super.load(tag);
 
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
-        readParts(l, true, false);
+        for (int i = 0; i < l.tagCount(); i++) {
+            NBTTagCompound t = l.getCompoundTagAt(i);
+
+            String id = t.getString("id");
+            IPart p = getPart(id);
+            if (p == null) {
+                p = PartRegistry.createPart(t.getString("type"), false);
+                if (p == null)
+                    continue;
+                p.setParent(this);
+                parts.put(id, p);
+            }
+
+            NBTTagCompound data = t.getCompoundTag("data");
+            p.readFromNBT(data);
+        }
 
         if (getParts().size() == 0)
             shouldDieInAFire = true;
@@ -199,13 +236,18 @@ ISidedHollowConnect, TSlottedPart {
 
         super.writeDesc(packet);
 
-        NBTTagCompound tag = new NBTTagCompound();
+        FMPDataOutput buffer = new FMPDataOutput(packet);
 
-        NBTTagList l = new NBTTagList();
-        writeParts(l, true);
-        tag.setTag("parts", l);
+        try {
+            buffer.writeInt(getPartMap().size());
 
-        packet.writeNBTTagCompound(tag);
+            for (Entry<String, IPart> e : getPartMap().entrySet()) {
+                buffer.writeUTF(e.getKey());
+                buffer.writeUTF(e.getValue().getType());
+                e.getValue().writeUpdateData(buffer, -1);
+            }
+        } catch (Exception ex) {
+        }
     }
 
     @Override
@@ -213,53 +255,27 @@ ISidedHollowConnect, TSlottedPart {
 
         super.readDesc(packet);
 
-        NBTTagList l = packet.readNBTTagCompound().getTagList("parts", new NBTTagCompound().getId());
-        readParts(l, true, true);
+        FMPDataInput buffer = new FMPDataInput(packet);
 
-        if (tile() != null && getWorld() != null)
-            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
-    }
+        try {
+            int amt = buffer.readInt();
 
-    private void writeParts(NBTTagList l, boolean update) {
+            for (int i = 0; i < amt; i++) {
+                String id = buffer.readUTF();
+                String type = buffer.readUTF();
 
-        for (IPart p : getParts()) {
-            String id = getIdentifier(p);
+                IPart p = getPart(id);
+                if (p == null) {
+                    p = PartRegistry.createPart(type, true);
+                    if (p == null)
+                        continue;
+                    p.setParent(this);
+                    parts.put(id, p);
+                }
 
-            NBTTagCompound tag = new NBTTagCompound();
-
-            tag.setString("id", id);
-            tag.setString("type", p.getType());
-            NBTTagCompound data = new NBTTagCompound();
-            if (update)
-                p.writeUpdateToNBT(data);
-            else
-                p.writeToNBT(data);
-            tag.setTag("data", data);
-
-            l.appendTag(tag);
-        }
-    }
-
-    private void readParts(NBTTagList l, boolean update, boolean client) {
-
-        for (int i = 0; i < l.tagCount(); i++) {
-            NBTTagCompound tag = l.getCompoundTagAt(i);
-
-            String id = tag.getString("id");
-            IPart p = getPart(id);
-            if (p == null) {
-                p = PartRegistry.createPart(tag.getString("type"), client);
-                if (p == null)
-                    continue;
-                p.setParent(this);
-                parts.put(id, p);
+                p.readUpdateData(buffer, -1);
             }
-
-            NBTTagCompound data = tag.getCompoundTag("data");
-            if (update)
-                p.readUpdateFromNBT(data);
-            else
-                p.readFromNBT(data);
+        } catch (Exception ex) {
         }
     }
 
@@ -417,8 +433,12 @@ ISidedHollowConnect, TSlottedPart {
         if (part instanceof IPartOccluding) {
             for (Vec3dCube b : ((IPartOccluding) part).getOcclusionBoxes()) {
                 NormallyOccludedPart nop = new NormallyOccludedPart(new Cuboid6(b.toAABB()));
-                if (!tile().canAddPart(nop))
+                try {
+                    if (!tile().canAddPart(nop))
+                        return false;
+                } catch (Exception ex) {
                     return false;
+                }
             }
         }
 
@@ -445,6 +465,13 @@ ISidedHollowConnect, TSlottedPart {
         }
 
         return closest;
+    }
+
+    @Override
+    public void sendUpdatePacket(IPart part, int channel) {
+
+        if (tile() != null && world() != null && getParts().contains(part))
+            PartUpdateManager.sendPartUpdate(this, part, channel);
     }
 
     @Override
@@ -562,8 +589,6 @@ ISidedHollowConnect, TSlottedPart {
         if (simulated)
             return;
 
-        onUpdate();
-
         for (IPart p : getParts())
             if (p != null && p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onNeighborBlockChange();
@@ -572,27 +597,9 @@ ISidedHollowConnect, TSlottedPart {
     @Override
     public void onPartChanged(TMultiPart part) {
 
-        super.onPartChanged(part);
-
-        if (simulated)
-            return;
-
-        onUpdate();
-
         for (IPart p : getParts())
             if (p != null && p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onPartChanged(null);
-    }
-
-    private void onUpdate() {
-
-        if (simulated)
-            return;
-
-        for (IPart p : getParts())
-            if (p != null && p instanceof IPartFace)
-                if (!((IPartFace) p).canStay())
-                    p.breakAndDrop(false);
     }
 
     @Override
@@ -704,8 +711,6 @@ ISidedHollowConnect, TSlottedPart {
     @Override
     public void onChunkLoad() {
 
-        super.onChunkLoad();
-
         if (simulated)
             return;
 
@@ -716,8 +721,6 @@ ISidedHollowConnect, TSlottedPart {
 
     @Override
     public void onChunkUnload() {
-
-        super.onChunkUnload();
 
         if (simulated)
             return;
@@ -730,9 +733,30 @@ ISidedHollowConnect, TSlottedPart {
     @Override
     public void onConverted() {
 
-        for (IPart p : getParts())
-            if (p instanceof IPartUpdateListener)
-                ((IPartUpdateListener) p).onConverted();
+        converted = true;
+    }
+
+    @Override
+    public void onMoved() {
+
+        onChunkUnload();
+        onChunkLoad();
+    }
+
+    @Override
+    public void onWorldJoin() {
+
+        super.onWorldJoin();
+
+        onChunkLoad();
+    }
+
+    @Override
+    public void onWorldSeparate() {
+
+        super.onWorldSeparate();
+
+        onChunkUnload();
     }
 
     @Override

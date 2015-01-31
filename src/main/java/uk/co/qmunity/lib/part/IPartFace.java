@@ -19,9 +19,4 @@ public interface IPartFace extends IPart {
      */
     public ForgeDirection getFace();
 
-    /**
-     * Checks if the part can stay where it is (i.e. checking if the face it's placed on is solid)
-     */
-    public boolean canStay();
-
 }

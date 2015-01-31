@@ -1,5 +1,10 @@
 package uk.co.qmunity.lib.tile;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -243,13 +248,10 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
         readParts(l, false, false);
+        loaded = true;
 
         if (getParts().size() == 0)
             shouldDieInAFire = true;
-        loaded = true;
-
-        if (getWorld() != null)
-            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
     }
 
     public void writeUpdateToNBT(NBTTagCompound tag) {
@@ -264,8 +266,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
         readParts(l, true, true);
 
-        if (getWorld() != null)
-            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
+        getWorldObj().markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord, yCoord, zCoord);
     }
 
     private void writeParts(NBTTagList l, boolean update) {
@@ -278,10 +279,19 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             tag.setString("id", id);
             tag.setString("type", p.getType());
             NBTTagCompound data = new NBTTagCompound();
-            if (update)
-                p.writeUpdateToNBT(data);
-            else
+            if (update) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                DataOutput buffer = new DataOutputStream(baos);
+                try {
+                    p.writeUpdateData(buffer, -1);
+                    baos.flush();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                data.setByteArray("data", baos.toByteArray());
+            } else {
                 p.writeToNBT(data);
+            }
             tag.setTag("data", data);
 
             l.appendTag(tag);
@@ -304,11 +314,23 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             }
 
             NBTTagCompound data = tag.getCompoundTag("data");
-            if (update)
-                p.readUpdateFromNBT(data);
-            else
+            if (update) {
+                try {
+                    p.readUpdateData(new DataInputStream(new ByteArrayInputStream(data.getByteArray("data"))), -1);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            } else {
                 p.readFromNBT(data);
+            }
         }
+    }
+
+    @Override
+    public void sendUpdatePacket(IPart part, int channel) {
+
+        if (getWorld() != null && getParts().contains(part))
+            PartUpdateManager.sendPartUpdate(this, part, channel);
     }
 
     @Override
@@ -386,16 +408,8 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             return;
 
         if (!getWorldObj().isRemote) {
-            for (IPart p : getParts()) {
-                if (p instanceof IPartFace) {
-                    if (!((IPartFace) p).canStay()) {
-                        p.breakAndDrop(false);
-
-                        if (getParts().size() == 0)
-                            getWorldObj().setBlockToAir(xCoord, yCoord, zCoord);
-                    }
-                }
-            }
+            if (getParts().size() == 0)
+                getWorldObj().setBlockToAir(xCoord, yCoord, zCoord);
         }
     }
 
@@ -414,15 +428,16 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     @Override
     public void updateEntity() {
 
-        for (IPart p : getParts()) {
-            if (firstTick && loaded) {
+        if (firstTick && loaded) {
+            for (IPart p : getParts()) {
                 if (p instanceof IPartUpdateListener)
                     ((IPartUpdateListener) p).onLoaded();
             }
+            firstTick = false;
+        }
+        for (IPart p : getParts())
             if (p instanceof IPartTicking)
                 ((IPartTicking) p).update();
-        }
-        firstTick = false;
 
         if (shouldDieInAFire)
             getWorld().setBlockToAir(getX(), getY(), getZ());
@@ -544,7 +559,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
         QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
         if (mop != null) {
-            return mop.getPart().getItem();
+            return mop.getPart().getPickedItem(mop);
         }
 
         return null;

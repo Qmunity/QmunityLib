@@ -1,13 +1,15 @@
 package uk.co.qmunity.lib.network;
 
-import uk.co.qmunity.lib.vec.IWorldLocation;
-import net.minecraft.nbt.NBTTagCompound;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
 import net.minecraft.world.World;
+import uk.co.qmunity.lib.vec.IWorldLocation;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 
-@SuppressWarnings("rawtypes")
-public abstract class LocatedPacket<T extends LocatedPacket> extends Packet<T> {
+public abstract class LocatedPacket<T extends LocatedPacket<T>> extends Packet<T> {
 
     protected int x, y, z;
 
@@ -30,19 +32,19 @@ public abstract class LocatedPacket<T extends LocatedPacket> extends Packet<T> {
     }
 
     @Override
-    public void read(NBTTagCompound tag) {
+    public void read(DataInput buffer) throws IOException {
 
-        x = tag.getInteger("x");
-        y = tag.getInteger("y");
-        z = tag.getInteger("z");
+        x = buffer.readInt();
+        y = buffer.readInt();
+        z = buffer.readInt();
     }
 
     @Override
-    public void write(NBTTagCompound tag) {
+    public void write(DataOutput buffer) throws IOException {
 
-        tag.setInteger("x", x);
-        tag.setInteger("y", y);
-        tag.setInteger("z", z);
+        buffer.writeInt(x);
+        buffer.writeInt(y);
+        buffer.writeInt(z);
     }
 
     public TargetPoint getTargetPoint(World world, double range) {

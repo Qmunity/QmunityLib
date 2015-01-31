@@ -88,4 +88,9 @@ public interface ITilePartHolder extends IWorldLocation {
      */
     public boolean isSimulated();
 
+    /**
+     * Sends a part update packet for the specified part, on the specified channel
+     */
+    public void sendUpdatePacket(IPart part, int channel);
+
 }
