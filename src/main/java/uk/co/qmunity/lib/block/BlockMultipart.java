@@ -345,7 +345,7 @@ public class BlockMultipart extends BlockContainer {
                 return;
             if (mop.getPart() == null || !(mop.getPart() instanceof IPartSelectableCustom))
                 return;
-            if (((IPartSelectableCustom) mop.getPart()).drawSelectionBoxes(mop))
+            if (((IPartSelectableCustom) mop.getPart()).drawHighlight(mop, event.player, event.partialTicks))
                 event.setCanceled(true);
         } catch (Exception ex) {
         }

@@ -34,6 +34,7 @@ import uk.co.qmunity.lib.part.IPartInteractable;
 import uk.co.qmunity.lib.part.IPartOccluding;
 import uk.co.qmunity.lib.part.IPartRedstone;
 import uk.co.qmunity.lib.part.IPartSelectable;
+import uk.co.qmunity.lib.part.IPartSelectableCustom;
 import uk.co.qmunity.lib.part.IPartSolid;
 import uk.co.qmunity.lib.part.IPartThruHole;
 import uk.co.qmunity.lib.part.IPartTicking;
@@ -541,6 +542,18 @@ ISidedHollowConnect, TSlottedPart {
         RenderMultipart.renderBreaking(getWorld(), getX(), getY(), getZ(), renderBlocks, mop);
 
         RenderHelper.instance.reset();
+    }
+
+    @Override
+    public boolean drawHighlight(MovingObjectPosition hit, EntityPlayer player, float frame) {
+
+        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(Minecraft.getMinecraft().thePlayer), RayTracer.instance()
+                .getEndVector(Minecraft.getMinecraft().thePlayer));
+
+        if (mop == null || mop.getPart() == null || !(mop.getPart() instanceof IPartSelectableCustom))
+            return false;
+
+        return ((IPartSelectableCustom) mop.getPart()).drawHighlight(mop, player, frame);
     }
 
     @Override
