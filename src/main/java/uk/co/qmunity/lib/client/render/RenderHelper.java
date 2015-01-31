@@ -36,6 +36,7 @@ public class RenderHelper {
     private boolean renderFromInside = false;
 
     private int color = 0xFFFFFF;
+    private double opacity = 1;
 
     private IIcon overrideTexture = null;
 
@@ -56,6 +57,7 @@ public class RenderHelper {
         resetTransformations();
         renderFromInside = false;
         color = 0xFFFFFF;
+        opacity = 1;
         renderingMethod = ExtensionRendering.SAME_TEXTURE;
         ignoreLighting = false;
         lightingOverride = 0;
@@ -166,6 +168,21 @@ public class RenderHelper {
         this.color = color;
     }
 
+    public void setOpacity(double opacity) {
+
+        this.opacity = opacity;
+    }
+
+    public int getColor() {
+
+        return color;
+    }
+
+    public double getOpacity() {
+
+        return opacity;
+    }
+
     public void setRenderingMethod(ExtensionRendering renderingMethod) {
 
         if (renderingMethod != null)
@@ -210,7 +227,7 @@ public class RenderHelper {
 
         Tessellator.instance.setBrightness(world != null && lightingHelper != null ? (ignoreLighting ? lightingHelper.getFaceBrightness(
                 lightingOverride, normal) : lightingHelper.getVertexBrightness(vertex, normal)) : 0xF000F0);
-        Tessellator.instance.setColorOpaque_I(color);
+        Tessellator.instance.setColorRGBA_I(color, (int) (opacity * 255));
         Tessellator.instance.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
         Tessellator.instance.addVertex(vertex.getX(), vertex.getY(), vertex.getZ());
     }
