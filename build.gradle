@@ -127,17 +127,10 @@ task sourceJar(type: Jar) {
     }
 }
 
-// add a javadoc jar
-task javadocZip(type: Zip, dependsOn: javadoc) {
-    appendix = "${project.ext.mcVersion}"
-    classifier = "javadoc"
-    from 'build/docs/javadoc'
-}
 
 artifacts {
     archives sourceJar
     archives deobfJar
-    archives javadocZip
 }
 
 
