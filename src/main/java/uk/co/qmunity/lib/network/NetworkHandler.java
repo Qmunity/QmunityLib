@@ -1,11 +1,11 @@
 package uk.co.qmunity.lib.network;
 
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.world.World;
 import uk.co.qmunity.lib.QLModInfo;
 import uk.co.qmunity.lib.network.packet.PacketCAddPart;
 import uk.co.qmunity.lib.network.packet.PacketCRemovePart;
 import uk.co.qmunity.lib.network.packet.PacketCUpdatePart;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.world.World;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
@@ -13,57 +13,70 @@ import cpw.mods.fml.relauncher.Side;
 
 public class NetworkHandler {
 
-    public static final SimpleNetworkWrapper NETWORK_WRAPPER = NetworkRegistry.INSTANCE.newSimpleChannel(QLModInfo.MODID);
-    private static int lastDiscriminator = 0;
+    public static final NetworkHandler QLIB = new NetworkHandler(QLModInfo.MODID);
 
-    public static void init() {
+    public final SimpleNetworkWrapper wrapper;
+    private int lastDiscriminator = 0;
 
-        registerPacket(PacketCAddPart.class, Side.CLIENT);
-        registerPacket(PacketCRemovePart.class, Side.CLIENT);
-        registerPacket(PacketCUpdatePart.class, Side.CLIENT);
+    public NetworkHandler(String modid) {
+
+        wrapper = NetworkRegistry.INSTANCE.newSimpleChannel(modid);
+    }
+
+    public static void initQLib() {
+
+        QLIB.registerPacket(PacketCAddPart.class, Side.CLIENT);
+        QLIB.registerPacket(PacketCRemovePart.class, Side.CLIENT);
+        QLIB.registerPacket(PacketCUpdatePart.class, Side.CLIENT);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static void registerPacket(Class packetHandler, Class packetType, Side side) {
+    public void registerPacket(Class packetHandler, Class packetType, Side side) {
 
-        NETWORK_WRAPPER.registerMessage(packetHandler, packetType, lastDiscriminator++, side);
+        wrapper.registerMessage(packetHandler, packetType, lastDiscriminator++, side);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static void registerPacket(Class packetType, Side side) {
+    public void registerPacket(Class packetType, Side side) {
 
-        NETWORK_WRAPPER.registerMessage(packetType, packetType, lastDiscriminator++, side);
+        wrapper.registerMessage(packetType, packetType, lastDiscriminator++, side);
     }
 
-    public static void sendToAll(IMessage packet) {
+    public void sendToAll(IMessage packet) {
 
-        NETWORK_WRAPPER.sendToAll(packet);
+        wrapper.sendToAll(packet);
     }
 
-    public static void sendTo(IMessage packet, EntityPlayerMP player) {
+    public void sendTo(IMessage packet, EntityPlayerMP player) {
 
-        NETWORK_WRAPPER.sendTo(packet, player);
+        wrapper.sendTo(packet, player);
     }
 
     @SuppressWarnings("rawtypes")
-    public static void sendToAllAround(LocatedPacket packet, World world, double range) {
+    public void sendToAllAround(LocatedPacket packet, World world, double range) {
 
         sendToAllAround(packet, packet.getTargetPoint(world, range));
     }
 
-    public static void sendToAllAround(IMessage packet, NetworkRegistry.TargetPoint point) {
+    @SuppressWarnings("rawtypes")
+    public void sendToAllAround(LocatedPacket packet, World world) {
 
-        NETWORK_WRAPPER.sendToAllAround(packet, point);
+        sendToAllAround(packet, packet.getTargetPoint(world, 64));
     }
 
-    public static void sendToDimension(IMessage packet, int dimensionId) {
+    public void sendToAllAround(IMessage packet, NetworkRegistry.TargetPoint point) {
 
-        NETWORK_WRAPPER.sendToDimension(packet, dimensionId);
+        wrapper.sendToAllAround(packet, point);
     }
 
-    public static void sendToServer(IMessage packet) {
+    public void sendToDimension(IMessage packet, int dimensionId) {
 
-        NETWORK_WRAPPER.sendToServer(packet);
+        wrapper.sendToDimension(packet, dimensionId);
+    }
+
+    public void sendToServer(IMessage packet) {
+
+        wrapper.sendToServer(packet);
     }
 
 }

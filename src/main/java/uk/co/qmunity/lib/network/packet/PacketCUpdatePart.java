@@ -69,7 +69,7 @@ public class PacketCUpdatePart extends PacketCPart {
 
     public void sendTo(EntityPlayer player) {
 
-        NetworkHandler.sendTo(this, (EntityPlayerMP) player);
+        NetworkHandler.QLIB.sendTo(this, (EntityPlayerMP) player);
     }
 
 }

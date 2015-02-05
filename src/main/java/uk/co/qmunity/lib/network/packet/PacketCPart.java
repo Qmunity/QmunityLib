@@ -43,6 +43,9 @@ public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
     @SideOnly(Side.CLIENT)
     public final void handleClientSide(EntityPlayer player) {
 
+        if (player == null || player.worldObj == null)
+            return;
+
         holder = MultipartCompatibility.getPartHolder(player.worldObj, x, y, z);
         if (holder != null && holder.getPartMap().containsKey(partId))
             part = holder.getPartMap().get(partId);
@@ -101,6 +104,6 @@ public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
 
     public void send() {
 
-        NetworkHandler.sendToAllAround(this, holder.getWorld(), 64);
+        NetworkHandler.QLIB.sendToAllAround(this, holder.getWorld(), 64);
     }
 }
