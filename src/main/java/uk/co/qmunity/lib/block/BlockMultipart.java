@@ -333,6 +333,7 @@ public class BlockMultipart extends BlockContainer {
     }
 
     @SubscribeEvent
+    @SideOnly(Side.CLIENT)
     public void onDrawHighlight(DrawBlockHighlightEvent event) {
 
         try {
