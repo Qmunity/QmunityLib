@@ -545,6 +545,7 @@ ISidedHollowConnect, TSlottedPart {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public boolean drawHighlight(MovingObjectPosition hit, EntityPlayer player, float frame) {
 
         QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(Minecraft.getMinecraft().thePlayer), RayTracer.instance()
