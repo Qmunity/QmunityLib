@@ -1,17 +1,10 @@
 package uk.co.qmunity.lib.helper;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockDispenser;
-import net.minecraft.block.BlockDoor;
-import net.minecraft.block.BlockDropper;
 import net.minecraft.block.BlockLever;
-import net.minecraft.block.BlockNote;
-import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.BlockRedstoneComparator;
-import net.minecraft.block.BlockRedstoneLight;
 import net.minecraft.block.BlockRedstoneRepeater;
 import net.minecraft.block.BlockRedstoneWire;
-import net.minecraft.block.BlockTNT;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntityComparator;
 import net.minecraft.util.Direction;
@@ -93,18 +86,21 @@ public class RedstoneHelper {
         if (block instanceof BlockRedstoneWire)
             return face == ForgeDirection.UNKNOWN || face == ForgeDirection.DOWN;
 
-        return block instanceof BlockDoor || block instanceof BlockRedstoneLight || block instanceof BlockTNT
-                || block instanceof BlockDispenser || block instanceof BlockDropper || block instanceof BlockNote
-                || block instanceof BlockPistonBase;
+        return /*
+         * block instanceof BlockDoor || block instanceof BlockRedstoneLight || block instanceof BlockTNT || block instanceof BlockDispenser ||
+         * block instanceof BlockDropper || block instanceof BlockNote || block instanceof BlockPistonBase
+         */true;
     }
 
     private static boolean isVanillaBlock(World world, int x, int y, int z) {
 
         Block b = world.getBlock(x, y, z);
         return b instanceof BlockRedstoneRepeater || b instanceof BlockLever || b instanceof BlockRedstoneWire
-                || b instanceof BlockRedstoneComparator || b instanceof BlockDoor || b instanceof BlockRedstoneLight
-                || b instanceof BlockTNT || b instanceof BlockDispenser || b instanceof BlockDropper || b instanceof BlockNote
-                || b instanceof BlockPistonBase;
+                || b instanceof BlockRedstoneComparator /*
+                 * || b instanceof BlockDoor || b instanceof BlockRedstoneLight || b instanceof BlockTNT || b
+                 * instanceof BlockDispenser || b instanceof BlockDropper || b instanceof BlockNote || b
+                 * instanceof BlockPistonBase
+                 */;
     }
 
     public static int getOutputWeak(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
