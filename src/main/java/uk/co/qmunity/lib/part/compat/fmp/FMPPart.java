@@ -55,6 +55,7 @@ import codechicken.lib.raytracer.ExtendedMOP;
 import codechicken.lib.raytracer.IndexedCuboid6;
 import codechicken.lib.vec.Cuboid6;
 import codechicken.lib.vec.Vector3;
+import codechicken.microblock.CommonMicroblock;
 import codechicken.microblock.ISidedHollowConnect;
 import codechicken.multipart.INeighborTileChange;
 import codechicken.multipart.IRedstonePart;
@@ -127,7 +128,7 @@ ISidedHollowConnect, TSlottedPart {
         for (IPart p : getParts())
             if (p instanceof IPartSelectable)
                 for (Vec3dCube c : ((IPartSelectable) p).getSelectionBoxes())
-                    cubes.add(new IndexedCuboid6(0, new Cuboid6(c.toAABB())));
+                    cubes.add(new IndexedCuboid6(0, new Cuboid6(c.clone().expand(0.001).toAABB())));
 
         if (cubes.size() == 0)
             cubes.add(new IndexedCuboid6(0, new Cuboid6(0, 0, 0, 1, 1, 1)));
@@ -141,7 +142,7 @@ ISidedHollowConnect, TSlottedPart {
         QMovingObjectPosition qmop = rayTrace(new Vec3d(start), new Vec3d(end));
         if (qmop == null)
             return null;
-        new Cuboid6(qmop.getCube().toAABB()).setBlockBounds(tile().getBlockType());
+        new Cuboid6(qmop.getCube().clone().expand(0.001).toAABB()).setBlockBounds(tile().getBlockType());
         Vec3 v = qmop.hitVec.subtract(start);
         return new ExtendedMOP(qmop, 0, v.xCoord * v.xCoord + v.yCoord * v.yCoord + v.zCoord * v.zCoord);
     }
@@ -443,7 +444,7 @@ ISidedHollowConnect, TSlottedPart {
             }
         }
 
-        return !OcclusionHelper.occlusionTest(this, part);
+        return OcclusionHelper.occlusionTest(this, part);
     }
 
     @Override
@@ -611,9 +612,14 @@ ISidedHollowConnect, TSlottedPart {
     @Override
     public void onPartChanged(TMultiPart part) {
 
+        IPart changed = null;
+
+        if (part instanceof CommonMicroblock)
+            changed = new FMPMicroblock((CommonMicroblock) part);
+
         for (IPart p : getParts())
             if (p != null && p instanceof IPartUpdateListener)
-                ((IPartUpdateListener) p).onPartChanged(null);
+                ((IPartUpdateListener) p).onPartChanged(changed);
     }
 
     @Override
@@ -644,9 +650,16 @@ ISidedHollowConnect, TSlottedPart {
     }
 
     @Override
-    public boolean occlusionTest(TMultiPart npart) {
+    public boolean occlusionTest(TMultiPart part) {
 
-        return NormalOcclusionTest.apply(this, npart);
+        if (part instanceof CommonMicroblock) {
+            IMicroblock mb = new FMPMicroblock((CommonMicroblock) part);
+            for (IPart p : getParts())
+                if (!p.occlusionTest(mb))
+                    return false;
+        }
+
+        return NormalOcclusionTest.apply(this, part);
     }
 
     @Override

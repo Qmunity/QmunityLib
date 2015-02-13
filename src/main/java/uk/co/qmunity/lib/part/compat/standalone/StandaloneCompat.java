@@ -140,7 +140,7 @@ public class StandaloneCompat implements IMultipartCompat {
         if (pass == 1 || solidFace)
             location.add(clickedFace);
 
-        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location)) {
+        if (canBeMultipart(world, location)) {
             IPartPlacement placement = MultipartCompatibility.getPlacementForPart(part, world, location, clickedFace, mop, player);
             if (placement == null)
                 return false;
@@ -167,7 +167,8 @@ public class StandaloneCompat implements IMultipartCompat {
     @Override
     public boolean canBeMultipart(World world, Vec3i location) {
 
-        return false;
+        return world.isAirBlock(location.getX(), location.getY(), location.getZ())
+                || world.getBlock(location.getX(), location.getY(), location.getZ()).getMaterial().isReplaceable();
     }
 
     @Override

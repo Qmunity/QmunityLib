@@ -51,6 +51,9 @@ public class FMPMicroblock extends PartBase implements IMicroblock {
     @Override
     public int getPosition() {
 
+        if (microblock instanceof FaceMicroblock || microblock instanceof HollowMicroblock)
+            return microblock.getShape();
+
         return -1;// TODO
     }
 

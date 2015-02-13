@@ -39,7 +39,6 @@ public class FMPCompat implements IMultipartCompat {
         TileMultipart tmp = TileMultipart.getOrConvertTile(world, b);
         if (tmp == null)
             return false;
-
         FMPPart p = (FMPPart) getPartHolder(world, location);
         boolean isNew = false;
         if (p == null) {
@@ -47,12 +46,15 @@ public class FMPCompat implements IMultipartCompat {
             isNew = true;
         }
 
+        if (!p.canAddPart(part))
+            return false;
+
         if (!simulated) {
             if (!world.isRemote)
                 p.addPart(part);
         } else {
             part.setParent(p);
-            TileMultipart te = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+            TileMultipart te = TileMultipart.getOrConvertTile(world, b);
             if (te == null) {
                 te = new TileMultipart();
                 te.xCoord = location.getX();
@@ -62,9 +64,6 @@ public class FMPCompat implements IMultipartCompat {
             }
             p.tile_$eq(te);
         }
-
-        if (!p.canAddPart(part))
-            return false;
 
         if (isNew) {
             if (!tmp.canAddPart(p))
@@ -125,27 +124,27 @@ public class FMPCompat implements IMultipartCompat {
 
         switch (clickedFace) {
         case DOWN:
-            if (y == 0)
+            if (y >= 0)
                 solidFace = true;
             break;
         case UP:
-            if (y == 1)
+            if (y >= 1)
                 solidFace = true;
             break;
         case WEST:
-            if (x == 0)
+            if (x >= 0)
                 solidFace = true;
             break;
         case EAST:
-            if (x == 1)
+            if (x >= 1)
                 solidFace = true;
             break;
         case NORTH:
-            if (z == 0)
+            if (z >= 0)
                 solidFace = true;
             break;
         case SOUTH:
-            if (z == 1)
+            if (z >= 1)
                 solidFace = true;
             break;
         default:
@@ -155,7 +154,7 @@ public class FMPCompat implements IMultipartCompat {
         if (pass == 1 || solidFace)
             location.add(clickedFace);
 
-        if (world.isAirBlock(location.getX(), location.getY(), location.getZ()) || isMultipart(world, location)) {
+        if (canBeMultipart(world, location)) {
             IPartPlacement placement = MultipartCompatibility.getPlacementForPart(part, world, location, clickedFace, mop, player);
             if (placement == null)
                 return false;
@@ -182,7 +181,9 @@ public class FMPCompat implements IMultipartCompat {
     @Override
     public boolean canBeMultipart(World world, Vec3i location) {
 
-        return TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ())) != null;
+        return world.isAirBlock(location.getX(), location.getY(), location.getZ())
+                || world.getBlock(location.getX(), location.getY(), location.getZ()).getMaterial().isReplaceable()
+                || TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ())) != null;
     }
 
     @Override
@@ -276,6 +277,8 @@ public class FMPCompat implements IMultipartCompat {
     public ITilePartHolder getPartHolder(World world, Vec3i location) {
 
         TileMultipart tmp = TileMultipart.getOrConvertTile(world, new BlockCoord(location.getX(), location.getY(), location.getZ()));
+        if (tmp == null)
+            return null;
 
         for (TMultiPart p : tmp.jPartList())
             if (p instanceof FMPPart)

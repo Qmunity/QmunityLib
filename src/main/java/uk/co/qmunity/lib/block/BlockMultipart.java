@@ -127,7 +127,7 @@ public class BlockMultipart extends BlockContainer {
         if (mop == null)
             return null;
 
-        Vec3dCube c = mop.getCube();
+        Vec3dCube c = mop.getCube().clone().expand(0.001);
         setBlockBounds((float) c.getMinX(), (float) c.getMinY(), (float) c.getMinZ(), (float) c.getMaxX(), (float) c.getMaxY(),
                 (float) c.getMaxZ());
 

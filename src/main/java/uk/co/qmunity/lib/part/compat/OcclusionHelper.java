@@ -120,35 +120,35 @@ public class OcclusionHelper {
         if (holder != null)
             return occlusionTest(holder, boxes);
 
-        return false;
+        return true;
     }
 
     public static boolean occlusionTest(ITilePartHolder holder, Collection<Vec3dCube> boxes) {
 
         for (Vec3dCube box : boxes)
-            if (occlusionTest(holder, box))
-                return true;
+            if (!occlusionTest(holder, box))
+                return false;
 
-        return false;
+        return true;
     }
 
     public static boolean occlusionTest(Collection<IPart> parts, Collection<Vec3dCube> boxes) {
 
         for (IPart p : parts)
             for (Vec3dCube box : boxes)
-                if (occlusionTest(p, box))
-                    return true;
+                if (!occlusionTest(p, box))
+                    return false;
 
-        return false;
+        return true;
     }
 
     public static boolean occlusionTest(IPart part, Collection<Vec3dCube> boxes) {
 
         for (Vec3dCube box : boxes)
-            if (occlusionTest(part, box))
-                return true;
+            if (!occlusionTest(part, box))
+                return false;
 
-        return false;
+        return true;
     }
 
     public static boolean occlusionTest(Vec3i block, Vec3dCube box) {
@@ -163,7 +163,7 @@ public class OcclusionHelper {
         if (holder != null)
             return occlusionTest(holder, box);
 
-        return false;
+        return true;
     }
 
     public static boolean occlusionTest(ITilePartHolder holder, Vec3dCube box) {
@@ -193,7 +193,7 @@ public class OcclusionHelper {
         if (holder != null)
             return occlusionTest(holder, part);
 
-        return false;
+        return true;
     }
 
     public static boolean occlusionTest(ITilePartHolder holder, IPart part) {
@@ -204,10 +204,10 @@ public class OcclusionHelper {
     public static boolean occlusionTest(Collection<IPart> parts, IPart part) {
 
         for (IPart p : parts)
-            if (p.occlusionTest(part) || part.occlusionTest(p))
-                return true;
+            if (!p.occlusionTest(part) || !part.occlusionTest(p))
+                return false;
 
-        return false;
+        return true;
     }
 
     public static boolean occlusionTest(IPart part, IPart part2) {
@@ -219,9 +219,9 @@ public class OcclusionHelper {
             for (Vec3dCube c1 : p1.getOcclusionBoxes())
                 for (Vec3dCube c2 : p2.getOcclusionBoxes())
                     if (!c1.occlusionTest(c2))
-                        return true;
+                        return false;
         }
 
-        return false;
+        return true;
     }
 }

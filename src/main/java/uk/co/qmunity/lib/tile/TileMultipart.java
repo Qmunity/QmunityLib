@@ -114,7 +114,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                     return false;
         }
 
-        return !OcclusionHelper.occlusionTest(this, part);
+        return OcclusionHelper.occlusionTest(this, part);
     }
 
     @Override
@@ -137,6 +137,8 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
             markDirty();
             getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
+            if (!getWorld().isRemote)
+                getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), blockType);
         }
     }
 
@@ -166,6 +168,8 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
             markDirty();
             getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
+            if (!getWorld().isRemote)
+                getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), blockType);
         }
 
         return true;
