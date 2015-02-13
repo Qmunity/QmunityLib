@@ -1,5 +1,7 @@
 package uk.co.qmunity.lib.misc;
 
+import net.minecraft.nbt.NBTTagCompound;
+
 public class ShiftingBuffer<T> {
 
     private Object[][] data;
@@ -50,6 +52,56 @@ public class ShiftingBuffer<T> {
                 data[j] = data[j - 1];
             if (reset0)
                 data[0] = def;
+        }
+    }
+
+    public void writeToNBT(NBTTagCompound tag, String id) {
+
+        NBTTagCompound t = tag.getCompoundTag(id);
+
+        if (def instanceof Boolean) {
+            for (int i = 0; i < data.length; i++) {
+                Object[] d = data[i];
+                for (int j = 0; j < d.length; j++)
+                    t.setBoolean(i + "_" + j, (Boolean) d[j]);
+            }
+        } else if (def instanceof Byte) {
+            for (int i = 0; i < data.length; i++) {
+                Object[] d = data[i];
+                for (int j = 0; j < d.length; j++)
+                    t.setByte(i + "_" + j, (Byte) d[j]);
+            }
+        } else if (def instanceof Integer) {
+            for (int i = 0; i < data.length; i++) {
+                Object[] d = data[i];
+                for (int j = 0; j < d.length; j++)
+                    t.setInteger(i + "_" + j, (Integer) d[j]);
+            }
+        }
+    }
+
+    public void readFromNBT(NBTTagCompound tag, String id) {
+
+        NBTTagCompound t = tag.getCompoundTag(id);
+
+        if (def instanceof Boolean) {
+            for (int i = 0; i < data.length; i++) {
+                Object[] d = data[i];
+                for (int j = 0; j < d.length; j++)
+                    d[j] = t.getBoolean(i + "_" + j);
+            }
+        } else if (def instanceof Byte) {
+            for (int i = 0; i < data.length; i++) {
+                Object[] d = data[i];
+                for (int j = 0; j < d.length; j++)
+                    d[j] = t.getByte(i + "_" + j);
+            }
+        } else if (def instanceof Integer) {
+            for (int i = 0; i < data.length; i++) {
+                Object[] d = data[i];
+                for (int j = 0; j < d.length; j++)
+                    d[j] = t.getInteger(i + "_" + j);
+            }
         }
     }
 
