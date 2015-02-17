@@ -110,27 +110,27 @@ public class StandaloneCompat implements IMultipartCompat {
 
         switch (clickedFace) {
         case DOWN:
-            if (y == 0)
+            if (y <= 0)
                 solidFace = true;
             break;
         case UP:
-            if (y == 1)
+            if (y >= 1)
                 solidFace = true;
             break;
         case WEST:
-            if (x == 0)
+            if (x <= 0)
                 solidFace = true;
             break;
         case EAST:
-            if (x == 1)
+            if (x >= 1)
                 solidFace = true;
             break;
         case NORTH:
-            if (z == 0)
+            if (z <= 0)
                 solidFace = true;
             break;
         case SOUTH:
-            if (z == 1)
+            if (z >= 1)
                 solidFace = true;
             break;
         default:

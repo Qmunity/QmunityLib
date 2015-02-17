@@ -124,7 +124,7 @@ public class FMPCompat implements IMultipartCompat {
 
         switch (clickedFace) {
         case DOWN:
-            if (y >= 0)
+            if (y <= 0)
                 solidFace = true;
             break;
         case UP:
@@ -132,7 +132,7 @@ public class FMPCompat implements IMultipartCompat {
                 solidFace = true;
             break;
         case WEST:
-            if (x >= 0)
+            if (x <= 0)
                 solidFace = true;
             break;
         case EAST:
@@ -140,7 +140,7 @@ public class FMPCompat implements IMultipartCompat {
                 solidFace = true;
             break;
         case NORTH:
-            if (z >= 0)
+            if (z <= 0)
                 solidFace = true;
             break;
         case SOUTH:
