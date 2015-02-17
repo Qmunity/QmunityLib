@@ -151,9 +151,12 @@ public class MultipartCompatibility {
         if (h == null)
             return null;
 
-        for (IPart p : h.getParts())
-            if (type.isAssignableFrom(p.getClass()))
+        for (IPart p : h.getParts()) {
+            if (type.isAssignableFrom(p.getClass())) {
+                System.out.println("Hey!");
                 return (T) p;
+            }
+        }
 
         return null;
     }

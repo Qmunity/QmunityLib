@@ -28,15 +28,18 @@ public class RayTracer {
 
     public QMovingObjectPosition rayTraceCubes(IPartSelectable part, Vec3d start, Vec3d end) {
 
-        QMovingObjectPosition mop = rayTraceCubes(part.getSelectionBoxes(), start, end, new Vec3i(((IPart) part).getX(), ((IPart) part).getY(),
-                ((IPart) part).getZ()));
+        QMovingObjectPosition mop = rayTraceCubes(part.getSelectionBoxes(), start, end,
+                new Vec3i(((IPart) part).getX(), ((IPart) part).getY(), ((IPart) part).getZ()));
         if (mop == null)
             return null;
 
-        return new QMovingObjectPosition(mop, (IPart) part, mop.getCube());
+        return new QMovingObjectPosition(mop, part, mop.getCube());
     }
 
     public QMovingObjectPosition rayTraceCubes(List<Vec3dCube> cubes, Vec3d start, Vec3d end, Vec3i blockPos) {
+
+        if (cubes == null)
+            return null;
 
         Vec3d start_ = start.clone().sub(blockPos.getX(), blockPos.getY(), blockPos.getZ());
         Vec3d end_ = end.clone().sub(blockPos.getX(), blockPos.getY(), blockPos.getZ());

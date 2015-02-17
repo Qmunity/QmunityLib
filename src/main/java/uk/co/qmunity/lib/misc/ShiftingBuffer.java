@@ -78,6 +78,8 @@ public class ShiftingBuffer<T> {
                     t.setInteger(i + "_" + j, (Integer) d[j]);
             }
         }
+
+        tag.setTag(id, t);
     }
 
     public void readFromNBT(NBTTagCompound tag, String id) {

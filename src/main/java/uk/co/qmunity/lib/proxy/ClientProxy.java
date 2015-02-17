@@ -3,6 +3,9 @@ package uk.co.qmunity.lib.proxy;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.common.MinecraftForge;
+
+import org.lwjgl.input.Keyboard;
+
 import uk.co.qmunity.lib.client.render.RenderMultipart;
 import uk.co.qmunity.lib.client.render.RenderPartPlacement;
 import uk.co.qmunity.lib.client.render.RenderParticle;
@@ -35,6 +38,12 @@ public class ClientProxy extends CommonProxy {
     public EntityPlayer getPlayer() {
 
         return Minecraft.getMinecraft().thePlayer;
+    }
+
+    @Override
+    public boolean isSneakingInGui() {
+
+        return Keyboard.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindSneak.getKeyCode());
     }
 
 }

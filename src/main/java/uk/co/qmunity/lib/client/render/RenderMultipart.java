@@ -4,7 +4,6 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
@@ -52,17 +51,17 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
     @Override
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
 
-        renderer.setRenderBounds(0, 0, 0, 0, 0, 0);
-        renderer.renderStandardBlock(Blocks.stone, x, y, z);
-        renderer.setRenderBounds(0, 0, 0, 1, 1, 1);
+        boolean rendered = false;
 
         RenderHelper.instance.setRenderCoords(world, x, y, z);
 
         if (renderer.overrideBlockTexture != null) {
             MovingObjectPosition mop = Minecraft.getMinecraft().objectMouseOver;
             if (mop.blockX == x && mop.blockY == y && mop.blockZ == z && mop instanceof QMovingObjectPosition
-                    && ((QMovingObjectPosition) mop).getPart() != null)
+                    && ((QMovingObjectPosition) mop).getPart() != null) {
                 renderBreaking(world, x, y, z, renderer, ((QMovingObjectPosition) mop));
+                rendered = true;
+            }
             return false;
         }
 
@@ -71,7 +70,7 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
             for (IPart p : te.getParts()) {
                 if (p.getParent() != null) {
                     if (p.shouldRenderOnPass(pass)) {
-                        p.renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, pass);
+                        rendered |= p.renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, pass);
                         RenderHelper.instance.resetRenderedSides();
                         RenderHelper.instance.resetTextureRotations();
                         RenderHelper.instance.resetTransformations();
@@ -83,7 +82,7 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
 
         RenderHelper.instance.fullReset();
 
-        return true;
+        return rendered;
     }
 
     public static void renderBreaking(IBlockAccess world, int x, int y, int z, RenderBlocks renderer, QMovingObjectPosition mop) {
