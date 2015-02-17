@@ -766,8 +766,13 @@ ISidedHollowConnect, TSlottedPart {
     @Override
     public void onMoved() {
 
-        onChunkUnload();
-        onChunkLoad();
+        for (IPart p : getParts()) {
+            if (p != null && p instanceof IPartUpdateListener) {
+                ((IPartUpdateListener) p).onUnloaded();
+                ((IPartUpdateListener) p).onLoaded();
+                ((IPartUpdateListener) p).onNeighborBlockChange();
+            }
+        }
     }
 
     @Override
