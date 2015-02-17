@@ -13,10 +13,10 @@ import org.lwjgl.opengl.GL11;
 /**
  * @author MineMaarten
  */
-public class BaseWidget implements IGuiWidget{
+public class BaseWidget implements IGuiWidget {
 
     private final int id;
-    public int value; //just a generic value
+    public int value; // just a generic value
     protected final int x, y;
     protected final int width;
     protected final int height;
@@ -27,12 +27,12 @@ public class BaseWidget implements IGuiWidget{
     protected IWidgetListener gui;
     public boolean enabled = true;
 
-    public BaseWidget(int id, int x, int y, int width, int height, String... textureLocs){
+    public BaseWidget(int id, int x, int y, int width, int height, String... textureLocs) {
 
         this(id, x, y, width, height, 0, 0, textureLocs);
     }
 
-    public BaseWidget(int id, int x, int y, int width, int height, int textureU, int textureV, String... textureLocs){
+    public BaseWidget(int id, int x, int y, int width, int height, int textureU, int textureV, String... textureLocs) {
 
         this.id = id;
         this.x = x;
@@ -42,74 +42,78 @@ public class BaseWidget implements IGuiWidget{
         this.textureU = textureU;
         this.textureV = textureV;
         textures = new ResourceLocation[textureLocs.length];
-        for(int i = 0; i < textures.length; i++) {
+        for (int i = 0; i < textures.length; i++) {
             textures[i] = new ResourceLocation(textureLocs[i]);
         }
     }
 
     @Override
-    public int getID(){
+    public int getID() {
 
         return id;
     }
 
     @Override
-    public void setListener(IWidgetListener gui){
+    public void setListener(IWidgetListener gui) {
 
         this.gui = gui;
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTick){
+    public void render(int mouseX, int mouseY, float partialTick) {
 
-        if(enabled) {
+        if (enabled) {
             GL11.glColor4d(1, 1, 1, 1);
         } else {
             GL11.glColor4d(0.2, 0.2, 0.2, 1);
         }
-        if(textures.length > 0) Minecraft.getMinecraft().getTextureManager().bindTexture(textures[textureIndex]);
+        if (textures.length > 0)
+            Minecraft.getMinecraft().getTextureManager().bindTexture(textures[textureIndex]);
         Gui.func_146110_a(x, y, getTextureU(), getTextureV(), width, height, getTextureWidth(), getTextureHeight());
     }
 
-    protected int getTextureU(){
+    protected int getTextureU() {
 
         return textureU;
     }
 
-    protected int getTextureV(){
+    protected int getTextureV() {
 
         return textureV;
     }
 
-    protected int getTextureWidth(){
+    protected int getTextureWidth() {
 
         return width;
     }
 
-    protected int getTextureHeight(){
+    protected int getTextureHeight() {
 
         return height;
     }
 
     @Override
-    public void onMouseClicked(int mouseX, int mouseY, int button){
+    public void onMouseClicked(int mouseX, int mouseY, int button) {
 
-        Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
+        Minecraft.getMinecraft().getSoundHandler()
+                .playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
         gui.actionPerformed(this);
     }
 
     @Override
-    public Rectangle getBounds(){
+    public Rectangle getBounds() {
 
         return new Rectangle(x, y, width, height);
     }
 
     @Override
-    public void addTooltip(int mouseX, int mouseY, List<String> curTip, boolean shiftPressed){
+    public void addTooltip(int mouseX, int mouseY, List<String> curTip, boolean shiftPressed) {
 
     }
 
     @Override
-    public void update(){}
+    public void update() {
+
+    }
 
 }

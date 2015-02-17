@@ -18,4 +18,13 @@ public class CommonProxy {
         return false;
     }
 
+    public float getFrame() {
+
+        return 0;
+    }
+
+    public void setFrame(float frame) {
+
+    }
+
 }

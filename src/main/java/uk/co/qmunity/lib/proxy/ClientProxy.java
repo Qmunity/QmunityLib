@@ -46,4 +46,18 @@ public class ClientProxy extends CommonProxy {
         return Keyboard.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindSneak.getKeyCode());
     }
 
+    private float frame = 0;
+
+    @Override
+    public float getFrame() {
+
+        return frame;
+    }
+
+    @Override
+    public void setFrame(float frame) {
+
+        this.frame = frame;
+    }
+
 }

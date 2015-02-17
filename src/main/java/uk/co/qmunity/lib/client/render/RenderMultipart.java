@@ -53,6 +53,7 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
 
         boolean rendered = false;
 
+        RenderHelper.instance.fullReset();
         RenderHelper.instance.setRenderCoords(world, x, y, z);
 
         if (renderer.overrideBlockTexture != null) {

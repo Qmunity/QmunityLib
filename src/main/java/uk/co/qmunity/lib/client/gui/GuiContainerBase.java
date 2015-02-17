@@ -1,23 +1,7 @@
-/*
- * This file is part of Blue Power.
- *
- *     Blue Power is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     Blue Power is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with Blue Power.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package uk.co.qmunity.lib.client.gui;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
@@ -25,6 +9,7 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 
@@ -33,20 +18,22 @@ import org.lwjgl.opengl.GL11;
 
 import uk.co.qmunity.lib.QmunityLib;
 import uk.co.qmunity.lib.client.gui.widget.BaseWidget;
+import uk.co.qmunity.lib.client.gui.widget.GuiAnimatedStat;
+import uk.co.qmunity.lib.client.gui.widget.IGuiAnimatedStat;
 import uk.co.qmunity.lib.client.gui.widget.IGuiWidget;
 import uk.co.qmunity.lib.client.gui.widget.IWidgetListener;
 
 /**
  * @author MineMaarten
  * @author K-4U
- * @author Amadornes
  */
 public class GuiContainerBase extends GuiContainer implements IWidgetListener {
 
     protected static final int COLOR_TEXT = 4210752;
-    private final List<IGuiWidget> widgets = new ArrayList<IGuiWidget>();
+    protected final List<IGuiWidget> widgets = new ArrayList<IGuiWidget>();
     private final ResourceLocation resLoc;
-    private IInventory inventory;
+    protected IInventory inventory;
+    protected IGuiAnimatedStat lastLeftStat, lastRightStat;
 
     public GuiContainerBase(Container mainContainer, ResourceLocation _resLoc) {
 
@@ -60,6 +47,37 @@ public class GuiContainerBase extends GuiContainer implements IWidgetListener {
         this.inventory = inventory;
     }
 
+    protected boolean isInfoStatLeftSided() {
+
+        return true;
+    }
+
+    protected GuiAnimatedStat addAnimatedStat(String title, ItemStack icon, int color, boolean leftSided) {
+
+        GuiAnimatedStat stat = new GuiAnimatedStat(this, title, icon, guiLeft + (leftSided ? 0 : xSize), leftSided && lastLeftStat != null
+                || !leftSided && lastRightStat != null ? 3 : guiTop + 5, color, leftSided ? lastLeftStat : lastRightStat, leftSided);
+        addWidget(stat);
+        if (leftSided) {
+            lastLeftStat = stat;
+        } else {
+            lastRightStat = stat;
+        }
+        return stat;
+    }
+
+    protected GuiAnimatedStat addAnimatedStat(String title, String icon, int color, boolean leftSided) {
+
+        GuiAnimatedStat stat = new GuiAnimatedStat(this, title, icon, guiLeft + (leftSided ? 0 : xSize), leftSided && lastLeftStat != null
+                || !leftSided && lastRightStat != null ? 3 : guiTop + 5, color, leftSided ? lastLeftStat : lastRightStat, leftSided);
+        addWidget(stat);
+        if (leftSided) {
+            lastLeftStat = stat;
+        } else {
+            lastRightStat = stat;
+        }
+        return stat;
+    }
+
     protected void addWidget(IGuiWidget widget) {
 
         widgets.add(widget);
@@ -70,6 +88,7 @@ public class GuiContainerBase extends GuiContainer implements IWidgetListener {
     public void setWorldAndResolution(Minecraft par1Minecraft, int par2, int par3) {
 
         widgets.clear();
+        lastLeftStat = lastRightStat = null;
         super.setWorldAndResolution(par1Minecraft, par2, par3);
     }
 
@@ -116,8 +135,9 @@ public class GuiContainerBase extends GuiContainer implements IWidgetListener {
 
         drawTexturedModalRect(x, y, 0, 0, xSize, ySize);
 
-        for (IGuiWidget widget : widgets)
+        for (IGuiWidget widget : widgets) {
             widget.render(i, j, f);
+        }
     }
 
     @Override
@@ -157,12 +177,43 @@ public class GuiContainerBase extends GuiContainer implements IWidgetListener {
     @Override
     public void actionPerformed(IGuiWidget widget) {
 
+        if (widget instanceof GuiAnimatedStat && ((GuiAnimatedStat) widget).isClicked()) {
+            for (IGuiWidget w : widgets) {
+                if (w != widget && w instanceof GuiAnimatedStat
+                        && ((GuiAnimatedStat) w).isLeftSided() == ((GuiAnimatedStat) widget).isLeftSided())
+                    ((GuiAnimatedStat) w).closeWindow();
+            }
+        }
+    }
+
+    @Override
+    public void updateScreen() {
+
+        super.updateScreen();
+        for (IGuiWidget widget : widgets)
+            widget.update();
     }
 
     public void redraw() {
 
         buttonList.clear();
+        List<IGuiWidget> stats = new ArrayList<IGuiWidget>();
+        for (IGuiWidget widget : widgets) {
+            if (widget instanceof IGuiAnimatedStat) {
+                stats.add(widget);
+            }
+        }
         widgets.clear();
         initGui();
+
+        Iterator<IGuiWidget> iterator = widgets.iterator();
+        while (iterator.hasNext()) {
+            IGuiWidget widget = iterator.next();
+            if (widget instanceof IGuiAnimatedStat) {
+                iterator.remove();
+            }
+        }
+        widgets.addAll(stats);
     }
+
 }

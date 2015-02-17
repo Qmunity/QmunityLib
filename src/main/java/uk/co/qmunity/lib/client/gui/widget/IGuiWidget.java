@@ -3,7 +3,7 @@ package uk.co.qmunity.lib.client.gui.widget;
 import java.awt.Rectangle;
 import java.util.List;
 
-public interface IGuiWidget{
+public interface IGuiWidget {
 
     public void setListener(IWidgetListener gui);
 
@@ -15,7 +15,7 @@ public interface IGuiWidget{
 
     public void addTooltip(int mouseX, int mouseY, List<String> curTip, boolean shiftPressed);
 
-    public Rectangle getBounds();
-
     public void update();
+
+    public Rectangle getBounds();
 }
