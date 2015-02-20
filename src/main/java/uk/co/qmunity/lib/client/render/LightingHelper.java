@@ -155,7 +155,7 @@ public class LightingHelper {
         sample(b);
         sample(c);
         sample(d);
-        ao[s][q] = interpolateAO(aoSamples[a], aoSamples[b], aoSamples[c], aoSamples[d]) * sideao[s] * sideao[s];// Changed!
+        ao[s][q] = interpolateAO(aoSamples[a], aoSamples[b], aoSamples[c], aoSamples[d]) * sideao[s] * ((sideao[s] + 1) / 2);// Changed!
         brightness[s][q] = interpolateBrightness(brightnessSamples[a], brightnessSamples[b], brightnessSamples[c], brightnessSamples[d]);
     }
 
