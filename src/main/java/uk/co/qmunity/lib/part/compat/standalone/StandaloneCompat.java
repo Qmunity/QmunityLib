@@ -167,8 +167,8 @@ public class StandaloneCompat implements IMultipartCompat {
     @Override
     public boolean canBeMultipart(World world, Vec3i location) {
 
-        return world.isAirBlock(location.getX(), location.getY(), location.getZ())
-                || world.getBlock(location.getX(), location.getY(), location.getZ()).getMaterial().isReplaceable();
+        return world.getBlock(location.getX(), location.getY(), location.getZ()).getMaterial().isReplaceable()
+                || isMultipart(world, location);
     }
 
     @Override

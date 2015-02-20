@@ -137,7 +137,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
             markDirty();
             getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
-            if (!getWorld().isRemote)
+            if (!getWorld().isRemote && before > 0)
                 getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), blockType);
         }
     }
