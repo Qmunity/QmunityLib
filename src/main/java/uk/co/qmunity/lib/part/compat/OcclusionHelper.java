@@ -47,7 +47,15 @@ public class OcclusionHelper {
 
     public static boolean microblockOcclusionTest(ITilePartHolder holder, MicroblockShape shape, int size, ForgeDirection... sides) {
 
-        List<IPart> parts = new ArrayList<IPart>(holder.getParts());
+        return microblockOcclusionTest(holder, false, shape, size, sides);
+    }
+
+    public static boolean microblockOcclusionTest(ITilePartHolder holder, boolean allParts, MicroblockShape shape, int size,
+            ForgeDirection... sides) {
+
+        List<IPart> parts = new ArrayList<IPart>();
+        if (allParts)
+            parts.addAll(holder.getParts());
         for (IPart part : holder.getMicroblocks())
             if (!parts.contains(part))
                 parts.add(part);
@@ -79,8 +87,8 @@ public class OcclusionHelper {
 
         return new Vec3dCube(face.offsetX > 0 ? 1 - s : (face.offsetX < 0 ? 0 : 0.5 - d), face.offsetY > 0 ? 1 - s : (face.offsetY < 0 ? 0
                 : 0.5 - d), face.offsetZ > 0 ? 1 - s : (face.offsetZ < 0 ? 0 : 0.5 - d), face.offsetX < 0 ? s : (face.offsetX > 0 ? 1
-                        : 0.5 + d), face.offsetY < 0 ? s : (face.offsetY > 0 ? 1 : 0.5 + d), face.offsetZ < 0 ? s
-                                : (face.offsetZ > 0 ? 1 : 0.5 + d));
+                : 0.5 + d), face.offsetY < 0 ? s : (face.offsetY > 0 ? 1 : 0.5 + d), face.offsetZ < 0 ? s
+                : (face.offsetZ > 0 ? 1 : 0.5 + d));
     }
 
     public static Vec3dCube getEdgeMicroblockBox(int size, ForgeDirection side1, ForgeDirection side2) {
@@ -94,8 +102,8 @@ public class OcclusionHelper {
         return new Vec3dCube((side1.offsetX == 0 && side2.offsetX == 0) ? s : (x ? 1 - s : 0),
                 (side1.offsetY == 0 && side2.offsetY == 0) ? s : (y ? 1 - s : 0), (side1.offsetZ == 0 && side2.offsetZ == 0) ? s
                         : (z ? 1 - s : 0), (side1.offsetX == 0 && side2.offsetX == 0) ? 1 - s : (x ? 1 : s),
-                                (side1.offsetY == 0 && side2.offsetY == 0) ? 1 - s : (y ? 1 : s), (side1.offsetZ == 0 && side2.offsetZ == 0) ? 1 - s
-                                        : (z ? 1 : s));
+                (side1.offsetY == 0 && side2.offsetY == 0) ? 1 - s : (y ? 1 : s), (side1.offsetZ == 0 && side2.offsetZ == 0) ? 1 - s
+                        : (z ? 1 : s));
     }
 
     public static Vec3dCube getCornerMicroblockBox(int size, ForgeDirection side1, ForgeDirection side2, ForgeDirection side3) {
