@@ -55,12 +55,10 @@ public class Layout {
             } catch (Exception ex) {
                 config = null;
                 layout = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-                ex.printStackTrace();
             }
         } catch (Exception e) {
             layout = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
             config = null;
-            e.printStackTrace();
         }
 
         try {
@@ -68,7 +66,6 @@ public class Layout {
                 config = new LayoutConfiguration(layout);
         } catch (Exception e) {
             layout = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-            e.printStackTrace();
         }
 
         colorMaps.clear();
