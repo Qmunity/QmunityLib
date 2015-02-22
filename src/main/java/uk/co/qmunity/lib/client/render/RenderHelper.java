@@ -115,7 +115,8 @@ public class RenderHelper {
 
     public void removeTransformation() {
 
-        transformations.remove(transformations.size() - 1);
+        if (transformations.size() > 0)
+            transformations.remove(transformations.size() - 1);
     }
 
     public void removeTransformations(int amount) {

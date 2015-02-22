@@ -84,6 +84,8 @@ public class RenderPartPlacement {
                 GL11.glLoadIdentity();
                 GL11.glClearColor(0, 0, 0, 0);
 
+                net.minecraft.client.renderer.RenderHelper.enableStandardItemLighting();
+
                 GL11.glPushMatrix();
                 {
                     Vec3 playerPos = player.getPosition(event.partialTicks);
@@ -120,6 +122,8 @@ public class RenderPartPlacement {
                         part.renderDynamic(new Vec3d(0, 0, 0), event.partialTicks, 1);
                 }
                 GL11.glPopMatrix();
+
+                net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
 
                 fb.unbindFramebuffer();
             }
