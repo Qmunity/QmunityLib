@@ -4,6 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
@@ -51,6 +52,10 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
     @Override
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
 
+        renderer.setRenderBounds(0, 0, 0, 0, 0, 0);
+        renderer.renderStandardBlock(Blocks.stone, x, y, z);
+        renderer.setRenderBounds(0, 0, 0, 1, 1, 1);
+
         boolean rendered = false;
 
         RenderHelper.instance.fullReset();
@@ -84,7 +89,7 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
 
         RenderHelper.instance.fullReset();
 
-        return rendered;
+        return true;// rendered;
     }
 
     public static void renderBreaking(IBlockAccess world, int x, int y, int z, RenderBlocks renderer, QMovingObjectPosition mop) {
