@@ -812,7 +812,8 @@ ISidedHollowConnect, TSlottedPart {
 
         QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
         if (mop != null) {
-            mop.getPart().breakAndDrop(player.capabilities.isCreativeMode);
+            if (mop.getPart().breakAndDrop(player, mop))
+                mop.getPart().getParent().removePart(mop.getPart());
 
             if (getParts().size() == 0)
                 super.harvest(hit, player);

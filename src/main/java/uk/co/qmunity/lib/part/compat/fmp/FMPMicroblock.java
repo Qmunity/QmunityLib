@@ -70,8 +70,9 @@ public class FMPMicroblock extends PartBase implements IMicroblock {
     }
 
     @Override
-    public void breakAndDrop(boolean creative) {
+    public boolean breakAndDrop(EntityPlayer player, QMovingObjectPosition mop) {
 
+        return false;
     }
 
     @Override

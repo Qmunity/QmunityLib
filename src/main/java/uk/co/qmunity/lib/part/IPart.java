@@ -84,7 +84,7 @@ public interface IPart extends IWorldLocation {
     /**
      * Breaks this part and spawns its drops in the world.
      */
-    public void breakAndDrop(boolean creative);
+    public boolean breakAndDrop(EntityPlayer player, QMovingObjectPosition mop);
 
     /**
      * Gets the hardness of the part depending on the player that's breaking it and where they're looking at.

@@ -354,9 +354,9 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     public void removePart(EntityPlayer player) {
 
         QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
-        if (mop != null) {
-            mop.getPart().breakAndDrop(player.capabilities.isCreativeMode);
-        }
+        if (mop != null)
+            if (mop.getPart().breakAndDrop(player, mop))
+                mop.getPart().getParent().removePart(mop.getPart());
     }
 
     @Override

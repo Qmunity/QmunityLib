@@ -131,14 +131,14 @@ public abstract class PartBase implements IPart {
     }
 
     @Override
-    public void breakAndDrop(boolean creative) {
+    public boolean breakAndDrop(EntityPlayer player, QMovingObjectPosition mop) {
 
         List<ItemStack> drops = getDrops();
-        if (!creative && drops != null && drops.size() > 0)
+        if ((player == null || !player.capabilities.isCreativeMode) && drops != null && drops.size() > 0)
             for (ItemStack item : drops)
                 ItemHelper.dropItem(getWorld(), getX(), getY(), getZ(), item);
 
-        getParent().removePart(this);
+        return true;
     }
 
     @Override
