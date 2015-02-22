@@ -249,6 +249,7 @@ ISidedHollowConnect, TSlottedPart {
                 e.getValue().writeUpdateData(buffer, -1);
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -278,6 +279,7 @@ ISidedHollowConnect, TSlottedPart {
                 p.readUpdateData(buffer, -1);
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 

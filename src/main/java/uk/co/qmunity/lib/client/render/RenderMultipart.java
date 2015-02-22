@@ -4,7 +4,6 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
@@ -54,10 +53,6 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
 
         boolean rendered = false;
 
-        renderer.setRenderBounds(0, 0, 0, 0, 0, 0);
-        rendered |= renderer.renderStandardBlock(Blocks.stone, x, y, z);
-        renderer.setRenderBounds(0, 0, 0, 1, 1, 1);
-
         RenderHelper.instance.fullReset();
         RenderHelper.instance.setRenderCoords(world, x, y, z);
 
@@ -76,7 +71,8 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
             for (IPart p : te.getParts()) {
                 if (p.getParent() != null) {
                     if (p.shouldRenderOnPass(pass)) {
-                        rendered |= p.renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, pass);
+                        if (p.renderStatic(new Vec3i(x, y, z), RenderHelper.instance, renderer, pass))
+                            rendered = true;
                         RenderHelper.instance.resetRenderedSides();
                         RenderHelper.instance.resetTextureRotations();
                         RenderHelper.instance.resetTransformations();

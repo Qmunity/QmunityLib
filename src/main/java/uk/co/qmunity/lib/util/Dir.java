@@ -74,7 +74,7 @@ public enum Dir {
     @SideOnly(Side.CLIENT)
     public String getLocalizedName() {
 
-        return I18n.format("direction." + name().toLowerCase());
+        return I18n.format("bluepower:direction." + name().toLowerCase());
     }
 
 }
