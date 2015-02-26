@@ -1,5 +1,8 @@
 package uk.co.qmunity.lib;
 
+import cpw.mods.fml.common.event.*;
+import uk.co.qmunity.lib.command.CommandQLib;
+import uk.co.qmunity.lib.helper.SystemInfoHelper;
 import uk.co.qmunity.lib.init.QLBlocks;
 import uk.co.qmunity.lib.network.NetworkHandler;
 import uk.co.qmunity.lib.part.compat.MultipartSystem;
@@ -8,9 +11,6 @@ import uk.co.qmunity.lib.util.QLog;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 @Mod(modid = QLModInfo.MODID, name = QLModInfo.NAME)
 public class QmunityLib {
@@ -43,6 +43,17 @@ public class QmunityLib {
     public void postInit(FMLPostInitializationEvent event) {
 
         MultipartSystem.postInit(event);
+    }
 
+    @EventHandler
+    public void serverStarting(FMLServerStartingEvent event) {
+
+        event.registerServerCommand(new CommandQLib());
+    }
+
+    @EventHandler
+    public void serverStarted(FMLServerStartedEvent event) {
+
+        SystemInfoHelper.startTime = System.currentTimeMillis();
     }
 }
