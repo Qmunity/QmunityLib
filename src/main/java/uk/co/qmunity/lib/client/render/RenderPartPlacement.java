@@ -12,6 +12,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -34,16 +35,23 @@ public class RenderPartPlacement {
     private int width = 0, height = 0;
 
     @SubscribeEvent
+    public void onRenderOverlay(RenderGameOverlayEvent.Pre event) {
+
+    }
+
+    @SubscribeEvent
     public void onRenderTick(RenderWorldLastEvent event) {
 
-        World world = Minecraft.getMinecraft().theWorld;
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        Minecraft mc = Minecraft.getMinecraft();
+        World world = mc.theWorld;
+        EntityPlayer player = mc.thePlayer;
         ItemStack item = player.getCurrentEquippedItem();
+
         if (item == null)
             return;
         if (!(item.getItem() instanceof ItemMultipart))
             return;
-        if (Minecraft.getMinecraft().gameSettings.hideGUI && Minecraft.getMinecraft().currentScreen == null)
+        if (mc.gameSettings.hideGUI && mc.currentScreen == null)
             return;
 
         MovingObjectPosition mop = player.rayTrace(player.capabilities.isCreativeMode ? 5 : 4, 0);
@@ -63,16 +71,15 @@ public class RenderPartPlacement {
         if (!MultipartCompatibility.placePartInWorld(part, world, location, faceHit, player, item, true))
             return;
 
-        if (fb == null || width != Minecraft.getMinecraft().displayWidth || height != Minecraft.getMinecraft().displayHeight) {
-            width = Minecraft.getMinecraft().displayWidth;
-            height = Minecraft.getMinecraft().displayHeight;
+        if (fb == null || width != mc.displayWidth || height != mc.displayHeight) {
+            width = mc.displayWidth;
+            height = mc.displayHeight;
             fb = new Framebuffer(width, height, true);
         }
 
         GL11.glPushMatrix();
         {
-
-            Minecraft.getMinecraft().getFramebuffer().unbindFramebuffer();
+            mc.getFramebuffer().unbindFramebuffer();
             GL11.glPushMatrix();
             {
                 GL11.glLoadIdentity();
@@ -98,7 +105,7 @@ public class RenderPartPlacement {
 
                     GL11.glTranslated(x, y, z);
 
-                    Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.locationBlocksTexture);
+                    mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture);
                     Tessellator.instance.addTranslation(-part.getX(), -part.getY(), -part.getZ());
                     Tessellator.instance.startDrawingQuads();
                     RenderHelper.instance.setRenderCoords(world, part.getX(), part.getY(), part.getZ());
@@ -129,12 +136,11 @@ public class RenderPartPlacement {
             }
             GL11.glPopMatrix();
 
-            Minecraft.getMinecraft().getFramebuffer().bindFramebuffer(true);
+            mc.getFramebuffer().bindFramebuffer(true);
+            GL11.glColor4d(1, 1, 1, 1);
 
             GL11.glPushMatrix();
             {
-                Minecraft mc = Minecraft.getMinecraft();
-
                 ScaledResolution scaledresolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
                 GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
                 GL11.glMatrixMode(GL11.GL_PROJECTION);
@@ -156,7 +162,7 @@ public class RenderPartPlacement {
                     int h = scaledresolution.getScaledHeight();
 
                     tessellator.startDrawingQuads();
-                    tessellator.setColorRGBA_F(1, 1, 1, 0.5F);
+                    tessellator.setColorRGBA_F(1, 1, 1, 0.75F);
                     tessellator.addVertexWithUV(w, h, 0.0D, 1.0D, 0.0D);
                     tessellator.addVertexWithUV(w, 0, 0.0D, 1.0D, 1.0D);
                     tessellator.addVertexWithUV(0, 0, 0.0D, 0.0D, 1.0D);
@@ -175,6 +181,8 @@ public class RenderPartPlacement {
             fb.framebufferClear();
 
             Minecraft.getMinecraft().getFramebuffer().bindFramebuffer(true);
+
+            GL11.glColor4d(1, 1, 1, 1);
         }
         GL11.glPopMatrix();
     }
