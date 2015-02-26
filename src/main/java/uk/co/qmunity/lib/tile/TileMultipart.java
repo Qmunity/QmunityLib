@@ -137,6 +137,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
             markDirty();
             getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
+
             if (!getWorld().isRemote && before > 0)
                 getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), blockType);
         }
@@ -148,6 +149,8 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         if (part == null)
             return false;
         if (!parts.containsValue(part))
+            return false;
+        if (part.getParent() == null || part.getParent() != this)
             return false;
 
         if (!simulated) {
@@ -168,6 +171,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
             markDirty();
             getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
+
             if (!getWorld().isRemote)
                 getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), blockType);
         }

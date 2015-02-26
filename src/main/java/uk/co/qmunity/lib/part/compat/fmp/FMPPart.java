@@ -319,10 +319,7 @@ ISidedHollowConnect, TSlottedPart {
 
         if (!simulated) {
             if (part instanceof IPartUpdateListener)
-                if (tile() != null)
-                    ((IPartUpdateListener) part).onAdded();
-                else
-                    added.add(part);
+                ((IPartUpdateListener) part).onAdded();
             for (IPart p : getParts())
                 if (p != part && p instanceof IPartUpdateListener)
                     ((IPartUpdateListener) p).onPartChanged(part);
@@ -330,13 +327,10 @@ ISidedHollowConnect, TSlottedPart {
             if (before > 0)
                 PartUpdateManager.addPart(this, part);
 
-            if (tile() != null) {
-                for (int i = 0; i < 6; i++)
-                    tile().notifyNeighborChange(i);
-                tile().notifyTileChange();
-            }
-
-            refreshSlots();
+            tile().markDirty();
+            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
+            if (!getWorld().isRemote && before > 0)
+                getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), tile().blockType);
         }
     }
 
@@ -365,10 +359,10 @@ ISidedHollowConnect, TSlottedPart {
                     ((IPartUpdateListener) p).onPartChanged(part);
 
             tile().markDirty();
-            getWorld().func_147479_m(getX(), getY(), getZ());
-            for (int i = 0; i < 6; i++)
-                tile().notifyNeighborChange(i);
-            tile().notifyTileChange();
+            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
+
+            if (!getWorld().isRemote)
+                getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), tile().blockType);
 
             refreshSlots();
         }
