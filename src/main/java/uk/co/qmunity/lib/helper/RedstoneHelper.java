@@ -250,16 +250,19 @@ public class RedstoneHelper {
         int y_ = y + direction.offsetY;
         int z_ = z + direction.offsetZ;
 
+        if (world == null)
+            return;
+
+        Block block = world.getBlock(x, y, z);
+
         // Weak/strong
-        world.notifyBlockOfNeighborChange(x_, y_, z_, world.getBlock(x, y, z));
+        world.notifyBlockOfNeighborChange(x_, y_, z_, block);
 
         // Strong
-        if (strong) {
-            Block b = world.getBlock(x_, y_, z_);
+        if (strong)
             for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS)
                 if (d != direction.getOpposite())
-                    world.notifyBlockOfNeighborChange(x_ + d.offsetX, y_ + d.offsetY, z_ + d.offsetZ, b);
-        }
+                    world.notifyBlockOfNeighborChange(x_ + d.offsetX, y_ + d.offsetY, z_ + d.offsetZ, block);
     }
 
 }
