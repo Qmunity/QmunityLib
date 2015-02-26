@@ -1,6 +1,5 @@
 package uk.co.qmunity.lib.command;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
@@ -49,7 +48,7 @@ public class CommandQLib extends CommandBase {
             } else if (args.length == 2) {
                 int dimension;
                 try {
-                    dimension = NumberFormat.getInstance().parse(args[0]).intValue();
+                    dimension = NumberFormat.getInstance().parse(args[1]).intValue();
                     sendTextLines(sender, SystemInfoHelper.getTPSDetail(dimension));
                 } catch (ParseException e1) {
                     sender.addChatMessage(new ChatComponentText("Invalid dimension ID."));
@@ -58,8 +57,8 @@ public class CommandQLib extends CommandBase {
                 sender.addChatMessage(new ChatComponentText("Usage: /qlib tps [dimension number]"));
             }
         } else if (args[0].equalsIgnoreCase("uptime")) {
-            sender.addChatMessage(new ChatComponentText(SystemInfoHelper.getUptime()));
-            sender.addChatMessage(new ChatComponentText(SystemInfoHelper.getAllocatedMem() + "/" + SystemInfoHelper.getMaxMem() + "[" + SystemInfoHelper.getPercentMemUse() + "%]"));
+            sender.addChatMessage(new ChatComponentText("Uptime: " + SystemInfoHelper.getUptime()));
+            sender.addChatMessage(new ChatComponentText("Memory Usage: " + SystemInfoHelper.getAllocatedMem() + "/" + SystemInfoHelper.getMaxMem() + "[" + SystemInfoHelper.getPercentMemUse() + "%]"));
         } else if (args[0].equalsIgnoreCase("tp")) {
             if (PlayerHelper.isOpped(sender.getCommandSenderName())) {
                 if (args.length == 2) {
@@ -100,7 +99,11 @@ public class CommandQLib extends CommandBase {
                     } else {
                         sender.addChatMessage(new ChatComponentText(args[1] + " is offline, added to queue."));
                     }
+                } else {
+                    sender.addChatMessage(new ChatComponentText("Usage: /qlib tp <player> [dim] [x] [y] [z]"));
                 }
+            } else {
+                sender.addChatMessage(new ChatComponentText("You do not have permission to use this command."));
             }
         }
     }
