@@ -11,11 +11,11 @@ public class StringHelper {
         int mins = (int) (ms / (1000 * 60)) % 60;
         int secs = (int) (ms / 1000) % 60;
         if (days > 0) {
-            return String.format("Current uptime: %s days, %sh %sm %ss", days, hours, mins, secs);
+            return String.format("%s days, %sh %sm %ss", days, hours, mins, secs);
         } else if (hours > 0) {
-            return String.format("Current uptime: %sh %sm %ss", hours, mins, secs);
+            return String.format("%sh %sm %ss", hours, mins, secs);
         } else {
-            return String.format("Current uptime: %sm %ss", mins, secs);
+            return String.format("%sm %ss", mins, secs);
         }
     }
 

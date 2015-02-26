@@ -99,7 +99,7 @@ public class SystemInfoHelper {
 
         List<String> textOutput = new ArrayList<String>();
         WorldServer world = MinecraftServer.getServer().worldServerForDimension(dimension);
-        textOutput.add(getUptime());
+        textOutput.add("Uptime: " + getUptime());
         textOutput.add("Information for [" + dimension + "]" + world.provider.getDimensionName());
         textOutput.add("Players (" + world.playerEntities.size() + "): " + getPlayersForDimension(dimension));
         textOutput.add("Item Entities: " + getItemEntityCount((ArrayList<Entity>)world.loadedEntityList));
@@ -162,7 +162,7 @@ public class SystemInfoHelper {
 
         ArrayList<EntityPlayer> players = (ArrayList<EntityPlayer>) MinecraftServer.getServer().worldServerForDimension(dimension).playerEntities;
         if (players.size() == 0) {
-            return "No players in this world";
+            return "None";
         } else {
             String playersString = "";
             Iterator<EntityPlayer> ite = players.iterator();
