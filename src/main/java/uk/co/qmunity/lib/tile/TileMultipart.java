@@ -394,9 +394,12 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             return;
 
         onUpdate();
+
         for (IPart p : getParts())
             if (p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onNeighborBlockChange();
+
+        onUpdate();
     }
 
     public void onNeighborChange() {
@@ -405,9 +408,12 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             return;
 
         onUpdate();
+
         for (IPart p : getParts())
             if (p instanceof IPartUpdateListener)
                 ((IPartUpdateListener) p).onNeighborTileChange();
+
+        onUpdate();
     }
 
     private void onUpdate() {
