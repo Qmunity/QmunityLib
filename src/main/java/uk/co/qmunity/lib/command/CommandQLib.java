@@ -2,6 +2,7 @@ package uk.co.qmunity.lib.command;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChunkCoordinates;
@@ -60,7 +61,7 @@ public class CommandQLib extends CommandBase {
             sender.addChatMessage(new ChatComponentText("Uptime: " + SystemInfoHelper.getUptime()));
             sender.addChatMessage(new ChatComponentText("Memory Usage: " + SystemInfoHelper.getAllocatedMem() + "/" + SystemInfoHelper.getMaxMem() + "[" + SystemInfoHelper.getPercentMemUse() + "%]"));
         } else if (args[0].equalsIgnoreCase("tp")) {
-            if (PlayerHelper.isOpped(sender.getCommandSenderName())) {
+            if (!(sender instanceof EntityPlayer) || PlayerHelper.isOpped(sender.getCommandSenderName())) {
                 if (args.length == 2) {
                     if (args[1].equalsIgnoreCase("showqueue")) {
                         if (TeleportHelper.teleportQueue.getQueue().size() > 0) {
