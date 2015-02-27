@@ -70,7 +70,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclusion, IRedstonePart, INeighborTileChange, IFMPPart,
-ISidedHollowConnect, TSlottedPart {
+        ISidedHollowConnect, TSlottedPart {
 
     private Map<String, IPart> parts = new HashMap<String, IPart>();
     private List<IPart> added = new ArrayList<IPart>();
@@ -327,10 +327,12 @@ ISidedHollowConnect, TSlottedPart {
             if (before > 0)
                 PartUpdateManager.addPart(this, part);
 
-            tile().markDirty();
-            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
-            if (!getWorld().isRemote && before > 0)
-                getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), tile().blockType);
+            if (tile() != null) {
+                tile().markDirty();
+                getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
+                if (!getWorld().isRemote && before > 0)
+                    getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), tile().blockType);
+            }
         }
     }
 
