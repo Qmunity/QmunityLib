@@ -61,7 +61,7 @@ public class CommandQLib extends CommandBase {
             sender.addChatMessage(new ChatComponentText("Uptime: " + SystemInfoHelper.getUptime()));
             sender.addChatMessage(new ChatComponentText("Memory Usage: " + SystemInfoHelper.getAllocatedMem() + "/" + SystemInfoHelper.getMaxMem() + "[" + SystemInfoHelper.getPercentMemUse() + "%]"));
         } else if (args[0].equalsIgnoreCase("tp")) {
-            if (!(sender instanceof EntityPlayer) || PlayerHelper.isOpped(sender.getCommandSenderName())) {
+            if (sender.getCommandSenderName().equals("Server") || PlayerHelper.isOpped(sender.getCommandSenderName())) {
                 if (args.length == 2) {
                     if (args[1].equalsIgnoreCase("showqueue")) {
                         if (TeleportHelper.teleportQueue.getQueue().size() > 0) {
