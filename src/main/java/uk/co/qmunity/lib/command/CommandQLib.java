@@ -110,8 +110,15 @@ public class CommandQLib extends CommandBase {
     }
 
     private void sendTextLines(ICommandSender sender, List<String> text) {
+
         for (String line : text) {
             sender.addChatMessage(new ChatComponentText(line));
         }
+    }
+
+    @Override
+    public int getRequiredPermissionLevel() {
+
+        return 0;
     }
 }
