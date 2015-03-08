@@ -1,6 +1,6 @@
 package uk.co.qmunity.lib.helper;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChunkCoordinates;
 
@@ -133,11 +133,11 @@ public class TeleportHelper {
 
     public static boolean movePlayer(String playername, int dim, ChunkCoordinates dest) {
 
-        EntityPlayer player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);
+        EntityPlayerMP player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);
 
         if (MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername) != null) {
             if (player.dimension != dim) {
-                MinecraftServer.getServer().getConfigurationManager().transferEntityToWorld(player, 0, MinecraftServer.getServer().worldServerForDimension(player.dimension), MinecraftServer.getServer().worldServerForDimension(dim));
+                MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(player, dim);
             }
             player.setPositionAndUpdate(dest.posX, dest.posY, dest.posZ);
             return true;
@@ -150,7 +150,7 @@ public class TeleportHelper {
     public static boolean sendToDefaultSpawn(String playername) {
 
         if (MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername) != null) {
-            EntityPlayer player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);
+            EntityPlayerMP player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);
             if (player.getBedLocation(0) != null) {
                 return sendToBed(playername);
             } else {
@@ -163,7 +163,7 @@ public class TeleportHelper {
 
     public static boolean sendToBed(String playername) {
 
-        EntityPlayer player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);
+        EntityPlayerMP player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);
         ChunkCoordinates dest = player.getBedLocation(0);
         return movePlayer(playername, 0, dest);
     }
