@@ -6,9 +6,9 @@ import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.input.Keyboard;
 
-import uk.co.qmunity.lib.client.render.RenderMultipart;
-import uk.co.qmunity.lib.client.render.RenderPartPlacement;
-import uk.co.qmunity.lib.client.render.RenderParticle;
+import uk.co.qmunity.lib.client.renderer.RenderMultipart;
+import uk.co.qmunity.lib.client.renderer.RenderPartPlacement;
+import uk.co.qmunity.lib.client.renderer.RenderParticle;
 import uk.co.qmunity.lib.effect.EntityFXParticle;
 import uk.co.qmunity.lib.tile.TileMultipart;
 import cpw.mods.fml.client.registry.ClientRegistry;

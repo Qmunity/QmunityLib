@@ -22,7 +22,7 @@ import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.QmunityLib;
-import uk.co.qmunity.lib.client.render.RenderMultipart;
+import uk.co.qmunity.lib.client.renderer.RenderMultipart;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartSelectableCustom;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;

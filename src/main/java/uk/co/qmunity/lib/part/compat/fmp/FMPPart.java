@@ -25,7 +25,7 @@ import org.lwjgl.opengl.GL11;
 import uk.co.qmunity.lib.QLModInfo;
 import uk.co.qmunity.lib.QmunityLib;
 import uk.co.qmunity.lib.client.render.RenderHelper;
-import uk.co.qmunity.lib.client.render.RenderMultipart;
+import uk.co.qmunity.lib.client.renderer.RenderMultipart;
 import uk.co.qmunity.lib.part.IMicroblock;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartCenter;

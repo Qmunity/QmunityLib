@@ -1,10 +1,9 @@
-package uk.co.qmunity.lib.client.render;
+package uk.co.qmunity.lib.client.renderer;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
@@ -12,6 +11,7 @@ import net.minecraft.world.IBlockAccess;
 import org.lwjgl.opengl.GL11;
 
 import uk.co.qmunity.lib.block.BlockMultipart;
+import uk.co.qmunity.lib.client.render.RenderHelper;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.tile.TileMultipart;
@@ -52,8 +52,8 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
     @Override
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
 
-        renderer.setRenderBounds(0, 0, 0, 0, 0, 0);
-        renderer.renderStandardBlock(Blocks.stone, x, y, z);
+        // renderer.setRenderBounds(0, 0, 0, 0, 0, 0);
+        // renderer.renderStandardBlock(Blocks.stone, x, y, z);
         renderer.setRenderBounds(0, 0, 0, 1, 1, 1);
 
         boolean rendered = false;
@@ -89,7 +89,7 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
 
         RenderHelper.instance.fullReset();
 
-        return true;// rendered;
+        return rendered;
     }
 
     public static void renderBreaking(IBlockAccess world, int x, int y, int z, RenderBlocks renderer, QMovingObjectPosition mop) {

@@ -1,4 +1,4 @@
-package uk.co.qmunity.lib.client.render;
+package uk.co.qmunity.lib.client.renderer;
 
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;

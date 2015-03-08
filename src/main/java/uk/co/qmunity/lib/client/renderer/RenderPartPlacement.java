@@ -1,4 +1,4 @@
-package uk.co.qmunity.lib.client.render;
+package uk.co.qmunity.lib.client.renderer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -18,6 +18,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import org.lwjgl.opengl.GL11;
 
+import uk.co.qmunity.lib.client.render.RenderHelper;
 import uk.co.qmunity.lib.item.ItemMultipart;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartRenderPlacement;

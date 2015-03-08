@@ -25,7 +25,7 @@ public class RenderHelper {
     private Vec3i location = new Vec3i(0, 0, 0);
     private LightingHelper lightingHelper = null;
 
-    private TransformationList transformations = new TransformationList();
+    protected TransformationList transformations = new TransformationList();
 
     private Vec3d normal = new Vec3d(0, 0, 0);
 
@@ -205,18 +205,12 @@ public class RenderHelper {
         this.lightingOverride = lightingOverride;
     }
 
-    public void addVertex(double x, double y, double z, double u, double v) {
-
-        setTextureCoords(u, v);
-        addVertex(x, y, z);
-    }
-
-    public void setTextureCoords(double u, double v) {
-
-        Tessellator.instance.setTextureUV(u, v);
-    }
-
     public void addVertex(double x, double y, double z) {
+
+        addVertex(x, y, z, 0, 0);
+    }
+
+    public void addVertex(double x, double y, double z, double u, double v) {
 
         Vec3d vertex = new Vec3d(x, y, z);
         if (vertexTransformation != null)
@@ -226,9 +220,21 @@ public class RenderHelper {
         Vec3d normalTranslations = new Vec3d(0.5, 0.5, 0.5).transform(transformations).sub(0.5, 0.5, 0.5);
         normal.sub(normalTranslations);
 
-        Tessellator.instance.setBrightness(world != null && lightingHelper != null ? (ignoreLighting ? lightingHelper.getFaceBrightness(
-                lightingOverride, normal) : lightingHelper.getVertexBrightness(vertex, normal)) : 0xF000F0);
-        Tessellator.instance.setColorRGBA_I(color, (int) (opacity * 255));
+        addVertex_do(vertex, normal, color, (int) (opacity * 255),
+                world != null && lightingHelper != null ? (ignoreLighting ? lightingHelper.getFaceBrightness(lightingOverride, normal)
+                        : lightingHelper.getVertexBrightness(vertex, normal)) : 0xF000F0, u, v);
+    }
+
+    public void addVertex_do(Vec3d vertex, Vec3d normal, int color, int opacity, int brightness, double u, double v) {
+
+        if (brightness == -1) {
+            brightness = world != null && lightingHelper != null ? (ignoreLighting ? lightingHelper.getFaceBrightness(lightingOverride,
+                    normal) : lightingHelper.getVertexBrightness(vertex, normal)) : 0xF000F0;
+        }
+
+        Tessellator.instance.setTextureUV(u, v);
+        Tessellator.instance.setBrightness(brightness);
+        Tessellator.instance.setColorRGBA_I(color, opacity);
         Tessellator.instance.setNormal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
         Tessellator.instance.addVertex(vertex.getX(), vertex.getY(), vertex.getZ());
     }
@@ -474,5 +480,10 @@ public class RenderHelper {
         addVertex(v4.getX(), v4.getY(), v4.getZ(), t4.getX(), t4.getY());
 
         this.normal = normal;
+    }
+
+    public void renderBakedModel(BakedModel model) {
+
+        model.render(this);
     }
 }
