@@ -2,7 +2,6 @@ package uk.co.qmunity.lib.command;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChunkCoordinates;
@@ -120,5 +119,11 @@ public class CommandQLib extends CommandBase {
     public int getRequiredPermissionLevel() {
 
         return 0;
+    }
+
+    @Override
+    public boolean canCommandSenderUseCommand(ICommandSender sender) {
+
+        return true;
     }
 }
