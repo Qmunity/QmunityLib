@@ -364,10 +364,10 @@ public class RenderHelper {
 
         double a = rotations[ForgeDirection.EAST.ordinal()] * 90;
 
-        Vec2d t1 = UVHelper.rotateUV(new Vec2d(face.getMaxY(), 1 - face.getMinX()), a, icon);
-        Vec2d t2 = UVHelper.rotateUV(new Vec2d(face.getMaxY(), 1 - face.getMaxX()), a, icon);
-        Vec2d t3 = UVHelper.rotateUV(new Vec2d(face.getMinY(), 1 - face.getMaxX()), a, icon);
-        Vec2d t4 = UVHelper.rotateUV(new Vec2d(face.getMinY(), 1 - face.getMinX()), a, icon);
+        Vec2d t1 = UVHelper.rotateUV(new Vec2d(face.getMinY(), 1 - face.getMinX()), a, icon);
+        Vec2d t2 = UVHelper.rotateUV(new Vec2d(face.getMinY(), 1 - face.getMaxX()), a, icon);
+        Vec2d t3 = UVHelper.rotateUV(new Vec2d(face.getMaxY(), 1 - face.getMaxX()), a, icon);
+        Vec2d t4 = UVHelper.rotateUV(new Vec2d(face.getMaxY(), 1 - face.getMinX()), a, icon);
 
         renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
@@ -430,10 +430,10 @@ public class RenderHelper {
 
         double a = rotations[ForgeDirection.NORTH.ordinal()] * 90;
 
-        Vec2d t1 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), 1 - face.getMinY()), a, icon);
-        Vec2d t2 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), 1 - face.getMaxY()), a, icon);
-        Vec2d t3 = UVHelper.rotateUV(new Vec2d(face.getMinX(), 1 - face.getMaxY()), a, icon);
-        Vec2d t4 = UVHelper.rotateUV(new Vec2d(face.getMinX(), 1 - face.getMinY()), a, icon);
+        Vec2d t1 = UVHelper.rotateUV(new Vec2d(face.getMinX(), 1 - face.getMinY()), a, icon);
+        Vec2d t2 = UVHelper.rotateUV(new Vec2d(face.getMinX(), 1 - face.getMaxY()), a, icon);
+        Vec2d t3 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), 1 - face.getMaxY()), a, icon);
+        Vec2d t4 = UVHelper.rotateUV(new Vec2d(face.getMaxX(), 1 - face.getMinY()), a, icon);
 
         renderFace(v1, v2, v3, v4, t1, t2, t3, t4);
     }
