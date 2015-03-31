@@ -220,9 +220,15 @@ public class RenderHelper {
         Vec3d normalTranslations = new Vec3d(0.5, 0.5, 0.5).transform(transformations).sub(0.5, 0.5, 0.5);
         normal.sub(normalTranslations);
 
-        addVertex_do(vertex, normal, color, (int) (opacity * 255),
-                world != null && lightingHelper != null ? (ignoreLighting ? lightingHelper.getFaceBrightness(lightingOverride, normal)
-                        : lightingHelper.getVertexBrightness(vertex, normal)) : 0xF000F0, u, v);
+        int brightness = world != null && lightingHelper != null ? (ignoreLighting ? lightingHelper.getFaceBrightness(lightingOverride,
+                normal) : lightingHelper.getVertexBrightness(vertex, normal)) : 0xF000F0;
+        double ao = world != null && lightingHelper != null && !ignoreLighting ? lightingHelper.getVertexAo(vertex, normal) : 1;
+        int color = 0;
+        color += (int) (((this.color >> 0) & 0xFF) * ao) << 0;
+        color += (int) (((this.color >> 8) & 0xFF) * ao) << 8;
+        color += (int) (((this.color >> 16) & 0xFF) * ao) << 16;
+
+        addVertex_do(vertex, normal, color, (int) (opacity * 255), brightness, u, v);
     }
 
     public void addVertex_do(Vec3d vertex, Vec3d normal, int color, int opacity, int brightness, double u, double v) {

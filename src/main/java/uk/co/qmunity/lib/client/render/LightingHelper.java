@@ -57,19 +57,33 @@ public class LightingHelper {
 
     public int getVertexBrightness(Vec3d vertex, int side) {
 
+        vertex = vertex.clone().mul(2).sub(1, 1, 1);
+
         int[] b = getBrightness(side);
-        return interpolateBrightness(b[0], b[1], b[2], b[3]);
+        int br = interpolateBrightness(b[0], b[1], b[2], b[3]);
+        Vec3d v = new Vec3d(0, 0, 0).add(ForgeDirection.getOrientation(side)).mul(vertex.getX(), vertex.getY(), vertex.getZ());
+        double d = v.getX() + v.getY() + v.getZ();
+        if (Math.abs(d) < 0.9) {
+            int bbr = access.getBlock(pos.getX(), pos.getY(), pos.getZ()).getMixedBrightnessForBlock(access, pos.getX(), pos.getY(),
+                    pos.getZ());
+            br = interpolateBrightness(br, br, bbr, bbr);
+        }
+        return br;
     }
 
     public float getVertexAo(Vec3d vertex, int side) {
 
-        float[] ao = getAo(side);
-        return interpolateAO(ao[0], ao[1], ao[2], ao[3]);
-    }
+        vertex = vertex.clone().mul(2).sub(1, 1, 1);
 
-    public int getVertexTotalBrightness(Vec3d vertex, int side) {
-
-        return getProportion(getVertexBrightness(vertex, side), getVertexAo(vertex, side));
+        float[] a = getAo(side);
+        float ao = interpolateAO(a[0], a[1], a[2], a[3]);
+        Vec3d v = new Vec3d(0, 0, 0).add(ForgeDirection.getOrientation(side)).mul(vertex.getX(), vertex.getY(), vertex.getZ());
+        double d = v.getX() + v.getY() + v.getZ();
+        if (Math.abs(d) < 0.9) {
+            float bao = sideao[side];
+            ao = bao * (ao / 3F + 2 / 3F);
+        }
+        return ao;
     }
 
     public int getVertexBrightness(Vec3d vertex, Vec3d normal) {
@@ -79,21 +93,45 @@ public class LightingHelper {
         int br = 0;
 
         if (x < 0)
-            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.WEST.ordinal()), -x);
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.WEST.ordinal()), -x);
         if (x > 0)
-            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.EAST.ordinal()), x);
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.EAST.ordinal()), x);
 
         if (y < 0)
-            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.DOWN.ordinal()), -y);
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.DOWN.ordinal()), -y);
         if (y > 0)
-            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.UP.ordinal()), y);
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.UP.ordinal()), y);
 
         if (z < 0)
-            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.NORTH.ordinal()), -z);
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.NORTH.ordinal()), -z);
         if (z > 0)
-            br += getProportion(getVertexTotalBrightness(vertex, ForgeDirection.SOUTH.ordinal()), z);
+            br += getProportion(getVertexBrightness(vertex, ForgeDirection.SOUTH.ordinal()), z);
 
         return br & 0xF000F0;
+    }
+
+    public float getVertexAo(Vec3d vertex, Vec3d normal) {
+
+        normal = normal.normalize();
+        double x = normal.getX(), y = normal.getY(), z = normal.getZ();
+        float ao = 0;
+
+        if (x < 0)
+            ao += getProportion(getVertexAo(vertex, ForgeDirection.WEST.ordinal()), -x);
+        if (x > 0)
+            ao += getProportion(getVertexAo(vertex, ForgeDirection.EAST.ordinal()), x);
+
+        if (y < 0)
+            ao += getProportion(getVertexAo(vertex, ForgeDirection.DOWN.ordinal()), -y);
+        if (y > 0)
+            ao += getProportion(getVertexAo(vertex, ForgeDirection.UP.ordinal()), y);
+
+        if (z < 0)
+            ao += getProportion(getVertexAo(vertex, ForgeDirection.NORTH.ordinal()), -z);
+        if (z > 0)
+            ao += getProportion(getVertexAo(vertex, ForgeDirection.SOUTH.ordinal()), z);
+
+        return Math.max(Math.min(ao, 1), 0);
     }
 
     public int getFaceBrightness(int brightness, Vec3d normal) {
@@ -155,7 +193,7 @@ public class LightingHelper {
         sample(b);
         sample(c);
         sample(d);
-        ao[s][q] = interpolateAO(aoSamples[a], aoSamples[b], aoSamples[c], aoSamples[d]) * sideao[s] * ((sideao[s] + 1) / 2);// Changed!
+        ao[s][q] = interpolateAO(aoSamples[a], aoSamples[b], aoSamples[c], aoSamples[d]) * sideao[s];// Changed!
         brightness[s][q] = interpolateBrightness(brightnessSamples[a], brightnessSamples[b], brightnessSamples[c], brightnessSamples[d]);
     }
 
