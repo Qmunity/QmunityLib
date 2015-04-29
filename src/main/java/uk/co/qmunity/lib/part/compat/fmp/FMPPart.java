@@ -96,8 +96,6 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         this();
 
         this.parts = parts;
-        for (String s : parts.keySet())
-            parts.get(s).setParent(this);
     }
 
     @Override
@@ -530,8 +528,8 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @SideOnly(Side.CLIENT)
     public void drawBreaking(RenderBlocks renderBlocks) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(Minecraft.getMinecraft().thePlayer), RayTracer.instance()
-                .getEndVector(Minecraft.getMinecraft().thePlayer));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(Minecraft.getMinecraft().thePlayer),
+                RayTracer.getEndVector(Minecraft.getMinecraft().thePlayer));
 
         if (mop == null || mop.getPart() == null)
             return;
@@ -547,8 +545,8 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @SideOnly(Side.CLIENT)
     public boolean drawHighlight(MovingObjectPosition hit, EntityPlayer player, float frame) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(Minecraft.getMinecraft().thePlayer), RayTracer.instance()
-                .getEndVector(Minecraft.getMinecraft().thePlayer));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(Minecraft.getMinecraft().thePlayer),
+                RayTracer.getEndVector(Minecraft.getMinecraft().thePlayer));
 
         if (mop == null || mop.getPart() == null || !(mop.getPart() instanceof IPartSelectableCustom))
             return false;
@@ -759,6 +757,9 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     public void onConverted() {
 
         converted = true;
+
+        for (String s : parts.keySet())
+            parts.get(s).setParent(this);
     }
 
     @Override
@@ -792,8 +793,8 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @Override
     public ItemStack pickItem(MovingObjectPosition hit) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(QmunityLib.proxy.getPlayer()), RayTracer.instance()
-                .getEndVector(QmunityLib.proxy.getPlayer()));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(QmunityLib.proxy.getPlayer()),
+                RayTracer.getEndVector(QmunityLib.proxy.getPlayer()));
         if (mop == null)
             return null;
 
@@ -806,7 +807,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
         if (world().isRemote)
             return;
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
         if (mop != null) {
             if (mop.getPart().breakAndDrop(player, mop))
                 mop.getPart().getParent().removePart(mop.getPart());
@@ -819,7 +820,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @Override
     public void click(EntityPlayer player, MovingObjectPosition hit, ItemStack item) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
         if (mop != null)
             if (mop.getPart() instanceof IPartInteractable)
                 ((IPartInteractable) mop.getPart()).onClicked(player, mop, item);
@@ -828,7 +829,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @Override
     public boolean activate(EntityPlayer player, MovingObjectPosition hit, ItemStack item) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
         if (mop != null)
             if (mop.getPart() instanceof IPartInteractable)
                 return ((IPartInteractable) mop.getPart()).onActivated(player, mop, item);
@@ -871,7 +872,7 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @Override
     public float getStrength(MovingObjectPosition hit, EntityPlayer player) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
 
         if (mop != null && mop.getPart() != null)
             return (float) (30 * mop.getPart().getHardness(player, mop));
