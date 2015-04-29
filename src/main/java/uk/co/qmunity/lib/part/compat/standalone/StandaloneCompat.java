@@ -34,12 +34,12 @@ public class StandaloneCompat implements IMultipartCompat {
         boolean newTe = false;
         if (te == null) {
             te = new TileMultipart(simulated);
-            te.xCoord = location.getX();
-            te.yCoord = location.getY();
-            te.zCoord = location.getZ();
-            te.setWorldObj(world);
             newTe = true;
         }
+        te.xCoord = location.getX();
+        te.yCoord = location.getY();
+        te.zCoord = location.getZ();
+        te.setWorldObj(world);
 
         if (!te.canAddPart(part))
             return false;
@@ -92,8 +92,8 @@ public class StandaloneCompat implements IMultipartCompat {
             return false;
 
         MovingObjectPosition mop = world.getBlock(location.getX(), location.getY(), location.getZ()).collisionRayTrace(world,
-                location.getX(), location.getY(), location.getZ(), RayTracer.instance().getStartVector(player).toVec3(),
-                RayTracer.instance().getEndVector(player).toVec3());
+                location.getX(), location.getY(), location.getZ(), RayTracer.getStartVector(player).toVec3(),
+                RayTracer.getEndVector(player).toVec3());
         if (mop == null)
             return false;
 
@@ -146,7 +146,9 @@ public class StandaloneCompat implements IMultipartCompat {
                 return false;
             if (!simulated && !placement.placePart(part, world, location, this, true))
                 return false;
-            return placement.placePart(part, world, location, this, simulated);
+            boolean res = placement.placePart(part, world, location, this, simulated);
+            System.out.println("Test " + world.isRemote + " " + res);
+            return res;
         }
 
         return false;

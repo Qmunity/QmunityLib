@@ -15,6 +15,7 @@ public class Vec3dCube {
 
     private Vec3d min, max;
     private IPart part;
+    private Object data;
 
     public Vec3dCube(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
 
@@ -309,7 +310,7 @@ public class Vec3dCube {
                         cube.getMax().setZ(getMaxZ() - (maxz - 1));
                         sides[3] = true;
                     }
-                    
+
                     cube.fix();
 
                     cubes.add(new Pair<Pair<Vec3dCube, Translation>, boolean[]>(new Pair<Vec3dCube, Translation>(cube, t), sides));
@@ -318,5 +319,17 @@ public class Vec3dCube {
         }
 
         return cubes;
+    }
+
+    public Vec3dCube setData(Object data) {
+
+        this.data = data;
+
+        return this;
+    }
+
+    public Object getData() {
+
+        return data;
     }
 }

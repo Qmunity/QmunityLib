@@ -2,16 +2,19 @@ package uk.co.qmunity.lib.raytrace;
 
 import java.util.List;
 
-import uk.co.qmunity.lib.part.IPart;
-import uk.co.qmunity.lib.part.IPartSelectable;
-import uk.co.qmunity.lib.vec.Vec3d;
-import uk.co.qmunity.lib.vec.Vec3dCube;
-import uk.co.qmunity.lib.vec.Vec3i;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.part.IPart;
+import uk.co.qmunity.lib.part.IPartSelectable;
+import uk.co.qmunity.lib.vec.Vec3d;
+import uk.co.qmunity.lib.vec.Vec3dCube;
+import uk.co.qmunity.lib.vec.Vec3i;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class RayTracer {
 
@@ -28,12 +31,16 @@ public class RayTracer {
 
     public QMovingObjectPosition rayTraceCubes(IPartSelectable part, Vec3d start, Vec3d end) {
 
-        QMovingObjectPosition mop = rayTraceCubes(part.getSelectionBoxes(), start, end,
-                new Vec3i(((IPart) part).getX(), ((IPart) part).getY(), ((IPart) part).getZ()));
-        if (mop == null)
-            return null;
+        try {
+            QMovingObjectPosition mop = rayTraceCubes(part.getSelectionBoxes(), start, end,
+                    new Vec3i(((IPart) part).getX(), ((IPart) part).getY(), ((IPart) part).getZ()));
+            if (mop == null)
+                return null;
 
-        return new QMovingObjectPosition(mop, part, mop.getCube());
+            return new QMovingObjectPosition(mop, part, mop.getCube());
+        } catch (Exception ex) {
+        }
+        return null;
     }
 
     public QMovingObjectPosition rayTraceCubes(List<Vec3dCube> cubes, Vec3d start, Vec3d end, Vec3i blockPos) {
@@ -177,31 +184,52 @@ public class RayTracer {
         return new Vec3d(face.offsetX, face.offsetY, face.offsetZ);
     }
 
-    public Vec3d getStartVector(EntityPlayer player) {
+    public static double overrideReachDistance = -1;
 
-        return new Vec3d(getCorrectedHeadVec(player));
+    private static double getBlockReachDistance_server(EntityPlayerMP player) {
+
+        return player.theItemInWorldManager.getBlockReachDistance();
     }
 
-    public Vec3d getEndVector(EntityPlayer player) {
+    @SideOnly(Side.CLIENT)
+    private static double getBlockReachDistance_client() {
 
-        Vec3 headVec = getCorrectedHeadVec(player);
-        Vec3 lookVec = player.getLook(1.0F);
-        double reach = player.capabilities.isCreativeMode ? 5 : 4.5;
-
-        return new Vec3d(headVec.addVector(lookVec.xCoord * reach, lookVec.yCoord * reach, lookVec.zCoord * reach));
+        return Minecraft.getMinecraft().playerController.getBlockReachDistance();
     }
 
-    private Vec3 getCorrectedHeadVec(EntityPlayer player) {
+    public static double getBlockReachDistance(EntityPlayer player) {
 
-        Vec3 v = Vec3.createVectorHelper(player.posX, player.posY, player.posZ);
+        if (overrideReachDistance > 0)
+            return overrideReachDistance;
+
+        return player.worldObj.isRemote ? getBlockReachDistance_client()
+                : player instanceof EntityPlayerMP ? getBlockReachDistance_server((EntityPlayerMP) player) : 5D;
+    }
+
+    public static Vec3 getCorrectedHeadVector(EntityPlayer player) {
+
+        Vec3d v = new Vec3d(player.posX, player.posY, player.posZ);
         if (player.worldObj.isRemote) {
-            v.yCoord += player.getEyeHeight() - player.getDefaultEyeHeight();// compatibility with eye height changing mods
+            v.add(0, player.getEyeHeight() - player.getDefaultEyeHeight(), 0);// compatibility with eye height changing mods
         } else {
-            v.yCoord += player.getEyeHeight();
+            v.add(0, player.getEyeHeight(), 0);
             if (player instanceof EntityPlayerMP && player.isSneaking())
-                v.yCoord -= 0.08;
+                v.sub(0, 0.08, 0);
         }
-        return v;
+        return v.toVec3();
+    }
+
+    public static Vec3d getStartVector(EntityPlayer player) {
+
+        return new Vec3d(getCorrectedHeadVector(player));
+    }
+
+    public static Vec3d getEndVector(EntityPlayer player) {
+
+        Vec3 headVec = getCorrectedHeadVector(player);
+        Vec3 lookVec = player.getLook(1.0F);
+        double reach = getBlockReachDistance(player);
+        return new Vec3d(headVec.addVector(lookVec.xCoord * reach, lookVec.yCoord * reach, lookVec.zCoord * reach));
     }
 
 }

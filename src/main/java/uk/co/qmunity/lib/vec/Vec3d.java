@@ -274,7 +274,7 @@ public class Vec3d {
 
         for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS)
             if (getBlockX() + d.offsetX == vec.getBlockX() && getBlockY() + d.offsetY == vec.getBlockY()
-            && getBlockZ() + d.offsetZ == vec.getBlockZ())
+                    && getBlockZ() + d.offsetZ == vec.getBlockZ())
                 return d;
         return null;
     }
@@ -439,6 +439,25 @@ public class Vec3d {
     public Vec3d transform(Transformation transformation) {
 
         return transformation.apply(this);
+    }
+
+    public Vec2d getSide(ForgeDirection side) {
+
+        switch (side) {
+        case DOWN:
+        case UP:
+            return new Vec2d(getX(), getZ());
+        case NORTH:
+        case SOUTH:
+            return new Vec2d(getX(), getY());
+        case WEST:
+        case EAST:
+            return new Vec2d(getZ(), getY());
+        default:
+            break;
+        }
+
+        return null;
     }
 
     @Override

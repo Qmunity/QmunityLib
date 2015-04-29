@@ -43,6 +43,7 @@ public class FMPCompat implements IMultipartCompat {
         boolean isNew = false;
         if (p == null) {
             p = new FMPPart(simulated);
+            p.bind(tmp);
             isNew = true;
         }
 
@@ -62,7 +63,6 @@ public class FMPCompat implements IMultipartCompat {
                 te.zCoord = location.getZ();
                 te.setWorldObj(world);
             }
-            p.tile_$eq(te);
         }
 
         if (isNew) {
@@ -106,8 +106,8 @@ public class FMPCompat implements IMultipartCompat {
             return false;
 
         MovingObjectPosition mop = world.getBlock(location.getX(), location.getY(), location.getZ()).collisionRayTrace(world,
-                location.getX(), location.getY(), location.getZ(), RayTracer.instance().getStartVector(player).toVec3(),
-                RayTracer.instance().getEndVector(player).toVec3());
+                location.getX(), location.getY(), location.getZ(), RayTracer.getStartVector(player).toVec3(),
+                RayTracer.getEndVector(player).toVec3());
         if (mop == null)
             return false;
 

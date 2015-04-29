@@ -357,7 +357,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
     public void removePart(EntityPlayer player) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
         if (mop != null)
             if (mop.getPart().breakAndDrop(player, mop))
                 mop.getPart().getParent().removePart(mop.getPart());
@@ -571,7 +571,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
     public ItemStack pickUp(EntityPlayer player) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
         if (mop != null) {
             return mop.getPart().getPickedItem(mop);
         }
@@ -587,7 +587,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
     public void onClicked(EntityPlayer player) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
         if (mop != null)
             if (mop.getPart() instanceof IPartInteractable)
                 ((IPartInteractable) mop.getPart()).onClicked(player, mop, player.getCurrentEquippedItem());
@@ -595,7 +595,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
     public boolean onActivated(EntityPlayer player) {
 
-        QMovingObjectPosition mop = rayTrace(RayTracer.instance().getStartVector(player), RayTracer.instance().getEndVector(player));
+        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
         if (mop != null)
             if (mop.getPart() instanceof IPartInteractable)
                 return ((IPartInteractable) mop.getPart()).onActivated(player, mop, player.getCurrentEquippedItem());

@@ -1,7 +1,7 @@
 package uk.co.qmunity.lib.part.compat;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,13 +58,13 @@ public class MultipartCompatibility {
         if (simulated)
             PartUpdateManager.setUpdatesEnabled(false);
 
-        Map<IMultipartCompat, Integer> passes = new HashMap<IMultipartCompat, Integer>();
+        Map<IMultipartCompat, Integer> passes = new LinkedHashMap<IMultipartCompat, Integer>();
         int totalPasses = 0;
         for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
             IMultipartCompat c = s.getCompat();
             int p = c.getPlacementPasses();
             passes.put(c, p);
-            totalPasses += p;
+            totalPasses = Math.max(totalPasses, p);
         }
 
         for (int pass = 0; pass < totalPasses; pass++) {
