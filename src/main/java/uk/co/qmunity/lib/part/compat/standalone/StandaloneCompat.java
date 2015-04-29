@@ -85,15 +85,14 @@ public class StandaloneCompat implements IMultipartCompat {
     }
 
     @Override
-    public boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
-            ItemStack item, int pass, boolean simulated) {
+    public boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player, ItemStack item,
+            int pass, boolean simulated) {
 
         if (pass == 0 && player.isSneaking())
             return false;
 
-        MovingObjectPosition mop = world.getBlock(location.getX(), location.getY(), location.getZ()).collisionRayTrace(world,
-                location.getX(), location.getY(), location.getZ(), RayTracer.getStartVector(player).toVec3(),
-                RayTracer.getEndVector(player).toVec3());
+        MovingObjectPosition mop = world.getBlock(location.getX(), location.getY(), location.getZ()).collisionRayTrace(world, location.getX(),
+                location.getY(), location.getZ(), RayTracer.getStartVector(player).toVec3(), RayTracer.getEndVector(player).toVec3());
         if (mop == null)
             return false;
 
@@ -146,9 +145,7 @@ public class StandaloneCompat implements IMultipartCompat {
                 return false;
             if (!simulated && !placement.placePart(part, world, location, this, true))
                 return false;
-            boolean res = placement.placePart(part, world, location, this, simulated);
-            System.out.println("Test " + world.isRemote + " " + res);
-            return res;
+            return placement.placePart(part, world, location, this, simulated);
         }
 
         return false;
@@ -169,8 +166,7 @@ public class StandaloneCompat implements IMultipartCompat {
     @Override
     public boolean canBeMultipart(World world, Vec3i location) {
 
-        return world.getBlock(location.getX(), location.getY(), location.getZ()).getMaterial().isReplaceable()
-                || isMultipart(world, location);
+        return world.getBlock(location.getX(), location.getY(), location.getZ()).getMaterial().isReplaceable() || isMultipart(world, location);
     }
 
     @Override
