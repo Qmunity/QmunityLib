@@ -20,7 +20,7 @@ import uk.co.qmunity.lib.vec.Vec3dCube;
 import uk.co.qmunity.lib.vec.Vec3i;
 import codechicken.lib.vec.BlockCoord;
 import codechicken.lib.vec.Cuboid6;
-import codechicken.microblock.CommonMicroblock;
+import codechicken.microblock.Microblock;
 import codechicken.multipart.IFaceRedstonePart;
 import codechicken.multipart.IRedstonePart;
 import codechicken.multipart.NormallyOccludedPart;
@@ -99,15 +99,14 @@ public class FMPCompat implements IMultipartCompat {
     }
 
     @Override
-    public boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player,
-            ItemStack item, int pass, boolean simulated) {
+    public boolean placePartInWorld(IPart part, World world, Vec3i location, ForgeDirection clickedFace, EntityPlayer player, ItemStack item,
+            int pass, boolean simulated) {
 
         if (pass == 0 && player.isSneaking())
             return false;
 
-        MovingObjectPosition mop = world.getBlock(location.getX(), location.getY(), location.getZ()).collisionRayTrace(world,
-                location.getX(), location.getY(), location.getZ(), RayTracer.getStartVector(player).toVec3(),
-                RayTracer.getEndVector(player).toVec3());
+        MovingObjectPosition mop = world.getBlock(location.getX(), location.getY(), location.getZ()).collisionRayTrace(world, location.getX(),
+                location.getY(), location.getZ(), RayTracer.getStartVector(player).toVec3(), RayTracer.getEndVector(player).toVec3());
         if (mop == null)
             return false;
 
@@ -324,8 +323,8 @@ public class FMPCompat implements IMultipartCompat {
             return microblocks;
 
         for (TMultiPart p : tmp.jPartList())
-            if (p instanceof CommonMicroblock)
-                microblocks.add(new FMPMicroblock((CommonMicroblock) p));
+            if (p instanceof Microblock)
+                microblocks.add(new FMPMicroblock((Microblock) p));
 
         return microblocks;
     }

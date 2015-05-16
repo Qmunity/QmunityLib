@@ -55,8 +55,8 @@ import codechicken.lib.raytracer.ExtendedMOP;
 import codechicken.lib.raytracer.IndexedCuboid6;
 import codechicken.lib.vec.Cuboid6;
 import codechicken.lib.vec.Vector3;
-import codechicken.microblock.CommonMicroblock;
 import codechicken.microblock.ISidedHollowConnect;
+import codechicken.microblock.Microblock;
 import codechicken.multipart.INeighborTileChange;
 import codechicken.multipart.IRedstonePart;
 import codechicken.multipart.NormalOcclusionTest;
@@ -610,8 +610,8 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
 
         IPart changed = null;
 
-        if (part instanceof CommonMicroblock)
-            changed = new FMPMicroblock((CommonMicroblock) part);
+        if (part instanceof Microblock)
+            changed = new FMPMicroblock((Microblock) part);
 
         for (IPart p : getParts())
             if (p != null && p instanceof IPartUpdateListener)
@@ -648,8 +648,8 @@ public class FMPPart extends TMultiPart implements ITilePartHolder, TNormalOcclu
     @Override
     public boolean occlusionTest(TMultiPart part) {
 
-        if (part instanceof CommonMicroblock) {
-            IMicroblock mb = new FMPMicroblock((CommonMicroblock) part);
+        if (part instanceof Microblock) {
+            IMicroblock mb = new FMPMicroblock((Microblock) part);
             for (IPart p : getParts())
                 if (!p.occlusionTest(mb))
                     return false;

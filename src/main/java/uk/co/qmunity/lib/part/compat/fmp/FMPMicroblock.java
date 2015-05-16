@@ -12,17 +12,17 @@ import uk.co.qmunity.lib.part.PartBase;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.vec.Vec3dCube;
 import codechicken.lib.vec.Cuboid6;
-import codechicken.microblock.CommonMicroblock;
 import codechicken.microblock.CornerMicroblock;
 import codechicken.microblock.EdgeMicroblock;
 import codechicken.microblock.FaceMicroblock;
 import codechicken.microblock.HollowMicroblock;
+import codechicken.microblock.Microblock;
 
 public class FMPMicroblock extends PartBase implements IMicroblock {
 
-    private CommonMicroblock microblock;
+    private Microblock microblock;
 
-    public FMPMicroblock(CommonMicroblock microblock) {
+    public FMPMicroblock(Microblock microblock) {
 
         this.microblock = microblock;
     }
