@@ -64,7 +64,7 @@ public class RenderMultipart extends TileEntitySpecialRenderer implements ISimpl
 
         if (renderer.overrideBlockTexture != null) {
             MovingObjectPosition mop = Minecraft.getMinecraft().objectMouseOver;
-            if (mop.blockX == x && mop.blockY == y && mop.blockZ == z && mop instanceof QMovingObjectPosition
+            if (mop != null && mop.blockX == x && mop.blockY == y && mop.blockZ == z && mop instanceof QMovingObjectPosition
                     && ((QMovingObjectPosition) mop).getPart() != null) {
                 renderBreaking(world, x, y, z, renderer, ((QMovingObjectPosition) mop));
                 rendered = true;
