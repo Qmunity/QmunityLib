@@ -3,24 +3,37 @@ package uk.co.qmunity.lib.tile;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.co.qmunity.lib.util.QLog;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.network.annotation.DescPacketHandler;
+import uk.co.qmunity.lib.network.annotation.DescSynced;
+import uk.co.qmunity.lib.network.annotation.NetworkUtils;
+import uk.co.qmunity.lib.network.annotation.PacketDescription;
+import uk.co.qmunity.lib.network.annotation.SyncedField;
+import uk.co.qmunity.lib.util.QLog;
+import uk.co.qmunity.lib.vec.IWorldLocation;
 
 /**
+ * Base tile entity which provides you a few options. Notably, if you mark a field with @DescSynced, it will be automatically synchronize
+ * with the client if the field its value gets changed. If this causes too much traffic, you can additionally mark it with @LazySynced. This will
+ * not cause synchronization to occur when this particular field changes, but it will get send along when other fields marked with @DescSynced
+ * change, or when sendUpdatePacket() is called manually. Marking @GuiSynced can be used to synchronize fields only with players that have
+ * the container open that is associated with this tile entity. Be sure to extend your Container to ContainerBase!
  * @author MineMaarten
  */
-public class TileBase extends TileEntity implements IRotatable{
+public class TileBase extends TileEntity implements IRotatable, IWorldLocation{
 
     private boolean isRedstonePowered;
     private int outputtingRedstone;
     private int ticker = 0;
     private ForgeDirection rotation = ForgeDirection.UP;
+    private List<SyncedField> descriptionFields;
 
     /*************** BASIC TE FUNCTIONS **************/
 
@@ -52,13 +65,13 @@ public class TileBase extends TileEntity implements IRotatable{
      * 
      * @param tCompound
      */
-    protected void writeToPacketNBT(NBTTagCompound tCompound){
+    public void writeToPacketNBT(NBTTagCompound tCompound){
 
         tCompound.setByte("rotation", (byte)rotation.ordinal());
         tCompound.setByte("outputtingRedstone", (byte)outputtingRedstone);
     }
 
-    protected void readFromPacketNBT(NBTTagCompound tCompound){
+    public void readFromPacketNBT(NBTTagCompound tCompound){
 
         rotation = ForgeDirection.getOrientation(tCompound.getByte("rotation"));
         if(rotation.ordinal() > 5) {
@@ -69,12 +82,19 @@ public class TileBase extends TileEntity implements IRotatable{
         if(worldObj != null) markForRenderUpdate();
     }
 
+    public List<SyncedField> getDescriptionFields(){
+        if(descriptionFields == null) {
+            descriptionFields = NetworkUtils.getSyncedFields(this, DescSynced.class);
+            for(SyncedField field : descriptionFields) {
+                field.update();
+            }
+        }
+        return descriptionFields;
+    }
+
     @Override
     public Packet getDescriptionPacket(){
-
-        NBTTagCompound tCompound = new NBTTagCompound();
-        writeToPacketNBT(tCompound);
-        return new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, tCompound);
+        return DescPacketHandler.getPacket(new PacketDescription(this));
     }
 
     @Override
@@ -109,6 +129,20 @@ public class TileBase extends TileEntity implements IRotatable{
         }
         super.updateEntity();
         ticker++;
+
+        if(!worldObj.isRemote) {
+            boolean descriptionPacketScheduled = false;
+            if(descriptionFields == null) descriptionPacketScheduled = true;
+            for(SyncedField field : getDescriptionFields()) {
+                if(field.update()) {
+                    descriptionPacketScheduled = true;
+                }
+            }
+
+            if(descriptionPacketScheduled) {
+                sendUpdatePacket();
+            }
+        }
     }
 
     /**
@@ -224,5 +258,29 @@ public class TileBase extends TileEntity implements IRotatable{
     public boolean canConnectRedstone(){
 
         return false;
+    }
+
+    public void onNeighborBlockChanged(){
+
+    }
+
+    @Override
+    public World getWorld(){
+        return worldObj;
+    }
+
+    @Override
+    public int getX(){
+        return xCoord;
+    }
+
+    @Override
+    public int getY(){
+        return yCoord;
+    }
+
+    @Override
+    public int getZ(){
+        return zCoord;
     }
 }

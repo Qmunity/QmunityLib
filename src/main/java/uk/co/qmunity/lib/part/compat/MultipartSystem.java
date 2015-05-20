@@ -11,7 +11,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
-public enum MultipartSystem {
+public enum MultipartSystem{
 
     STANDALONE(0, true, new StandaloneCompat()), //
     FMP(1, FMPHelper.isLoaded(), FMPHelper.getCompat());
@@ -20,63 +20,62 @@ public enum MultipartSystem {
     private boolean isLoaded;
     private IMultipartCompat compat;
 
-    private MultipartSystem(int priority, boolean isLoaded, IMultipartCompat compat) {
+    private MultipartSystem(int priority, boolean isLoaded, IMultipartCompat compat){
 
         this.priority = priority;
         this.isLoaded = isLoaded;
         this.compat = compat;
     }
 
-    public int getPriority() {
+    public int getPriority(){
 
         return priority;
     }
 
-    public boolean isLoaded() {
+    public boolean isLoaded(){
 
         return isLoaded;
     }
 
-    public IMultipartCompat getCompat() {
+    public IMultipartCompat getCompat(){
 
         return compat;
     }
 
-    public static List<MultipartSystem> getAvailableSystems() {
+    public static List<MultipartSystem> getAvailableSystems(){
 
         List<MultipartSystem> l = new ArrayList<MultipartSystem>();
 
-        for (MultipartSystem system : values())
-            if (system.isLoaded() && system.getCompat() != null)
-                l.add(system);
+        for(MultipartSystem system : values())
+            if(system.isLoaded() && system.getCompat() != null) l.add(system);
 
-        Collections.sort(l, new Comparator<MultipartSystem>() {
+        Collections.sort(l, new Comparator<MultipartSystem>(){
 
             @Override
-            public int compare(MultipartSystem a, MultipartSystem b) {
+            public int compare(MultipartSystem a, MultipartSystem b){
 
-                return Integer.compare(a.getPriority(), b.getPriority());
+                return a.getPriority() - b.getPriority();
             }
         });
 
         return l;
     }
 
-    public static void preInit(FMLPreInitializationEvent event) {
+    public static void preInit(FMLPreInitializationEvent event){
 
-        for (MultipartSystem s : getAvailableSystems())
+        for(MultipartSystem s : getAvailableSystems())
             s.getCompat().preInit(event);
     }
 
-    public static void init(FMLInitializationEvent event) {
+    public static void init(FMLInitializationEvent event){
 
-        for (MultipartSystem s : getAvailableSystems())
+        for(MultipartSystem s : getAvailableSystems())
             s.getCompat().init(event);
     }
 
-    public static void postInit(FMLPostInitializationEvent event) {
+    public static void postInit(FMLPostInitializationEvent event){
 
-        for (MultipartSystem s : getAvailableSystems())
+        for(MultipartSystem s : getAvailableSystems())
             s.getCompat().postInit(event);
     }
 
