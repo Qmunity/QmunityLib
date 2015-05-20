@@ -16,6 +16,10 @@ import uk.co.qmunity.lib.network.annotation.SyncedField.SyncedItemStack;
 import uk.co.qmunity.lib.network.annotation.SyncedField.SyncedString;
 import uk.co.qmunity.lib.util.QLog;
 
+/**
+ * @author MineMaarten
+ */
+
 public class NetworkUtils{
 
     /*private static Map<Class, List<Field>> extraMarkedFields = new HashMap<Class, List<Field>>();

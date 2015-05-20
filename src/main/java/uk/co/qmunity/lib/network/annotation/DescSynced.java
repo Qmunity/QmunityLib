@@ -10,6 +10,8 @@ import java.lang.annotation.Target;
 /**
  * Fields marked with this annotation in a TileEntity class will be automatically synced to any players within 64 blocks of this TileEntity.
  * Supported field types are int, float, double, boolean, String, int[], float[], double[], boolean[] and String[].
+ * 
+ * @author MineMaarten
  */
 public @interface DescSynced{
 

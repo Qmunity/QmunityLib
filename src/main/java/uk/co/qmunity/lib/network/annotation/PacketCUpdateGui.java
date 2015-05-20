@@ -23,6 +23,10 @@ import uk.co.qmunity.lib.network.annotation.SyncedField.SyncedString;
 import uk.co.qmunity.lib.util.QLog;
 import cpw.mods.fml.common.network.ByteBufUtils;
 
+/**
+ * @author MineMaarten
+ */
+
 public class PacketCUpdateGui extends Packet<PacketCUpdateGui>{
     private int syncId;
     private Object value;

@@ -14,6 +14,9 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
 
+/**
+ * @author MineMaarten
+ */
 @Sharable
 public class DescPacketHandler extends SimpleChannelInboundHandler<FMLProxyPacket>{
     public final static String CHANNEL = "QmunityLibDesc";

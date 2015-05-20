@@ -7,6 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * Any array fields annotated with this will only sync the specified indexes.
+ * 
+ * @author MineMaarten
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

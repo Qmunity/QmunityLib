@@ -11,6 +11,10 @@ import uk.co.qmunity.lib.network.LocatedPacket;
 import uk.co.qmunity.lib.tile.TileBase;
 import cpw.mods.fml.common.network.ByteBufUtils;
 
+/**
+ * @author MineMaarten
+ */
+
 public class PacketDescription extends LocatedPacket<PacketDescription>{
     private byte[] types;
     private Object[] values;
