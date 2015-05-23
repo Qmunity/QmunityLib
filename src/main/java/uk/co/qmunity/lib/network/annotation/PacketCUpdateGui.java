@@ -20,7 +20,6 @@ import uk.co.qmunity.lib.network.annotation.SyncedField.SyncedFluidTank;
 import uk.co.qmunity.lib.network.annotation.SyncedField.SyncedInt;
 import uk.co.qmunity.lib.network.annotation.SyncedField.SyncedItemStack;
 import uk.co.qmunity.lib.network.annotation.SyncedField.SyncedString;
-import uk.co.qmunity.lib.util.QLog;
 import cpw.mods.fml.common.network.ByteBufUtils;
 
 /**
@@ -55,7 +54,6 @@ public class PacketCUpdateGui extends Packet<PacketCUpdateGui>{
     }
 
     public static Object readField(ByteBuf buf, int type){
-        QLog.info("receivin");
         switch(type){
             case 0:
                 return buf.readInt();
