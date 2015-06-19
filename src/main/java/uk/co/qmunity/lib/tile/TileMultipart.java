@@ -41,6 +41,7 @@ import uk.co.qmunity.lib.part.compat.OcclusionHelper;
 import uk.co.qmunity.lib.part.compat.PartUpdateManager;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.raytrace.RayTracer;
+import uk.co.qmunity.lib.util.QLog;
 import uk.co.qmunity.lib.vec.Vec3d;
 import uk.co.qmunity.lib.vec.Vec3dCube;
 import cpw.mods.fml.relauncher.Side;
@@ -453,6 +454,11 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
             if (p instanceof IPartTicking)
                 ((IPartTicking) p).update();
 
+        if(parts.size() > 100) {
+            QLog.error("A Qmunitylib part has " + parts.size() + " parts! It has been removed. Dimension: " + getWorld().provider.dimensionId + ", location: " + getX() + ", " + getY() + ", " + getZ());
+            shouldDieInAFire = true;
+        }
+        
         if (shouldDieInAFire)
             getWorld().setBlockToAir(getX(), getY(), getZ());
     }
