@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import uk.co.qmunity.lib.client.render.RenderHelper;
+import uk.co.qmunity.lib.helper.BlockPos;
 import uk.co.qmunity.lib.helper.ItemHelper;
 import uk.co.qmunity.lib.part.compat.OcclusionHelper;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
@@ -136,7 +137,7 @@ public abstract class PartBase implements IPart {
         List<ItemStack> drops = getDrops();
         if ((player == null || !player.capabilities.isCreativeMode) && drops != null && drops.size() > 0)
             for (ItemStack item : drops)
-                ItemHelper.dropItem(getWorld(), getX(), getY(), getZ(), item);
+                ItemHelper.dropItem(getWorld(), new BlockPos(getX(), getY(), getZ()), item);
 
         return true;
     }

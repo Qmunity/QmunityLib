@@ -5,6 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChunkCoordinates;
+import uk.co.qmunity.lib.helper.BlockPos;
 import uk.co.qmunity.lib.helper.PlayerHelper;
 import uk.co.qmunity.lib.helper.SystemInfoHelper;
 import uk.co.qmunity.lib.helper.TeleportHelper;
@@ -94,7 +95,7 @@ public class CommandQLib extends CommandBase {
                     int x = parseInt(sender, args[3]);
                     int y = parseInt(sender, args[4]);
                     int z = parseInt(sender, args[5]);
-                    if (TeleportHelper.movePlayer(args[1], dim, new ChunkCoordinates(x, y, z))) {
+                    if (TeleportHelper.movePlayer(args[1], dim, new BlockPos(x, y, z))) {
                         sender.addChatMessage(new ChatComponentText(args[1] + " moved to dimension " + dim + ": " + x + ", " + ", " + y + ", " + z));
                     } else {
                         sender.addChatMessage(new ChatComponentText(args[1] + " is offline, added to queue."));

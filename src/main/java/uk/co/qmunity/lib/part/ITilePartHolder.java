@@ -12,7 +12,7 @@ import uk.co.qmunity.lib.vec.Vec3d;
 import uk.co.qmunity.lib.vec.Vec3dCube;
 
 /**
- * Inteface implemented by objects that want to handle parts
+ * Interface implemented by objects that want to handle parts
  *
  * @author amadornes
  */

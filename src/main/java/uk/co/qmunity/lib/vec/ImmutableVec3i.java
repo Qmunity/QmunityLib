@@ -16,7 +16,7 @@ public class ImmutableVec3i extends Vec3i {
 
     protected ImmutableVec3i(Vec3i v) {
 
-        super(v.x, v.y, v.z, v.getWorld());
+        super(v.getX(), v.getY(), v.getZ(), v.getWorld());
         if (v instanceof ImmutableVec3i) {
             b = ((ImmutableVec3i) v).b;
             meta = ((ImmutableVec3i) v).meta;
@@ -118,7 +118,7 @@ public class ImmutableVec3i extends Vec3i {
                 return true;
             if (b == null && checkAir && bl.getMaterial() == Material.air)
                 return true;
-            if (b == null && checkAir && bl.isAir(w, x, y, z))
+            if (b == null && checkAir && bl.isAir(w, getX(), getY(), getZ()))
                 return true;
 
             return bl.getClass().isInstance(b);

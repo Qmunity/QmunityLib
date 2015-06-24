@@ -32,18 +32,14 @@ public class TeleportHelper {
             private String player;
             private String type;
             private int    dim;
-            private int    x;
-            private int    y;
-            private int    z;
+            private BlockPos pos;
 
-            public TeleportEntry(String player, int dim, int x, int y, int z) {
+            public TeleportEntry(String player, int dim, BlockPos pos) {
 
                 this.player = player;
                 this.type = "location";
                 this.dim = dim;
-                this.x = x;
-                this.y = y;
-                this.z = z;
+                this.pos = pos;
             }
 
             public TeleportEntry(String player) {
@@ -60,16 +56,9 @@ public class TeleportHelper {
                 return dim;
             }
 
-            public int getX() {
-                return x;
-            }
+            public BlockPos getPos() {
 
-            public int getY() {
-                return y;
-            }
-
-            public int getZ() {
-                return z;
+                return pos;
             }
         }
 
@@ -77,9 +66,9 @@ public class TeleportHelper {
             return this.queue.add(new TeleportEntry(player));
         }
 
-        public boolean addToQueue(String player, int dim, int x, int y, int z) {
+        public boolean addToQueue(String player, int dim, BlockPos pos) {
 
-            return this.queue.add(new TeleportEntry(player.toLowerCase(), dim, x, y, z));
+            return this.queue.add(new TeleportEntry(player.toLowerCase(), dim, pos));
         }
 
         public void clearQueue() {
@@ -93,7 +82,7 @@ public class TeleportHelper {
                     if (te.type.equals("default")) {
                         sendToDefaultSpawn(te.getPlayer());
                     } else {
-                        sendToLocation(player, te.getDim(), te.getX(), te.getY(), te.getZ());
+                        sendToLocation(player, te.getDim(), te.getPos());
                     }
                     remove(player);
                     return true;
@@ -131,7 +120,7 @@ public class TeleportHelper {
         }
     }
 
-    public static boolean movePlayer(String playername, int dim, ChunkCoordinates dest) {
+    public static boolean movePlayer(String playername, int dim, BlockPos dest) {
 
         EntityPlayerMP player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);
 
@@ -139,7 +128,7 @@ public class TeleportHelper {
             if (player.dimension != dim) {
                 MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(player, dim);
             }
-            player.setPositionAndUpdate(dest.posX, dest.posY, dest.posZ);
+            player.setPositionAndUpdate(dest.getX(), dest.getY(), dest.getZ());
             return true;
         } else {
             queuePlayer(playername, dim, dest);
@@ -164,25 +153,25 @@ public class TeleportHelper {
     public static boolean sendToBed(String playername) {
 
         EntityPlayerMP player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);
-        ChunkCoordinates dest = player.getBedLocation(0);
+        BlockPos dest = new BlockPos(player.getBedLocation(0));
         return movePlayer(playername, 0, dest);
     }
 
     public static boolean sendToDimension(String playername, int dim) {
 
-        ChunkCoordinates dest = MinecraftServer.getServer().worldServerForDimension(dim).getSpawnPoint();
+        BlockPos dest = new BlockPos(MinecraftServer.getServer().worldServerForDimension(dim).getSpawnPoint());
         return movePlayer(playername, dim, dest);
     }
 
-    public static boolean sendToLocation(String playername, int dim, int x, int y, int z) {
+    public static boolean sendToLocation(String playername, int dim, BlockPos pos) {
 
-        return movePlayer(playername, dim, new ChunkCoordinates(x, y, z));
+        return movePlayer(playername, dim, pos);
     }
 
-    private static boolean queuePlayer(String playername, int dim, ChunkCoordinates dest) {
+    private static boolean queuePlayer(String playername, int dim, BlockPos dest) {
 
         if (!teleportQueue.isQueued(playername)) {
-            return teleportQueue.addToQueue(playername, dim, dest.posX, dest.posY, dest.posZ);
+            return teleportQueue.addToQueue(playername, dim, dest);
         }
         return false;
     }

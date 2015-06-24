@@ -23,23 +23,29 @@ import uk.co.qmunity.lib.vec.Vec3i;
 
 public class RedstoneHelper {
 
+    @Deprecated
     public static int getVanillaSignalStrength(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
+
+        return getVanillaSignalStrength(world, new BlockPos(x, y, z), side, face);
+    }
+
+    public static int getVanillaSignalStrength(World world, BlockPos pos, ForgeDirection side, ForgeDirection face) {
 
         if (face != ForgeDirection.DOWN && face != ForgeDirection.UNKNOWN)
             return 0;
 
-        Block block = world.getBlock(x, y, z);
+        Block block = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
 
         if (block == Blocks.redstone_wire) {
             if (side == ForgeDirection.DOWN)
-                return world.getBlockMetadata(x, y, z);
+                return world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ());
             if (side == ForgeDirection.UP)
                 return 0;
             int d = Direction.getMovementDirection(side.offsetX, side.offsetZ);
-            if (BlockRedstoneWire.isPowerProviderOrWire(world, x, y, z, d)
-                    || BlockRedstoneWire.isPowerProviderOrWire(world, x + side.offsetX + side.offsetX, y + side.offsetY + side.offsetY, z
+            if (BlockRedstoneWire.isPowerProviderOrWire(world, pos.getX(), pos.getY(), pos.getZ(), d)
+                    || BlockRedstoneWire.isPowerProviderOrWire(world, pos.getX() + side.offsetX + side.offsetX, pos.getY() + side.offsetY + side.offsetY, pos.getZ()
                             + side.offsetZ + side.offsetZ, (d + 2) % 4)) {
-                return world.getBlockMetadata(x, y, z);
+                return world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ());
             }
         }
         if (block instanceof BlockRedstoneComparator)
@@ -51,25 +57,30 @@ public class RedstoneHelper {
             if (side == ForgeDirection.DOWN || side == ForgeDirection.UP)
                 return 0;
             int d = Direction.getMovementDirection(side.offsetX, side.offsetZ);
-            return d == (world.getBlockMetadata(x, y, z) % 4) ? 15 : 0;
+            return d == (world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ()) % 4) ? 15 : 0;
         }
         if (block instanceof BlockRedstoneComparator) {
             if (side == ForgeDirection.DOWN || side == ForgeDirection.UP)
                 return 0;
             int d = Direction.getMovementDirection(side.offsetX, side.offsetZ);
-            return d == (world.getBlockMetadata(x, y, z) % 4) ? ((TileEntityComparator) world.getTileEntity(x, y, z)).getOutputSignal() : 0;
+            return d == (world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ()) % 4) ? ((TileEntityComparator) world.getTileEntity(pos.getX(), pos.getY(), pos.getZ())).getOutputSignal() : 0;
         }
-
         return 0;
     }
 
+    @Deprecated
     public static boolean canConnectVanilla(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
+
+        return canConnectVanilla(world, new BlockPos(x, y, z), side, face);
+    }
+
+    public static boolean canConnectVanilla(World world, BlockPos pos, ForgeDirection side, ForgeDirection face) {
 
         if (side == ForgeDirection.UNKNOWN)
             return false;
 
-        Block block = world.getBlock(x, y, z);
-        int meta = world.getBlockMetadata(x, y, z);
+        Block block = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
+        int meta = world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ());
         int d = Direction.getMovementDirection(side.offsetX, side.offsetZ);
 
         if ((block == Blocks.unpowered_repeater || block == Blocks.powered_repeater)
@@ -94,22 +105,34 @@ public class RedstoneHelper {
             return face == ForgeDirection.UNKNOWN || face == ForgeDirection.DOWN;
 
         return block instanceof BlockDoor || block instanceof BlockRedstoneLight || block instanceof BlockTNT
-                || block instanceof BlockDispenser || block instanceof BlockDropper || block instanceof BlockNote
+                || block instanceof BlockDispenser || block instanceof BlockNote
                 || block instanceof BlockPistonBase;// true;
     }
 
+    @Deprecated
     private static boolean isVanillaBlock(World world, int x, int y, int z) {
 
-        Block b = world.getBlock(x, y, z);
+        return isVanillaBlock(world, new BlockPos(x, y, z));
+    }
+
+    private static boolean isVanillaBlock(World world, BlockPos pos) {
+
+        Block b = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
         return b instanceof BlockRedstoneRepeater || b instanceof BlockLever || b instanceof BlockRedstoneWire
                 || b instanceof BlockRedstoneComparator || b instanceof BlockDoor || b instanceof BlockRedstoneLight
-                || b instanceof BlockTNT || b instanceof BlockDispenser || b instanceof BlockDropper || b instanceof BlockNote
+                || b instanceof BlockTNT || b instanceof BlockDispenser || b instanceof BlockNote
                 || b instanceof BlockPistonBase;
     }
 
+    @Deprecated
     public static int getOutputWeak(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
-        Vec3i location = new Vec3i(x, y, z);
+        return getOutputWeak(world, new BlockPos(x, y, z), side, face);
+    }
+
+    public static int getOutputWeak(World world, BlockPos pos, ForgeDirection side, ForgeDirection face) {
+
+        Vec3i location = new Vec3i(pos);
 
         for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
             IMultipartCompat compat = s.getCompat();
@@ -117,27 +140,33 @@ public class RedstoneHelper {
                 return compat.getWeakRedstoneOuput(world, location, side, face);
         }
 
-        Block block = world.getBlock(x, y, z);
+        Block block = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
 
-        int power = block.isProvidingWeakPower(world, x, y, z, side.getOpposite().ordinal());
+        int power = block.isProvidingWeakPower(world, pos.getX(), pos.getY(), pos.getZ(), side.getOpposite().ordinal());
         if (power > 0)
             return power;
 
-        if (block.isNormalCube(world, x, y, z) && block.isOpaqueCube()) {
+        if (block.isNormalCube(world, pos.getX(), pos.getY(), pos.getZ()) && block.isOpaqueCube()) {
             for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
                 if (d == side)
                     continue;
                 power = Math.max(power,
-                        getOutputStrong(world, x + d.offsetX, y + d.offsetY, z + d.offsetZ, d.getOpposite(), ForgeDirection.UNKNOWN));
+                        getOutputStrong(world, pos.getX() + d.offsetX, pos.getY() + d.offsetY, pos.getZ() + d.offsetZ, d.getOpposite(), ForgeDirection.UNKNOWN));
             }
         }
 
         return power;
     }
 
+    @Deprecated
     public static int getOutputStrong(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
-        Vec3i location = new Vec3i(x, y, z);
+        return getOutputStrong(world, new BlockPos(x, y, z), side, face);
+    }
+
+    public static int getOutputStrong(World world, BlockPos pos, ForgeDirection side, ForgeDirection face) {
+
+        Vec3i location = new Vec3i(pos);
 
         for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
             IMultipartCompat compat = s.getCompat();
@@ -145,85 +174,163 @@ public class RedstoneHelper {
                 return compat.getStrongRedstoneOuput(world, location, side, face);
         }
 
-        int power = getVanillaSignalStrength(world, x, y, z, side, face);
+        int power = getVanillaSignalStrength(world, pos, side, face);
         if (power > 0)
             return power;
 
-        return world.getBlock(x, y, z).isProvidingStrongPower(world, x, y, z, side.getOpposite().ordinal());
+        return world.getBlock(pos.getX(), pos.getY(), pos.getZ()).isProvidingStrongPower(world, pos.getX(), pos.getY(), pos.getZ(), side.getOpposite().ordinal());
     }
 
+    @Deprecated
     public static int getOutputWeak(World world, int x, int y, int z, ForgeDirection side) {
 
-        return getOutputWeak(world, x, y, z, side, ForgeDirection.UNKNOWN);
+        return getOutputWeak(world, new BlockPos(x, y, z), side, ForgeDirection.UNKNOWN);
     }
 
+    public static int getOutputWeak(World world, BlockPos pos, ForgeDirection side) {
+
+        return getOutputWeak(world, pos, side, ForgeDirection.UNKNOWN);
+    }
+
+    @Deprecated
     public static int getOutputStrong(World world, int x, int y, int z, ForgeDirection side) {
 
-        return getOutputStrong(world, x, y, z, side, ForgeDirection.UNKNOWN);
+        return getOutputStrong(world, new BlockPos(x, y, z), side, ForgeDirection.UNKNOWN);
     }
 
+    public static int getOutputStrong(World world, BlockPos pos, ForgeDirection side) {
+
+        return getOutputStrong(world, pos, side, ForgeDirection.UNKNOWN);
+    }
+
+    @Deprecated
     public static int getOutput(World world, int x, int y, int z, ForgeDirection side) {
 
-        return Math.max(getOutputWeak(world, x, y, z, side), getOutputStrong(world, x, y, z, side));
+        return Math.max(getOutputWeak(world, new BlockPos(x, y, z), side), getOutputStrong(world, new BlockPos(x, y, z), side));
     }
 
+    public static int getOutput(World world, BlockPos pos, ForgeDirection side) {
+
+        return Math.max(getOutputWeak(world, pos, side), getOutputStrong(world, pos, side));
+    }
+
+    @Deprecated
     public static int getOutput(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
-        return Math.max(getOutputWeak(world, x, y, z, side, face), getOutputStrong(world, x, y, z, side, face));
+        return Math.max(getOutputWeak(world, new BlockPos(x, y, z), side, face), getOutputStrong(world, new BlockPos(x, y, z), side, face));
     }
 
+    public static int getOutput(World world, BlockPos pos, ForgeDirection side, ForgeDirection face) {
+
+        return Math.max(getOutputWeak(world, pos, side, face), getOutputStrong(world, pos, side, face));
+    }
+
+    @Deprecated
     public static int getOutput(World world, int x, int y, int z) {
 
+        return getOutput(world, new BlockPos(x, y, z));
+    }
+
+    public static int getOutput(World world, BlockPos pos) {
+
         int power = 0;
         for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS)
-            power = Math.max(power, getOutput(world, x, y, z, side));
+            power = Math.max(power, getOutput(world, pos, side));
         return power;
     }
 
+    @Deprecated
     public static int getInputWeak(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
-        return getOutputWeak(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite(), face);
+        return getOutputWeak(world, new BlockPos(x + side.offsetX, y + side.offsetY, z + side.offsetZ), side.getOpposite(), face);
     }
 
+    public static int getInputWeak(World world, BlockPos pos, ForgeDirection side, ForgeDirection face) {
+
+        return getOutputWeak(world, pos.add(side.offsetX, side.offsetY, side.offsetZ), side.getOpposite(), face);
+    }
+
+    @Deprecated
     public static int getInputStrong(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
-        return getOutputStrong(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite(), face);
+        return getOutputStrong(world, new BlockPos(x + side.offsetX, y + side.offsetY, z + side.offsetZ), side.getOpposite(), face);
     }
 
+    public static int getInputStrong(World world, BlockPos pos, ForgeDirection side, ForgeDirection face) {
+
+        return getOutputStrong(world, pos.add(side.offsetX, side.offsetY, side.offsetZ), side.getOpposite(), face);
+    }
+
+    @Deprecated
     public static int getInputWeak(World world, int x, int y, int z, ForgeDirection side) {
 
-        return getOutputWeak(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite());
+        return getOutputWeak(world, new BlockPos(x + side.offsetX, y + side.offsetY, z + side.offsetZ), side.getOpposite());
     }
 
+    public static int getInputWeak(World world, BlockPos pos, ForgeDirection side) {
+
+        return getOutputWeak(world, pos.add(side.offsetX, side.offsetY, side.offsetZ), side.getOpposite());
+    }
+
+    @Deprecated
     public static int getInputStrong(World world, int x, int y, int z, ForgeDirection side) {
 
-        return getOutputStrong(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite());
+        return getOutputStrong(world, new BlockPos(x + side.offsetX, y + side.offsetY, z + side.offsetZ), side.getOpposite());
     }
 
+    public static int getInputStrong(World world, BlockPos pos, ForgeDirection side) {
+
+        return getOutputStrong(world, pos.add(side.offsetX, side.offsetY, side.offsetZ), side.getOpposite());
+    }
+
+    @Deprecated
     public static int getInput(World world, int x, int y, int z, ForgeDirection side) {
 
-        return getOutput(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite());
+        return getOutput(world, new BlockPos(x + side.offsetX, y + side.offsetY, z + side.offsetZ), side.getOpposite());
     }
 
+    public static int getInput(World world, BlockPos pos, ForgeDirection side) {
+
+        return getOutput(world, pos.add(side.offsetX, side.offsetY, side.offsetZ), side.getOpposite());
+    }
+
+    @Deprecated
     public static int getInput(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
-        return getOutput(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite(), face);
+        return getOutput(world, new BlockPos(x + side.offsetX, y + side.offsetY, z + side.offsetZ), side.getOpposite(), face);
     }
 
+    public static int getInput(World world, BlockPos pos, ForgeDirection side, ForgeDirection face) {
+
+        return getOutput(world, pos.add(side.offsetX, side.offsetY, side.offsetZ), side.getOpposite(), face);
+    }
+
+    @Deprecated
     public static int getInput(World world, int x, int y, int z) {
+
+        return getInput(world, new BlockPos(x, y, z));
+    }
+
+    public static int getInput(World world, BlockPos pos) {
 
         int power = 0;
         for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS)
-            power = Math.max(power, getInput(world, x, y, z, side));
+            power = Math.max(power, getInput(world, pos, side));
         return power;
     }
 
+    @Deprecated
     public static boolean canConnect(World world, int x, int y, int z, ForgeDirection side, ForgeDirection face) {
 
-        Vec3i location = new Vec3i(x, y, z);
+        return canConnect(world, new BlockPos(x, y, z), side, face);
+    }
 
-        if (isVanillaBlock(world, x, y, z))
-            return canConnectVanilla(world, x, y, z, side, face);
+    public static boolean canConnect(World world, BlockPos pos, ForgeDirection side, ForgeDirection face) {
+
+        Vec3i location = new Vec3i(pos);
+
+        if (isVanillaBlock(world, pos))
+            return canConnectVanilla(world, pos, side, face);
 
         for (MultipartSystem s : MultipartSystem.getAvailableSystems()) {
             IMultipartCompat compat = s.getCompat();
@@ -232,28 +339,40 @@ public class RedstoneHelper {
         }
 
         try {
-            return world.getBlock(x, y, z).canConnectRedstone(world, x, y, z, Direction.getMovementDirection(side.offsetX, side.offsetZ));
+            return world.getBlock(pos.getX(), pos.getY(), pos.getZ()).canConnectRedstone(world, pos.getX(), pos.getY(), pos.getZ(), Direction.getMovementDirection(side.offsetX, side.offsetZ));
         } catch (Exception ex) {
             // ex.printStackTrace();
         }
         return false;
     }
 
+    @Deprecated
     public static boolean canConnect(World world, int x, int y, int z, ForgeDirection side) {
 
-        return canConnect(world, x, y, z, side, ForgeDirection.UNKNOWN);
+        return canConnect(world, new BlockPos(x, y, z), side, ForgeDirection.UNKNOWN);
     }
 
+    public static boolean canConnect(World world, BlockPos pos, ForgeDirection side) {
+
+        return canConnect(world, pos, side, ForgeDirection.UNKNOWN);
+    }
+
+    @Deprecated
     public static void notifyRedstoneUpdate(World world, int x, int y, int z, ForgeDirection direction, boolean strong) {
 
-        int x_ = x + direction.offsetX;
-        int y_ = y + direction.offsetY;
-        int z_ = z + direction.offsetZ;
+        notifyRedstoneUpdate(world, new BlockPos(x, y, z), direction, strong);
+    }
+
+    public static void notifyRedstoneUpdate(World world, BlockPos pos, ForgeDirection direction, boolean strong) {
+
+        int x_ = pos.getX() + direction.offsetX;
+        int y_ = pos.getY() + direction.offsetY;
+        int z_ = pos.getZ() + direction.offsetZ;
 
         if (world == null)
             return;
 
-        Block block = world.getBlock(x, y, z);
+        Block block = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
 
         // Weak/strong
         world.notifyBlockOfNeighborChange(x_, y_, z_, block);

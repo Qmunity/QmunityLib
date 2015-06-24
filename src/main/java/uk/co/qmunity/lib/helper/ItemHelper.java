@@ -6,7 +6,13 @@ import net.minecraft.world.World;
 
 public class ItemHelper {
 
-    public static final void dropItem(World world, int x, int y, int z, ItemStack itemStack) {
+    @Deprecated
+    public static void dropItem(World world, int x, int y, int z, ItemStack itemStack) {
+
+        ItemHelper.dropItem(world, new BlockPos(x, y, z), itemStack);
+    }
+
+    public static void dropItem(World world, BlockPos pos, ItemStack itemStack) {
 
         if (world.isRemote)
             return;
@@ -14,7 +20,7 @@ public class ItemHelper {
         float dY = world.rand.nextFloat() * 0.8F + 0.1F;
         float dZ = world.rand.nextFloat() * 0.8F + 0.1F;
 
-        EntityItem entityItem = new EntityItem(world, x + dX, y + dY, z + dZ, itemStack.copy());
+        EntityItem entityItem = new EntityItem(world, pos.getX() + dX, pos.getY() + dY, pos.getZ() + dZ, itemStack.copy());
 
         float factor = 0.05F;
         entityItem.motionX = world.rand.nextGaussian() * factor;
@@ -23,5 +29,4 @@ public class ItemHelper {
         world.spawnEntityInWorld(entityItem);
         itemStack.stackSize = 0;
     }
-
 }

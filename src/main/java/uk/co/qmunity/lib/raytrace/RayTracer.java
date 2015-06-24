@@ -10,6 +10,7 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.part.IPart;
 import uk.co.qmunity.lib.part.IPartSelectable;
+import uk.co.qmunity.lib.util.QLog;
 import uk.co.qmunity.lib.vec.Vec3d;
 import uk.co.qmunity.lib.vec.Vec3dCube;
 import uk.co.qmunity.lib.vec.Vec3i;
@@ -39,6 +40,7 @@ public class RayTracer {
 
             return new QMovingObjectPosition(mop, part, mop.getCube());
         } catch (Exception ex) {
+            QLog.error(ex.getMessage());
         }
         return null;
     }

@@ -26,23 +26,32 @@ import net.minecraftforge.common.util.ForgeDirection;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import uk.co.qmunity.lib.helper.BlockPos;
 
 public class Vec3i implements IWorldLocation {
 
-    protected int x, y, z;
+    protected BlockPos pos;
     protected World w = null;
+
+    public Vec3i(BlockPos pos) {
+
+        this.pos = pos;
+    }
+
+    public Vec3i(World world, BlockPos pos) {
+
+        this.w = world;
+        this.pos = pos;
+    }
 
     public Vec3i(int x, int y, int z) {
 
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this(new BlockPos(x, y, z));
     }
 
     public Vec3i(int x, int y, int z, World w) {
 
-        this(x, y, z);
-        this.w = w;
+        this(w, new BlockPos(x, y, z));
     }
 
     public Vec3i(TileEntity te) {
@@ -73,10 +82,7 @@ public class Vec3i implements IWorldLocation {
 
     public Vec3i add(int x, int y, int z) {
 
-        this.x += x;
-        this.y += y;
-        this.z += z;
-        return this;
+        return new Vec3i(pos.add(x, y, z));
     }
 
     public Vec3i add(ForgeDirection dir) {
@@ -86,15 +92,12 @@ public class Vec3i implements IWorldLocation {
 
     public Vec3i add(Vec3i vec) {
 
-        return add(vec.x, vec.y, vec.z);
+        return add(vec.pos.getX(), vec.pos.getY(), vec.pos.getZ());
     }
 
     public Vec3i subtract(int x, int y, int z) {
 
-        this.x -= x;
-        this.y -= y;
-        this.z -= z;
-        return this;
+        return new Vec3i(pos.add(-x, -y, -z));
     }
 
     public Vec3i subtract(ForgeDirection dir) {
@@ -104,14 +107,12 @@ public class Vec3i implements IWorldLocation {
 
     public Vec3i subtract(Vec3i vec) {
 
-        return subtract(vec.x, vec.y, vec.z);
+        return add(-vec.pos.getX(), -vec.pos.getY(), -vec.pos.getZ());
     }
 
     public Vec3i multiply(int x, int y, int z) {
 
-        this.x *= x;
-        this.y *= y;
-        this.z *= z;
+        pos = new BlockPos(getX() * x, this.getY() * y, getZ() * z);
         return this;
     }
 
@@ -127,9 +128,7 @@ public class Vec3i implements IWorldLocation {
 
     public Vec3i divide(int x, int y, int z) {
 
-        this.x /= x;
-        this.y /= y;
-        this.z /= z;
+        this.pos = new BlockPos(getX() / x, this.getY() / y, getZ() / z);
         return this;
     }
 
@@ -145,35 +144,31 @@ public class Vec3i implements IWorldLocation {
 
     public double length() {
 
-        return Math.sqrt(x * x + y * y + z * z);
+        return Math.sqrt(getX() * getX() + getY() * getY() + getZ() * getZ());
     }
 
     public Vec3i normalize() {
 
         Vec3i v = clone();
-
         double len = length();
 
-        v.x /= len;
-        v.y /= len;
-        v.z /= len;
-
+        v.pos = new BlockPos(v.getX() / len, v.getY() / len, v.getZ() / len);
         return v;
     }
 
     public Vec3i abs() {
 
-        return new Vec3i(Math.abs(x), Math.abs(y), Math.abs(z));
+        return new Vec3i(Math.abs(this.getX()), Math.abs(getY()), Math.abs(getZ()));
     }
 
     public double dot(Vec3i v) {
 
-        return x * v.getX() + y * v.getY() + z * v.getZ();
+        return this.getX() * v.getX() + getY() * v.getY() + getZ() * v.getZ();
     }
 
     public Vec3i cross(Vec3i v) {
 
-        return new Vec3i(y * v.getZ() - z * v.getY(), x * v.getZ() - z * v.getX(), x * v.getY() - y * v.getX());
+        return new Vec3i(getY() * v.getZ() - getZ() * v.getY(), getZ() * v.getZ() - getX() * v.getX(), getX() * v.getY() - getY() * v.getX());
     }
 
     public Vec3i getRelative(int x, int y, int z) {
@@ -197,13 +192,13 @@ public class Vec3i implements IWorldLocation {
     @Override
     public Vec3i clone() {
 
-        return new Vec3i(x, y, z, w);
+        return new Vec3i(w, pos);
     }
 
     public boolean hasTileEntity() {
 
         if (hasWorld()) {
-            return w.getTileEntity(x, y, z) != null;
+            return w.getTileEntity(getX(), getY(), getZ()) != null;
         }
         return false;
     }
@@ -211,7 +206,7 @@ public class Vec3i implements IWorldLocation {
     public TileEntity getTileEntity() {
 
         if (hasTileEntity()) {
-            return w.getTileEntity(x, y, z);
+            return w.getTileEntity(getX(), getY(), getZ());
         }
         return null;
     }
@@ -224,13 +219,13 @@ public class Vec3i implements IWorldLocation {
     public boolean isBlock(Block b, boolean checkAir) {
 
         if (hasWorld()) {
-            Block bl = w.getBlock(x, y, z);
+            Block bl = w.getBlock(getX(), getY(), getZ());
 
             if (b == null && bl == Blocks.air)
                 return true;
             if (b == null && checkAir && bl.getMaterial() == Material.air)
                 return true;
-            if (b == null && checkAir && bl.isAir(w, x, y, z))
+            if (b == null && checkAir && bl.isAir(w, getX(), getY(), getZ()))
                 return true;
 
             return bl.getClass().isInstance(b);
@@ -241,7 +236,7 @@ public class Vec3i implements IWorldLocation {
     public int getBlockMeta() {
 
         if (hasWorld()) {
-            return w.getBlockMetadata(x, y, z);
+            return w.getBlockMetadata(getX(), getY(), getZ());
         }
         return -1;
     }
@@ -256,7 +251,7 @@ public class Vec3i implements IWorldLocation {
         if (hasWorld()) {
             if (airIsNull && isBlock(null, true))
                 return null;
-            return w.getBlock(x, y, z);
+            return w.getBlock(getX(), getY(), getZ());
 
         }
         return null;
@@ -278,19 +273,19 @@ public class Vec3i implements IWorldLocation {
     @Override
     public int getX() {
 
-        return x;
+        return pos.getX();
     }
 
     @Override
     public int getY() {
 
-        return y;
+        return pos.getY();
     }
 
     @Override
     public int getZ() {
 
-        return z;
+        return pos.getZ();
     }
 
     public Vec3i getImmutableCopy() {
@@ -300,30 +295,25 @@ public class Vec3i implements IWorldLocation {
 
     public int distanceTo(Vec3i vec) {
 
-        return distanceTo(vec.x, vec.y, vec.z);
+        return distanceTo(vec.getX(), vec.getY(), vec.getZ());
+    }
+
+    public int distanceTo(BlockPos pos) {
+
+        int dx = pos.getX() - getX();
+        int dy = pos.getY() - getY();
+        int dz = pos.getZ() - getZ();
+        return dx * dx + dy * dy + dz * dz;
     }
 
     public int distanceTo(int x, int y, int z) {
 
-        int dx = x - this.x;
-        int dy = y - this.y;
-        int dz = z - this.z;
-        return dx * dx + dy * dy + dz * dz;
+        return distanceTo(new BlockPos(x, y, z));
     }
 
-    public void setX(int x) {
+    public void setPos(BlockPos pos) {
 
-        this.x = x;
-    }
-
-    public void setY(int y) {
-
-        this.y = y;
-    }
-
-    public void setZ(int z) {
-
-        this.z = z;
+        this.pos = pos;
     }
 
     @Override
@@ -331,14 +321,14 @@ public class Vec3i implements IWorldLocation {
 
         if (obj instanceof Vec3i) {
             Vec3i vec = (Vec3i) obj;
-            return vec.w == w && vec.x == x && vec.y == y && vec.z == z;
+            return vec.w == w && vec.getX() == getX() && vec.getY() == getY() && vec.getZ() == getZ();
         }
         return false;
     }
 
     public Vec3 toVec3() {
 
-        return Vec3.createVectorHelper(x, y, z);
+        return Vec3.createVectorHelper(getX(), getY(), getZ());
     }
 
     @Override
@@ -347,25 +337,25 @@ public class Vec3i implements IWorldLocation {
         String s = "Vector3{";
         if (hasWorld())
             s += "w=" + w.provider.dimensionId + ";";
-        s += "x=" + x + ";y=" + y + ";z=" + z + "}";
+        s += "x=" + getX() + ";y=" + getY() + ";z=" + getZ() + "}";
         return s;
     }
 
     public ForgeDirection toForgeDirection() {
 
-        if (z >= x && z >= y)
+        if (getZ() >= getX() && getZ() >= getY())
             return ForgeDirection.SOUTH;
-        if (z <= x && z <= y)
+        if (getZ() <= getX() && getZ() <= getY())
             return ForgeDirection.NORTH;
 
-        if (x >= y && x >= z)
+        if (getX() >= getY() && getX() >= getZ())
             return ForgeDirection.EAST;
-        if (x <= y && x <= z)
+        if (getX() <= getY() && getX() <= getZ())
             return ForgeDirection.WEST;
 
-        if (y >= x && y >= z)
+        if (getY() >= getX() && getY() >= getZ())
             return ForgeDirection.UP;
-        if (y <= x && y <= z)
+        if (getY() <= getX() && getY() <= getZ())
             return ForgeDirection.DOWN;
 
         return ForgeDirection.UNKNOWN;
