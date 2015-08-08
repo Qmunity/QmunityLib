@@ -42,7 +42,7 @@ public class BlockPos {
         this.x += x;
         this.y += y;
         this.z += z;
-        return new BlockPos(x, y, z);
+        return this;
     }
 
 
