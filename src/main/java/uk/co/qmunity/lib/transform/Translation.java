@@ -1,44 +1,45 @@
 package uk.co.qmunity.lib.transform;
 
-import uk.co.qmunity.lib.vec.Vec3d;
-import uk.co.qmunity.lib.vec.Vec3dCube;
+import uk.co.qmunity.lib.model.Vertex;
+import uk.co.qmunity.lib.vec.Matrix4;
+import uk.co.qmunity.lib.vec.Vector3;
 
-public class Translation implements Transformation {
+/**
+ * Most of this class was made by ChickenBones for CodeChickenLib but has been adapted for use in QmunityLib.<br>
+ * You can find the original source at http://github.com/Chicken-Bones/CodeChickenLib
+ */
+public class Translation extends Transformation {
 
-    private double x, y, z;
+    private Vector3 vector;
+    private Matrix4 mat;
 
     public Translation(double x, double y, double z) {
 
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this(new Vector3(x, y, z));
+    }
+
+    public Translation(Vector3 vector) {
+
+        this.vector = vector;
+        mat = new Matrix4().setIdentity().translate(vector);
     }
 
     @Override
-    public Vec3d apply(Vec3d point) {
+    public Transformation inverse() {
 
-        return point.clone().add(x, y, z);
+        return new Translation(vector.copy().inverse());
     }
 
     @Override
-    public Vec3dCube apply(Vec3dCube cube) {
+    public Matrix4 getTransformationMatrix() {
 
-        return cube.clone().add(x, y, z);
+        return mat;
     }
 
-    public double getX() {
+    @Override
+    public void operate(Vertex vertex) {
 
-        return x;
-    }
-
-    public double getY() {
-
-        return y;
-    }
-
-    public double getZ() {
-
-        return z;
+        mat.operate(vertex);
     }
 
 }

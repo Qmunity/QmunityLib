@@ -1,102 +1,164 @@
 package uk.co.qmunity.lib.vec;
 
-public class Quat {
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
-    private double x, y, z, w;
+import uk.co.qmunity.lib.Copyable;
+import uk.co.qmunity.lib.helper.MathHelper;
+import uk.co.qmunity.lib.transform.Rotation;
 
-    public Quat(double x, double y, double z, double w) {
+/**
+ * Most of this class was made by ChickenBones for CodeChickenLib but has been adapted for use in QmunityLib.<br>
+ * You can find the original source at http://github.com/Chicken-Bones/CodeChickenLib
+ */
+public class Quat implements Copyable<Quat> {
+
+    public double x;
+    public double y;
+    public double z;
+    public double s;
+
+    public Quat() {
+
+        this.s = 1;
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+    }
+
+    public Quat(Quat quat) {
+
+        this.x = quat.x;
+        this.y = quat.y;
+        this.z = quat.z;
+        this.s = quat.s;
+    }
+
+    public Quat(double s, double x, double y, double z) {
 
         this.x = x;
         this.y = y;
         this.z = z;
-        this.w = w;
+        this.s = s;
     }
 
-    public Quat(Vec3d axis, double angle) {
+    public Quat set(Quat quat) {
 
-        double sinHalfAngle = Math.sin(angle / 2D);
-
-        x = axis.getX() * sinHalfAngle;
-        y = axis.getY() * sinHalfAngle;
-        z = axis.getZ() * sinHalfAngle;
-        w = Math.cos(angle / 2D);
-    }
-
-    public double getX() {
-
-        return x;
-    }
-
-    public double getY() {
-
-        return y;
-    }
-
-    public double getZ() {
-
-        return z;
-    }
-
-    public double getW() {
-
-        return w;
-    }
-
-    public double length() {
-
-        return Math.sqrt(x * x + y * y + z * z + w * w);
-    }
-
-    public Quat normalize() {
-
-        double len = length();
-
-        x /= len;
-        y /= len;
-        z /= len;
-        w /= len;
+        this.x = quat.x;
+        this.y = quat.y;
+        this.z = quat.z;
+        this.s = quat.s;
 
         return this;
     }
 
-    public Quat conjugate() {
+    public Quat set(double s, double x, double y, double z) {
 
-        return new Quat(-x, -y, -z, w);
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.s = s;
+
+        return this;
     }
 
-    public Quat mul(Quat r) {
+    public static Quat aroundAxis(double ax, double ay, double az, double angle) {
 
-        double w_ = w * r.getW() - x * r.getX() - y * r.getY() - z * r.getZ();
-        double x_ = x * r.getW() + w * r.getX() + y * r.getZ() - z * r.getY();
-        double y_ = y * r.getW() + w * r.getY() + z * r.getX() - x * r.getZ();
-        double z_ = z * r.getW() + w * r.getZ() + x * r.getY() - y * r.getX();
-
-        return new Quat(x_, y_, z_, w_);
+        return new Quat().setAroundAxis(ax, ay, az, angle);
     }
 
-    public Vec3d mul(Vec3d v) {
+    public static Quat aroundAxis(Vector3 axis, double angle) {
 
-        double k0 = w * w - 0.5D;
-        double k1;
-        double rx, ry, rz;
-
-        k1 = v.x * x;
-        k1 += v.y * y;
-        k1 += v.z * z;
-
-        rx = v.x * k0 + x * k1;
-        ry = v.y * k0 + y * k1;
-        rz = v.z * k0 + z * k1;
-
-        rx += w * (y * v.z - z * v.y);
-        ry += w * (z * v.x - x * v.z);
-        rz += w * (x * v.y - y * v.x);
-
-        rx += rx;
-        ry += ry;
-        rz += rz;
-
-        return new Vec3d(rx, ry, rz);
+        return aroundAxis(axis.x, axis.y, axis.z, angle);
     }
 
+    public Quat setAroundAxis(double ax, double ay, double az, double angle) {
+
+        angle *= 0.5;
+        double d4 = MathHelper.sin(angle);
+        return set(MathHelper.cos(angle), ax * d4, ay * d4, az * d4);
+    }
+
+    public Quat setAroundAxis(Vector3 axis, double angle) {
+
+        return setAroundAxis(axis.x, axis.y, axis.z, angle);
+    }
+
+    public Quat multiply(Quat quat) {
+
+        double d = s * quat.s - x * quat.x - y * quat.y - z * quat.z;
+        double d1 = s * quat.x + x * quat.s - y * quat.z + z * quat.y;
+        double d2 = s * quat.y + x * quat.z + y * quat.s - z * quat.x;
+        double d3 = s * quat.z - x * quat.y + y * quat.x + z * quat.s;
+        s = d;
+        x = d1;
+        y = d2;
+        z = d3;
+
+        return this;
+    }
+
+    public Quat rightMultiply(Quat quat) {
+
+        double d = s * quat.s - x * quat.x - y * quat.y - z * quat.z;
+        double d1 = s * quat.x + x * quat.s + y * quat.z - z * quat.y;
+        double d2 = s * quat.y - x * quat.z + y * quat.s + z * quat.x;
+        double d3 = s * quat.z + x * quat.y - y * quat.x + z * quat.s;
+        s = d;
+        x = d1;
+        y = d2;
+        z = d3;
+
+        return this;
+    }
+
+    public double mag() {
+
+        return Math.sqrt(x * x + y * y + z * z + s * s);
+    }
+
+    public Quat normalize() {
+
+        double d = mag();
+        if (d != 0) {
+            d = 1 / d;
+            x *= d;
+            y *= d;
+            z *= d;
+            s *= d;
+        }
+
+        return this;
+    }
+
+    @Override
+    public Quat copy() {
+
+        return new Quat(this);
+    }
+
+    public void rotate(Vector3 vec) {
+
+        double d = -x * vec.x - y * vec.y - z * vec.z;
+        double d1 = s * vec.x + y * vec.z - z * vec.y;
+        double d2 = s * vec.y - x * vec.z + z * vec.x;
+        double d3 = s * vec.z + x * vec.y - y * vec.x;
+        vec.x = d1 * s - d * x - d2 * z + d3 * y;
+        vec.y = d2 * s - d * y + d1 * z - d3 * x;
+        vec.z = d3 * s - d * z - d1 * y + d2 * x;
+    }
+
+    @Override
+    public String toString() {
+
+        MathContext cont = new MathContext(4, RoundingMode.HALF_UP);
+        return "Quat(" + new BigDecimal(s, cont) + ", " + new BigDecimal(x, cont) + ", " + new BigDecimal(y, cont) + ", "
+                + new BigDecimal(z, cont) + ")";
+    }
+
+    public Rotation rotation() {
+
+        return new Rotation(this);
+    }
 }

@@ -2,14 +2,8 @@ package uk.co.qmunity.lib.vec;
 
 import net.minecraft.world.World;
 
-public interface IWorldLocation {
+public interface IWorldLocation extends ILocation {
 
     public World getWorld();
-
-    public int getX();
-
-    public int getY();
-
-    public int getZ();
 
 }

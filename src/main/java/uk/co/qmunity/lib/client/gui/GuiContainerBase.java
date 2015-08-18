@@ -1,219 +1,315 @@
 package uk.co.qmunity.lib.client.gui;
 
+import static uk.co.qmunity.lib.client.gui.GuiRenderingUtils.*;
+
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.StatCollector;
 
-import org.apache.commons.lang3.text.WordUtils;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-import uk.co.qmunity.lib.QmunityLib;
-import uk.co.qmunity.lib.client.gui.widget.BaseWidget;
-import uk.co.qmunity.lib.client.gui.widget.GuiAnimatedStat;
-import uk.co.qmunity.lib.client.gui.widget.IGuiAnimatedStat;
 import uk.co.qmunity.lib.client.gui.widget.IGuiWidget;
+import uk.co.qmunity.lib.client.gui.widget.IWidgetAction;
+import uk.co.qmunity.lib.client.gui.widget.IWidgetContainer;
 import uk.co.qmunity.lib.client.gui.widget.IWidgetListener;
+import uk.co.qmunity.lib.client.helper.InputHelper;
+import uk.co.qmunity.lib.inventory.slot.ISlotPhantom;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 
 /**
  * @author MineMaarten
  * @author K-4U
  */
-public class GuiContainerBase extends GuiContainer implements IWidgetListener {
+public class GuiContainerBase extends GuiContainer implements IWidgetListener, IWidgetContainer {
 
-    protected static final int COLOR_TEXT = 4210752;
-    protected final List<IGuiWidget> widgets = new ArrayList<IGuiWidget>();
-    private final ResourceLocation resLoc;
-    protected IInventory inventory;
-    protected IGuiAnimatedStat lastLeftStat, lastRightStat;
+    protected final int xSize, ySize;
+    protected int guiTop, guiLeft;
+    protected ResourceLocation background;
+    protected String title;
 
-    public GuiContainerBase(Container mainContainer, ResourceLocation _resLoc) {
+    protected List<IGuiWidget> widgets = new ArrayList<IGuiWidget>();
+    protected IGuiWidget focus = null;
 
-        super(mainContainer);
-        resLoc = _resLoc;
+    protected ScaledResolution resolution;
+
+    public GuiContainerBase(Container container, int xSize, int ySize, String background) {
+
+        this(container, xSize, ySize, new ResourceLocation(background));
     }
 
-    public GuiContainerBase(IInventory inventory, Container mainContainer, ResourceLocation _resLoc) {
+    public GuiContainerBase(Container container, int xSize, int ySize, ResourceLocation background) {
 
-        this(mainContainer, _resLoc);
-        this.inventory = inventory;
+        super(container);
+
+        super.xSize = this.xSize = xSize;
+        super.ySize = this.ySize = ySize;
+
+        this.background = background;
     }
 
-    protected boolean isInfoStatLeftSided() {
+    public GuiContainerBase(Container container, int xSize, int ySize, String background, String title) {
 
-        return true;
+        this(container, xSize, ySize, background);
+
+        this.title = title;
     }
 
-    protected GuiAnimatedStat addAnimatedStat(String title, ItemStack icon, int color, boolean leftSided) {
+    public GuiContainerBase(Container container, int xSize, int ySize, ResourceLocation background, String title) {
 
-        GuiAnimatedStat stat = new GuiAnimatedStat(this, title, icon, guiLeft + (leftSided ? 0 : xSize), leftSided && lastLeftStat != null
-                || !leftSided && lastRightStat != null ? 3 : guiTop + 5, color, leftSided ? lastLeftStat : lastRightStat, leftSided);
-        addWidget(stat);
-        if (leftSided) {
-            lastLeftStat = stat;
-        } else {
-            lastRightStat = stat;
-        }
-        return stat;
+        this(container, xSize, ySize, background);
+
+        this.title = title;
     }
 
-    protected GuiAnimatedStat addAnimatedStat(String title, String icon, int color, boolean leftSided) {
+    @Override
+    public void initGui() {
 
-        GuiAnimatedStat stat = new GuiAnimatedStat(this, title, icon, guiLeft + (leftSided ? 0 : xSize), leftSided && lastLeftStat != null
-                || !leftSided && lastRightStat != null ? 3 : guiTop + 5, color, leftSided ? lastLeftStat : lastRightStat, leftSided);
-        addWidget(stat);
-        if (leftSided) {
-            lastLeftStat = stat;
-        } else {
-            lastRightStat = stat;
-        }
-        return stat;
+        super.initGui();
+
+        guiLeft = (width - xSize) / 2;
+        guiTop = (height - ySize) / 2;
+
+        FMLCommonHandler.instance().bus().register(this);
     }
 
-    protected void addWidget(IGuiWidget widget) {
+    @Override
+    public void onGuiClosed() {
 
-        widgets.add(widget);
-        widget.setListener(this);
+        super.onGuiClosed();
+
+        FMLCommonHandler.instance().bus().unregister(this);
     }
 
     @Override
     public void setWorldAndResolution(Minecraft par1Minecraft, int par2, int par3) {
 
         widgets.clear();
-        lastLeftStat = lastRightStat = null;
         super.setWorldAndResolution(par1Minecraft, par2, par3);
+        resolution = new ScaledResolution(mc(), mc().displayWidth, mc().displayHeight);
     }
 
-    public static void drawVerticalProgressBar(int xOffset, int yOffset, int h, int w, float value, float max, int color) {
+    public ResourceLocation getBackground() {
 
-        float perc = value / max;
-        int height = (int) (h * perc);
-        drawRect(xOffset, yOffset + h - height, xOffset + w, yOffset + h, color);
-    }
-
-    public void drawHorizontalAlignedString(int xOffset, int yOffset, int w, String text, boolean useShadow) {
-
-        int stringWidth = fontRendererObj.getStringWidth(text);
-        int newX = xOffset;
-        if (stringWidth < w) {
-            newX = w / 2 - stringWidth / 2 + xOffset;
-        }
-
-        fontRendererObj.drawString(text, newX, yOffset, COLOR_TEXT, useShadow);
-    }
-
-    public void drawString(int xOffset, int yOffset, String text, boolean useShadow) {
-
-        fontRendererObj.drawString(text, xOffset, yOffset, COLOR_TEXT, useShadow);
+        return background;
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-
-        fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 8, ySize - 94 + 2, COLOR_TEXT);
-        if (inventory != null) {
-            drawHorizontalAlignedString(7, 5, xSize - 14, I18n.format(inventory.getInventoryName() + ".name"), false);
-        }
-    }
-
-    @Override
-    protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
+    public void drawGuiContainerBackgroundLayer(float f, int mx, int my) {
 
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        mc.renderEngine.bindTexture(resLoc);
 
-        int x = (width - xSize) / 2;
-        int y = (height - ySize) / 2;
+        drawBackground(mx, my, f);
+        drawForeground(mx, my, f);
+        drawTooltips(mx, my, f);
+    }
 
-        drawTexturedModalRect(x, y, 0, 0, xSize, ySize);
+    public void drawBackground(int mx, int my, float f) {
 
-        for (IGuiWidget widget : widgets) {
-            widget.render(i, j, f);
+        mc.renderEngine.bindTexture(getBackground());
+        drawTexturedModalRect(getLeft(), getTop(), 0, 0, getWidth(), getHeight());
+    }
+
+    public void drawForeground(int mx, int my, float f) {
+
+        GL11.glPushMatrix();
+        GL11.glTranslated(getLeft(), getTop(), 0);
+
+        if (title != null)
+            drawHorizontalAlignedString(0, 8, getWidth(), I18n.format(title), true);
+        for (IGuiWidget widget : getWidgets()) {
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            widget.render(mx - getLeft(), my - getTop(), f);
+        }
+
+        GL11.glPopMatrix();
+    }
+
+    public void drawTooltips(int mx, int my, float f) {
+
+        List<String> tip = new ArrayList<String>();
+
+        // Add tips for the widgets we're hovering over
+        for (IGuiWidget widget : getWidgets())
+            if (widget.isMouseOver(mx - getLeft(), my - getTop()))
+                widget.addTooltip(mx - getLeft(), my - getTop(), tip);
+
+        // If the list isn't empty
+        if (tip != null && !tip.isEmpty()) {
+            // Localize the tooltips
+            for (int i = 0; i < tip.size(); i++)
+                tip.set(i, I18n.format(tip.get(i)));
+            // Render them
+            drawHoveringText(tip, mx, my, fontRendererObj);
         }
     }
 
     @Override
-    public void drawScreen(int x, int y, float partialTick) {
+    public void mouseClicked(int mx, int my, int btn) {
 
-        super.drawScreen(x, y, partialTick);
-        List<String> tooltip = new ArrayList<String>();
-        boolean shift = QmunityLib.proxy.isSneakingInGui();
-        for (IGuiWidget widget : widgets) {
-            if (widget.getBounds().contains(x, y))
-                widget.addTooltip(x, y, tooltip, shift);
+        super.mouseClicked(mx, my, btn);
+
+        for (IGuiWidget widget : getWidgets())
+            if (widget.isMouseOver(mx - getLeft(), my - getTop()))
+                widget.onMouseClicked(mx - getLeft(), my - getTop(), btn);
+    }
+
+    @Override
+    public void mouseMovedOrUp(int mx, int my, int btn) {
+
+        super.mouseMovedOrUp(mx, my, btn);
+
+        if (btn == -1) {
+            for (IGuiWidget widget : getWidgets())
+                if (widget.isMouseOver(mx - getLeft(), my - getTop()))
+                    widget.onMouseReleased(mx - getLeft(), my - getTop(), btn);
+        } else {
+            for (IGuiWidget widget : getWidgets())
+                if (widget.isMouseOver(mx - getLeft(), my - getTop()))
+                    widget.onMouseMoved(mx - getLeft(), my - getTop());
         }
-        if (!tooltip.isEmpty()) {
-            List<String> localizedTooltip = new ArrayList<String>();
-            for (String line : tooltip) {
-                String localizedLine = I18n.format(line);
-                String[] lines = WordUtils.wrap(localizedLine, 50).split(System.getProperty("line.separator"));
-                for (String locLine : lines) {
-                    localizedTooltip.add(locLine);
+    }
+
+    @Override
+    public void mouseClickMove(int mx, int my, int btn, long ticks) {
+
+        super.mouseClickMove(mx, my, btn, ticks);
+
+        for (IGuiWidget widget : getWidgets())
+            if (widget.isMouseOver(mx - getLeft(), my - getTop()))
+                widget.onMouseDragged(mx - getLeft(), my - getTop(), btn, ticks);
+    }
+
+    @Override
+    public void keyTyped(char c, int k) {
+
+        super.keyTyped(c, k);
+
+        // If we closed the gui, return
+        if (mc().currentScreen == null)
+            return;
+
+        if (getFocused() != null)
+            getFocused().onKeyTyped(k, c);
+    }
+
+    // Widget ticking
+
+    @SuppressWarnings("unchecked")
+    @SubscribeEvent
+    public void onClientTick(ClientTickEvent event) {
+
+        if (event.phase != Phase.END)
+            return;
+
+        for (IGuiWidget widget : getWidgets())
+            widget.update();
+
+        int x = (Mouse.getX() / resolution.getScaleFactor()) - getLeft(), y = ((mc().displayHeight - Mouse.getY()) / resolution
+                .getScaleFactor()) - getTop();
+        int dWheel = InputHelper.getDWheel();
+        if (dWheel != 0) {
+            for (Slot s : (List<Slot>) inventorySlots.inventorySlots) {
+                if (s instanceof ISlotPhantom && s.getHasStack() && x >= s.xDisplayPosition && x < s.xDisplayPosition + 16
+                        && y >= s.yDisplayPosition && y < s.yDisplayPosition + 16) {
+                    ItemStack stack = s.getStack().copy();
+
+                    if (dWheel < 0)
+                        stack.stackSize = Math.min(stack.stackSize - 1,
+                                Math.min(stack.getMaxStackSize(), s.inventory.getInventoryStackLimit()));
+                    else if (dWheel > 0)
+                        stack.stackSize = Math.min(stack.stackSize + 1,
+                                Math.min(stack.getMaxStackSize(), s.inventory.getInventoryStackLimit()));
+
+                    if (stack.stackSize <= 0)
+                        stack = null;
+                    s.putStack(stack);
+
+                    break;
                 }
             }
-            drawHoveringText(localizedTooltip, x, y, fontRendererObj);
         }
+    }
 
+    // IWidgetContainer
+
+    @Override
+    public void addWidget(IGuiWidget widget) {
+
+        if (widget == null)
+            throw new NullPointerException("Attempted to add a null widget.");
+        if (widgets.contains(widget))
+            throw new IllegalStateException("Attempted to add a widget that was already there.");
+
+        widgets.add(widget);
+        widget.addListener(this);
     }
 
     @Override
-    protected void mouseClicked(int x, int y, int button) {
+    public List<IGuiWidget> getWidgets() {
 
-        super.mouseClicked(x, y, button);
-        for (IGuiWidget widget : widgets) {
-            if (widget.getBounds().contains(x, y) && (!(widget instanceof BaseWidget) || ((BaseWidget) widget).enabled))
-                widget.onMouseClicked(x, y, button);
-        }
+        return widgets;
     }
 
     @Override
-    public void actionPerformed(IGuiWidget widget) {
+    public void setFocus(IGuiWidget widget) {
 
-        if (widget instanceof GuiAnimatedStat && ((GuiAnimatedStat) widget).isClicked()) {
-            for (IGuiWidget w : widgets) {
-                if (w != widget && w instanceof GuiAnimatedStat
-                        && ((GuiAnimatedStat) w).isLeftSided() == ((GuiAnimatedStat) widget).isLeftSided())
-                    ((GuiAnimatedStat) w).closeWindow();
-            }
+        if (widget == null) {
+            focus = null;
+            return;
         }
+
+        if (!widgets.contains(widget))
+            throw new IllegalStateException("Attempted to set focus on a widget that's not part of the GUI.");
+        focus = widget;
     }
 
     @Override
-    public void updateScreen() {
+    public IGuiWidget getFocused() {
 
-        super.updateScreen();
-        for (IGuiWidget widget : widgets)
-            widget.update();
+        return focus;
     }
 
-    public void redraw() {
+    @Override
+    public int getTop() {
 
-        buttonList.clear();
-        List<IGuiWidget> stats = new ArrayList<IGuiWidget>();
-        for (IGuiWidget widget : widgets) {
-            if (widget instanceof IGuiAnimatedStat) {
-                stats.add(widget);
-            }
-        }
-        widgets.clear();
-        initGui();
+        return guiTop;
+    }
 
-        Iterator<IGuiWidget> iterator = widgets.iterator();
-        while (iterator.hasNext()) {
-            IGuiWidget widget = iterator.next();
-            if (widget instanceof IGuiAnimatedStat) {
-                iterator.remove();
-            }
-        }
-        widgets.addAll(stats);
+    @Override
+    public int getLeft() {
+
+        return guiLeft;
+    }
+
+    @Override
+    public int getWidth() {
+
+        return xSize;
+    }
+
+    @Override
+    public int getHeight() {
+
+        return ySize;
+    }
+
+    // IWidgetListener
+
+    @Override
+    public void actionPerformed(IGuiWidget widget, IWidgetAction action) {
+
     }
 
 }

@@ -1,36 +1,49 @@
 package uk.co.qmunity.lib.transform;
 
-import uk.co.qmunity.lib.vec.Vec3d;
-import uk.co.qmunity.lib.vec.Vec3dCube;
+import uk.co.qmunity.lib.model.Vertex;
+import uk.co.qmunity.lib.vec.Matrix4;
+import uk.co.qmunity.lib.vec.Vector3;
 
-public class Scale implements Transformation {
+/**
+ * Most of this class was made by ChickenBones for CodeChickenLib but has been adapted for use in QmunityLib.<br>
+ * You can find the original source at http://github.com/Chicken-Bones/CodeChickenLib
+ */
+public class Scale extends Transformation {
 
-    private double x, y, z;
-    private Vec3d center = Vec3d.center;
+    private Vector3 vector;
+    private Matrix4 mat;
+
+    public Scale(double scale) {
+
+        this(scale, scale, scale);
+    }
 
     public Scale(double x, double y, double z) {
 
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this(new Vector3(x, y, z));
     }
 
-    public Scale(double x, double y, double z, Vec3d center) {
+    public Scale(Vector3 vector) {
 
-        this(x, y, z);
-        this.center = center;
-    }
-
-    @Override
-    public Vec3d apply(Vec3d point) {
-
-        return point.clone().sub(center).mul(x, y, z).add(center);
+        this.vector = vector;
+        mat = new Matrix4().setIdentity().scale(vector);
     }
 
     @Override
-    public Vec3dCube apply(Vec3dCube cube) {
+    public Transformation inverse() {
 
-        return new Vec3dCube(apply(cube.getMin()), apply(cube.getMax()));
+        return new Scale(vector.copy().inverse());
     }
 
+    @Override
+    public Matrix4 getTransformationMatrix() {
+
+        return mat;
+    }
+
+    @Override
+    public void operate(Vertex vertex) {
+
+        mat.operate(vertex);
+    }
 }

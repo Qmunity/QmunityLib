@@ -1,13 +1,6 @@
 package uk.co.qmunity.lib.network;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufOutputStream;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
@@ -47,31 +40,18 @@ public abstract class Packet<REQ extends Packet<REQ>> implements IMessage, IMess
     public abstract void handleServerSide(EntityPlayer player);
 
     @Override
-    public void fromBytes(ByteBuf buf) {
+    public final void fromBytes(ByteBuf buf) {
 
-        try {
-            ByteBufInputStream bbis = new ByteBufInputStream(buf);
-            read(bbis);
-            bbis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        fromBytes(new MCByteBuf(buf));
     }
 
     @Override
-    public void toBytes(ByteBuf buf) {
+    public final void toBytes(ByteBuf buf) {
 
-        try {
-            ByteBufOutputStream bbos = new ByteBufOutputStream(buf);
-            write(bbos);
-            bbos.flush();
-            bbos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        toBytes(new MCByteBuf(buf));
     }
 
-    public abstract void read(DataInput buffer) throws IOException;
+    public abstract void fromBytes(MCByteBuf buf);
 
-    public abstract void write(DataOutput buffer) throws IOException;
+    public abstract void toBytes(MCByteBuf buf);
 }

@@ -1,8 +1,8 @@
 package uk.co.qmunity.lib.helper;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import uk.co.qmunity.lib.QmunityLib;
-import net.minecraft.entity.player.EntityPlayer;
 
 public class PlayerHelper {
 

@@ -18,18 +18,22 @@ import cpw.mods.fml.relauncher.Side;
  * @author MineMaarten
  */
 @Sharable
-public class DescPacketHandler extends SimpleChannelInboundHandler<FMLProxyPacket>{
+@SuppressWarnings("unused")
+public class DescPacketHandler extends SimpleChannelInboundHandler<FMLProxyPacket> {
     public final static String CHANNEL = "QmunityLibDesc";
-    private final static EnumMap<Side, FMLEmbeddedChannel> channels = NetworkRegistry.INSTANCE.newChannel(DescPacketHandler.CHANNEL, new DescPacketHandler());
+    private final static EnumMap<Side, FMLEmbeddedChannel> channels = NetworkRegistry.INSTANCE.newChannel(DescPacketHandler.CHANNEL,
+            new DescPacketHandler());
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FMLProxyPacket msg) throws Exception{
+    protected void channelRead0(ChannelHandlerContext ctx, FMLProxyPacket msg) throws Exception {
+
         PacketDescription packet = new PacketDescription();
         packet.fromBytes(msg.payload());
         packet.handleClientSide(QmunityLib.proxy.getPlayer());
     }
 
-    public static FMLProxyPacket getPacket(PacketDescription packet){
+    public static FMLProxyPacket getPacket(PacketDescription packet) {
+
         ByteBuf buf = Unpooled.buffer();
         packet.toBytes(buf);
         return new FMLProxyPacket(buf, CHANNEL);

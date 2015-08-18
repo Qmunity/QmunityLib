@@ -1,88 +1,193 @@
 package uk.co.qmunity.lib.transform;
 
-import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.model.Vertex;
+import uk.co.qmunity.lib.vec.Matrix4;
 import uk.co.qmunity.lib.vec.Quat;
-import uk.co.qmunity.lib.vec.Vec3d;
-import uk.co.qmunity.lib.vec.Vec3dCube;
+import uk.co.qmunity.lib.vec.Vector3;
 
-public class Rotation implements Transformation {
+/**
+ * Most of this class was made by ChickenBones for CodeChickenLib but has been adapted for use in QmunityLib.<br>
+ * You can find the original source at http://github.com/Chicken-Bones/CodeChickenLib
+ */
+public class Rotation extends Transformation {
 
-    private double x, y, z;
-    private Vec3d center = Vec3d.center;
-    private Quat r;
+    public static Vector3[] axes = new Vector3[] { new Vector3(0, -1, 0), new Vector3(0, 1, 0), new Vector3(0, 0, -1),
+            new Vector3(0, 0, 1), new Vector3(-1, 0, 0), new Vector3(1, 0, 0) };
 
-    public Rotation(double x, double y, double z) {
+    public static Transformation[] quarterRotations = new Transformation[] { new RedundantTransformation(),
+            new VariableTransformation(new Matrix4(0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1)) {
+                @Override
+                public void apply(Vector3 vec) {
 
-        this.x = x;
-        this.y = y;
-        this.z = z;
+                    double d1 = vec.x;
+                    double d2 = vec.z;
+                    vec.x = -d2;
+                    vec.z = d1;
+                }
 
-        Quat rx = new Quat(new Vec3d(1, 0, 0), Math.toRadians(x));
-        Quat ry = new Quat(new Vec3d(0, 1, 0), Math.toRadians(y));
-        Quat rz = new Quat(new Vec3d(0, 0, 1), Math.toRadians(z));
+                @Override
+                public Transformation inverse() {
 
-        r = rx.mul(ry.mul(rz));
+                    return quarterRotations[3];
+                }
+            }, new VariableTransformation(new Matrix4(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1)) {
+                @Override
+                public void apply(Vector3 vec) {
+
+                    vec.x = -vec.x;
+                    vec.z = -vec.z;
+                }
+
+                @Override
+                public Transformation inverse() {
+
+                    return this;
+                }
+            }, new VariableTransformation(new Matrix4(0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1)) {
+                @Override
+                public void apply(Vector3 vec) {
+
+                    double d1 = vec.x;
+                    double d2 = vec.z;
+                    vec.x = d2;
+                    vec.z = -d1;
+                }
+
+                @Override
+                public Transformation inverse() {
+
+                    return quarterRotations[1];
+                }
+            } };
+
+    public static Transformation[] sideRotations = new Transformation[] { new RedundantTransformation(),
+            new VariableTransformation(new Matrix4(1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1)) {
+                @Override
+                public void apply(Vector3 vec) {
+
+                    vec.y = -vec.y;
+                    vec.z = -vec.z;
+                }
+
+                @Override
+                public Transformation inverse() {
+
+                    return this;
+                }
+            }, new VariableTransformation(new Matrix4(1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1)) {
+                @Override
+                public void apply(Vector3 vec) {
+
+                    double d1 = vec.y;
+                    double d2 = vec.z;
+                    vec.y = -d2;
+                    vec.z = d1;
+                }
+
+                @Override
+                public Transformation inverse() {
+
+                    return sideRotations[3];
+                }
+            }, new VariableTransformation(new Matrix4(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1)) {
+                @Override
+                public void apply(Vector3 vec) {
+
+                    double d1 = vec.y;
+                    double d2 = vec.z;
+                    vec.y = d2;
+                    vec.z = -d1;
+                }
+
+                @Override
+                public Transformation inverse() {
+
+                    return sideRotations[2];
+                }
+            }, new VariableTransformation(new Matrix4(0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)) {
+                @Override
+                public void apply(Vector3 vec) {
+
+                    double d0 = vec.x;
+                    double d1 = vec.y;
+                    vec.x = d1;
+                    vec.y = -d0;
+                }
+
+                @Override
+                public Transformation inverse() {
+
+                    return sideRotations[5];
+                }
+            }, new VariableTransformation(new Matrix4(0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)) {
+                @Override
+                public void apply(Vector3 vec) {
+
+                    double d0 = vec.x;
+                    double d1 = vec.y;
+                    vec.x = -d1;
+                    vec.y = d0;
+                }
+
+                @Override
+                public Transformation inverse() {
+
+                    return sideRotations[4];
+                }
+            } };
+
+    private double angle;
+    private Vector3 axis;
+
+    private Matrix4 mat;
+
+    public Rotation(double angle, double x, double y, double z) {
+
+        this(angle, new Vector3(x, y, z));
     }
 
-    public Rotation(double x, double y, double z, Vec3d center) {
+    public Rotation(double angle, Vector3 axis) {
 
-        this(x, y, z);
-        this.center = center;
+        this.angle = angle;
+        this.axis = axis;
+        mat = new Matrix4().setIdentity().rotate(-angle, axis);
     }
 
-    public Rotation(ForgeDirection face) {
+    public Rotation(Quat quat) {
 
-        switch (face) {
-        case DOWN:
-            break;
-        case UP:
-            z = 180;
-            break;
-        case WEST:
-            z = -90;
-            break;
-        case EAST:
-            z = 90;
-            break;
-        case NORTH:
-            x = 90;
-            break;
-        case SOUTH:
-            x = -90;
-            break;
-        default:
-            break;
+        angle = Math.acos(quat.s) * 2;
+        if (angle == 0) {
+            axis = new Vector3(0, 1, 0);
+        } else {
+            double sa = Math.sin(angle * 0.5);
+            axis = new Vector3(quat.x / sa, quat.y / sa, quat.z / sa);
         }
-
-        Quat rx = new Quat(new Vec3d(1, 0, 0), Math.toRadians(x));
-        Quat ry = new Quat(new Vec3d(0, 1, 0), Math.toRadians(y));
-        Quat rz = new Quat(new Vec3d(0, 0, 1), Math.toRadians(z));
-
-        r = rx.mul(ry.mul(rz));
-    }
-
-    public Rotation(ForgeDirection face, Vec3d center) {
-
-        this(face);
-        this.center = center;
+        mat = new Matrix4().setIdentity().rotate(-angle, axis);
     }
 
     @Override
-    public Vec3d apply(Vec3d point) {
+    public Transformation inverse() {
 
-        point = point.clone();
-
-        point.sub(center);
-        point.rotate(r);
-        point.add(center);
-
-        return point;
+        return new Rotation(-angle, axis);
     }
 
     @Override
-    public Vec3dCube apply(Vec3dCube cube) {
+    public Matrix4 getTransformationMatrix() {
 
-        return new Vec3dCube(apply(cube.getMin()), apply(cube.getMax()));
+        return mat;
+    }
+
+    @Override
+    public void operate(Vertex vertex) {
+
+        apply(vertex.position);
+        applyN(vertex.normal);
+    }
+
+    @Override
+    public void applyN(Vector3 vector) {
+
+        apply(vector);
     }
 
 }

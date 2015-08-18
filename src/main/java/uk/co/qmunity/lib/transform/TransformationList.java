@@ -2,193 +2,111 @@ package uk.co.qmunity.lib.transform;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
-import uk.co.qmunity.lib.vec.Vec3d;
-import uk.co.qmunity.lib.vec.Vec3dCube;
+import uk.co.qmunity.lib.model.IVertexOperation;
+import uk.co.qmunity.lib.model.Vertex;
+import uk.co.qmunity.lib.vec.Matrix4;
+import uk.co.qmunity.lib.vec.Vector3;
 
-public class TransformationList implements List<Transformation>, Transformation {
+/**
+ * Most of this class was made by ChickenBones for CodeChickenLib but has been adapted for use in QmunityLib.<br>
+ * You can find the original source at http://github.com/Chicken-Bones/CodeChickenLib
+ */
+public class TransformationList extends Transformation implements Iterable<Transformation> {
 
-    private List<Transformation> l = new ArrayList<Transformation>();
+    private final List<Transformation> transformations;
+
+    public TransformationList(Iterable<Transformation> transformations) {
+
+        this.transformations = new ArrayList<Transformation>();
+        for (Transformation t : transformations)
+            add(t);
+    }
 
     public TransformationList(Transformation... transformations) {
 
-        l.addAll(Arrays.asList(transformations));
+        this.transformations = new ArrayList<Transformation>();
+        for (Transformation t : transformations)
+            add(t);
     }
 
-    public TransformationList(List<Transformation> list) {
+    public TransformationList(Transformation transformation, Transformation... transformations) {
 
-        l.addAll(list);
+        this.transformations = new ArrayList<Transformation>();
+        add(transformation);
+        for (Transformation t : transformations)
+            add(t);
     }
 
-    @Override
-    public boolean add(Transformation transformation) {
+    private TransformationList(List<Transformation> transformations) {
 
-        return l.add(transformation);
+        this.transformations = transformations;
     }
 
-    @Override
-    public void add(int index, Transformation transformation) {
+    public TransformationList add(Transformation... transformations) {
 
-        l.add(index, transformation);
-    }
+        this.transformations.addAll(Arrays.asList(transformations));
 
-    @Override
-    public boolean addAll(Collection<? extends Transformation> collection) {
-
-        return l.addAll(collection);
-    }
-
-    @Override
-    public boolean addAll(int index, Collection<? extends Transformation> collection) {
-
-        return l.addAll(index, collection);
-    }
-
-    @Override
-    public void clear() {
-
-        l.clear();
-    }
-
-    @Override
-    public boolean contains(Object object) {
-
-        return l.contains(object);
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> collection) {
-
-        return l.containsAll(collection);
-    }
-
-    @Override
-    public Transformation get(int index) {
-
-        return l.get(index);
-    }
-
-    @Override
-    public int indexOf(Object object) {
-
-        return l.indexOf(object);
-    }
-
-    @Override
-    public boolean isEmpty() {
-
-        return l.isEmpty();
+        return this;
     }
 
     @Override
     public Iterator<Transformation> iterator() {
 
-        return l.iterator();
+        return transformations.iterator();
     }
 
     @Override
-    public int lastIndexOf(Object object) {
+    public void apply(Vector3 vector) {
 
-        return l.lastIndexOf(object);
+        // for (int i = transformations.size() - 1; i >= 0; i--)
+        // transformations.get(i).apply(vector);
+        for (Transformation t : transformations)
+            t.apply(vector);
     }
 
     @Override
-    public ListIterator<Transformation> listIterator() {
+    public void apply(Matrix4 matrix) {
 
-        return l.listIterator();
+        // for (int i = transformations.size() - 1; i >= 0; i--)
+        // transformations.get(i).apply(matrix);
+        for (Transformation t : transformations)
+            t.apply(matrix);
     }
 
     @Override
-    public ListIterator<Transformation> listIterator(int index) {
+    public TransformationList inverse() {
 
-        return l.listIterator(index);
+        List<Transformation> reversed = new ArrayList<Transformation>(transformations);
+        Collections.reverse(reversed);
+        return new TransformationList(reversed);
     }
 
     @Override
-    public boolean remove(Object object) {
+    public TransformationList with(Transformation... transformations) {
 
-        return l.remove(object);
+        add(transformations);
+
+        return this;
     }
 
     @Override
-    public Transformation remove(int index) {
+    public Matrix4 getTransformationMatrix() {
 
-        return l.remove(index);
+        Matrix4 matrix = new Matrix4().setIdentity();
+        apply(matrix);
+        return matrix;
     }
 
     @Override
-    public boolean removeAll(Collection<?> collection) {
+    public void operate(Vertex vertex) {
 
-        return l.removeAll(collection);
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> collection) {
-
-        return l.retainAll(collection);
-    }
-
-    @Override
-    public Transformation set(int index, Transformation transformation) {
-
-        return l.set(index, transformation);
-    }
-
-    @Override
-    public int size() {
-
-        return l.size();
-    }
-
-    @Override
-    public TransformationList subList(int fromIndex, int toIndex) {
-
-        TransformationList l = new TransformationList();
-        l.addAll(l.subList(fromIndex, toIndex));
-        return l;
-    }
-
-    @Override
-    public Object[] toArray() {
-
-        return l.toArray();
-    }
-
-    @Override
-    public <T> T[] toArray(T[] a) {
-
-        return l.toArray(a);
-    }
-
-    @Override
-    public Vec3d apply(Vec3d point) {
-
-        point = point.clone();
-
-        List<Transformation> list = new ArrayList<Transformation>(l);
-        Collections.reverse(list);
-        for (Transformation t : list)
-            point = t.apply(point);
-
-        return point;
-    }
-
-    @Override
-    public Vec3dCube apply(Vec3dCube cube) {
-
-        cube = cube.clone();
-
-        List<Transformation> list = new ArrayList<Transformation>(l);
-        Collections.reverse(list);
-        for (Transformation t : list)
-            cube = t.apply(cube);
-
-        return cube;
+        for (int i = transformations.size() - 1; i >= 0; i--)
+            if (transformations.get(i) instanceof IVertexOperation)
+                ((IVertexOperation) transformations.get(i)).operate(vertex);
     }
 
 }

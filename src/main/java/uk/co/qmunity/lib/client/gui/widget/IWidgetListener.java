@@ -1,9 +1,6 @@
 package uk.co.qmunity.lib.client.gui.widget;
 
-/**
- * @author MineMaarten
- */
 public interface IWidgetListener {
 
-    public void actionPerformed(IGuiWidget widget);
+    public void actionPerformed(IGuiWidget widget, IWidgetAction action);
 }

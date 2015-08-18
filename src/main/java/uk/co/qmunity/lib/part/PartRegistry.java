@@ -17,10 +17,10 @@ public class PartRegistry {
         factories.add(factory);
     }
 
-    public static IPart createPart(String type, boolean client) {
+    public static IQLPart createPart(String type, boolean client) {
 
         for (IPartFactory f : factories) {
-            IPart p = f.createPart(type, client);
+            IQLPart p = f.createPart(type, client);
             if (p != null)
                 return p;
         }

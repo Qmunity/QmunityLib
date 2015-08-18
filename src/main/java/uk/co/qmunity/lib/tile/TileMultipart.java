@@ -1,70 +1,37 @@
 package uk.co.qmunity.lib.tile;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import uk.co.qmunity.lib.client.renderer.RenderMultipart;
-import uk.co.qmunity.lib.part.IMicroblock;
-import uk.co.qmunity.lib.part.IPart;
-import uk.co.qmunity.lib.part.IPartCollidable;
-import uk.co.qmunity.lib.part.IPartFace;
-import uk.co.qmunity.lib.part.IPartInteractable;
-import uk.co.qmunity.lib.part.IPartOccluding;
-import uk.co.qmunity.lib.part.IPartRedstone;
-import uk.co.qmunity.lib.part.IPartSelectable;
-import uk.co.qmunity.lib.part.IPartSolid;
-import uk.co.qmunity.lib.part.IPartTicking;
-import uk.co.qmunity.lib.part.IPartUpdateListener;
-import uk.co.qmunity.lib.part.ITilePartHolder;
+import uk.co.qmunity.lib.client.render.RenderMultipart;
+import uk.co.qmunity.lib.network.MCByteBuf;
+import uk.co.qmunity.lib.network.packet.PacketCPart;
+import uk.co.qmunity.lib.part.IPartHolder;
+import uk.co.qmunity.lib.part.IQLPart;
+import uk.co.qmunity.lib.part.IRedstonePart;
+import uk.co.qmunity.lib.part.ISlottedPart;
+import uk.co.qmunity.lib.part.ISolidPart;
 import uk.co.qmunity.lib.part.PartRegistry;
-import uk.co.qmunity.lib.part.compat.OcclusionHelper;
-import uk.co.qmunity.lib.part.compat.PartUpdateManager;
+import uk.co.qmunity.lib.part.PartSlot;
 import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
-import uk.co.qmunity.lib.raytrace.RayTracer;
-import uk.co.qmunity.lib.util.QLog;
-import uk.co.qmunity.lib.vec.Vec3d;
-import uk.co.qmunity.lib.vec.Vec3dCube;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import uk.co.qmunity.lib.vec.Cuboid;
+import uk.co.qmunity.lib.vec.Vector3;
 
-public class TileMultipart extends TileEntity implements ITilePartHolder {
+public class TileMultipart extends TileBase implements IPartHolder {
 
-    private Map<String, IPart> parts = new HashMap<String, IPart>();
-
-    private boolean shouldDieInAFire = false;
-    private boolean loaded = false;
-
-    private final boolean simulated;
-
-    public TileMultipart(boolean simulated) {
-
-        this.simulated = simulated;
-    }
-
-    public TileMultipart() {
-
-        this(false);
-    }
+    public Map<String, IQLPart> parts = new HashMap<String, IQLPart>();
+    private Map<Integer, ISlottedPart> slotMap = new HashMap<Integer, ISlottedPart>();
 
     @Override
     public World getWorld() {
@@ -91,163 +58,165 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     }
 
     @Override
-    public List<IPart> getParts() {
+    public boolean canAddPart(IQLPart part) {
 
-        List<IPart> parts = new ArrayList<IPart>();
-
-        for (String s : this.parts.keySet()) {
-            IPart p = this.parts.get(s);
-            if (p.getParent() != null)
-                parts.add(p);
-        }
-
-        return parts;
-    }
-
-    @Override
-    public boolean canAddPart(IPart part) {
-
-        if (part instanceof IPartCollidable) {
-            List<Vec3dCube> cubes = new ArrayList<Vec3dCube>();
-            ((IPartCollidable) part).addCollisionBoxesToList(cubes, null);
-            for (Vec3dCube c : cubes)
-                if (!getWorld().checkNoEntityCollision(c.clone().add(getX(), getY(), getZ()).toAABB()))
+        if (part instanceof ISlottedPart) {
+            int slotMask = ((ISlottedPart) part).getSlotMask();
+            for (PartSlot s : PartSlot.values())
+                if ((slotMask & s.mask) != 0 && getPartInSlot(s.ordinal()) != null)
                     return false;
         }
 
-        return OcclusionHelper.occlusionTest(this, part);
-    }
-
-    @Override
-    public void addPart(IPart part) {
-
-        int before = parts.size();
-
-        parts.put(genIdentifier(), part);
-        part.setParent(this);
-
-        if (!simulated) {
-            if (part instanceof IPartUpdateListener)
-                ((IPartUpdateListener) part).onAdded();
-            for (IPart p : getParts())
-                if (p != part && p instanceof IPartUpdateListener)
-                    ((IPartUpdateListener) p).onPartChanged(part);
-
-            if (before > 0)
-                PartUpdateManager.addPart(this, part);
-
-            markDirty();
-            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
-
-            if (!getWorld().isRemote && before > 0)
-                getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), blockType);
-        }
-    }
-
-    @Override
-    public boolean removePart(IPart part) {
-
-        if (part == null)
-            return false;
-        if (!parts.containsValue(part))
-            return false;
-        if (part.getParent() == null || part.getParent() != this)
-            return false;
-
-        if (!simulated) {
-            PartUpdateManager.removePart(this, part);
-
-            if (part instanceof IPartUpdateListener)
-                ((IPartUpdateListener) part).onRemoved();
-        }
-
-        String id = getIdentifier(part);
-        parts.remove(id);
-        part.setParent(null);
-
-        if (!simulated) {
-            for (IPart p : getParts())
-                if (p != part && p instanceof IPartUpdateListener)
-                    ((IPartUpdateListener) p).onPartChanged(part);
-
-            markDirty();
-            getWorld().markBlockRangeForRenderUpdate(getX(), getY(), getZ(), getX(), getY(), getZ());
-
-            if (!getWorld().isRemote)
-                getWorld().notifyBlocksOfNeighborChange(getX(), getY(), getZ(), blockType);
-        }
+        for (IQLPart p : getParts())
+            if (!p.occlusionTest(part))
+                return false;
 
         return true;
     }
 
-    private String genIdentifier() {
+    @Override
+    public void addPart(IQLPart part) {
 
-        String s = null;
+        String partID;
         do {
-            s = UUID.randomUUID().toString();
-        } while (parts.containsKey(s));
-
-        return s;
-    }
-
-    private String getIdentifier(IPart part) {
-
-        for (String s : parts.keySet())
-            if (parts.get(s).equals(part))
-                return s;
-
-        return null;
-    }
-
-    private IPart getPart(String id) {
-
-        for (String s : parts.keySet())
-            if (s.equals(id))
-                return parts.get(s);
-
-        return null;
-    }
-
-    public int getLightValue() {
-
-        int val = 0;
-        for (IPart p : getParts())
-            val = Math.max(val, p.getLightValue());
-        return val;
+            partID = UUID.randomUUID().toString();
+        } while (parts.containsKey(partID));
+        addPart(partID, part, true);
     }
 
     @Override
-    public QMovingObjectPosition rayTrace(Vec3d start, Vec3d end) {
+    public void addPart(String partID, IQLPart part, boolean notify) {
 
-        QMovingObjectPosition closest = null;
-        double dist = Double.MAX_VALUE;
+        // Set parent
+        part.setParent(this);
 
-        for (IPart p : getParts()) {
-            if (p instanceof IPartSelectable) {
-                QMovingObjectPosition mop = ((IPartSelectable) p).rayTrace(start, end);
-                if (mop == null)
-                    continue;
-                double d = start.distanceTo(new Vec3d(mop.hitVec));
-                if (d < dist) {
-                    closest = mop;
-                    dist = d;
-                }
-            }
+        // Add to the part map
+        parts.put(partID, part);
+        // Add to the slot map (if needed)
+        if (part instanceof ISlottedPart) {
+            int slotMask = ((ISlottedPart) part).getSlotMask();
+            for (PartSlot s : PartSlot.values())
+                if ((slotMask & s.mask) != 0)
+                    slotMap.put(s.ordinal(), (ISlottedPart) part);
         }
 
-        return closest;
+        // If we don't want to notify anybody, stop here
+        if (!notify)
+            return;
+
+        // Notify part
+        part.onAdded();
+        // Notify other parts
+        for (IQLPart p : getParts())
+            if (p != part)
+                p.onPartChanged(part);
+
+        // Tell the client the part has been placed
+        if (getWorld() != null && !getWorld().isRemote)
+            PacketCPart.addPart(this, part);
+
+        // Notify neighbors
+        notifyBlockChange();
+        notifyTileChange();
+        // Recalculate lighting
+        recalculateLighting();
+        // Mark chunk for saving
+        markDirty();
+        // Call rendering update
+        markRender();
     }
 
-    // Saving/loading/syncing parts
+    @Override
+    public void removePart(IQLPart part) {
+
+        // Tell the client the part has been removed
+        if (getWorld() != null && !getWorld().isRemote)
+            PacketCPart.removePart(this, part);
+
+        String id = getPartID(part);
+
+        // Remove from the part map
+        parts.remove(id);
+        // Remove from the slot map (if needed)
+        if (part instanceof ISlottedPart) {
+            int slotMask = ((ISlottedPart) part).getSlotMask();
+            for (PartSlot s : PartSlot.values())
+                if ((slotMask & s.mask) != 0 && getPartInSlot(s.ordinal()) == part)
+                    slotMap.remove(s.ordinal());
+        }
+
+        // Notify part
+        part.onRemoved();
+        // Notify other parts
+        for (IQLPart p : getParts())
+            if (p != part)
+                p.onPartChanged(part);
+
+        // Remove parent
+        part.setParent(null);
+
+        // Remove tile if needed
+        if (getParts().isEmpty() && getWorld() != null) {
+            getWorld().setBlockToAir(getX(), getY(), getZ());
+            getWorld().removeTileEntity(getX(), getY(), getZ());
+        }
+
+        // Notify neighbors
+        notifyBlockChange();
+        notifyTileChange();
+        // Recalculate lighting
+        recalculateLighting();
+        // Mark chunk for saving
+        markDirty();
+        // Call rendering update
+        markRender();
+    }
+
+    @Override
+    public Collection<IQLPart> getParts() {
+
+        return Collections.unmodifiableCollection(parts.values());
+    }
+
+    @Override
+    public String getPartID(IQLPart part) {
+
+        for (Entry<String, IQLPart> e : parts.entrySet())
+            if (e.getValue() == part)
+                return e.getKey();
+        return null;
+    }
+
+    @Override
+    public IQLPart findPart(String partID) {
+
+        if (!parts.containsKey(partID))
+            return null;
+        return parts.get(partID);
+    }
+
+    @Override
+    public ISlottedPart getPartInSlot(int slot) {
+
+        return slotMap.containsKey(slot) ? slotMap.get(slot) : null;
+    }
 
     @Override
     public void writeToNBT(NBTTagCompound tag) {
 
         super.writeToNBT(tag);
 
-        NBTTagList l = new NBTTagList();
-        writeParts(l, false);
-        tag.setTag("parts", l);
+        NBTTagList list = new NBTTagList();
+        for (Entry<String, IQLPart> e : parts.entrySet()) {
+            NBTTagCompound t = new NBTTagCompound();
+            t.setString("type", e.getValue().getType());
+            t.setString("id", e.getKey());
+            NBTTagCompound data = new NBTTagCompound();
+            e.getValue().writeToNBT(data);
+            t.setTag("data", data);
+            list.appendTag(t);
+        }
+        tag.setTag("parts", list);
     }
 
     @Override
@@ -255,383 +224,301 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
 
         super.readFromNBT(tag);
 
-        NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
-        readParts(l, false, false);
-        loaded = true;
+        parts.clear();
+        slotMap.clear();
 
-        if (getParts().size() == 0)
-            shouldDieInAFire = true;
+        NBTTagList list = tag.getTagList("parts", new NBTTagCompound().getId());
+        for (int i = 0; i < list.tagCount(); i++) {
+            NBTTagCompound t = list.getCompoundTagAt(i);
+            IQLPart part = PartRegistry.createPart(t.getString("type"), false);
+            part.readFromNBT(t.getCompoundTag("data"));
+            addPart(t.getString("id"), part, false);
+        }
     }
 
-    public void writeUpdateToNBT(NBTTagCompound tag) {
+    @Override
+    public void writeUpdateData(MCByteBuf buf) {
 
-        NBTTagList l = new NBTTagList();
-        writeParts(l, true);
-        tag.setTag("parts", l);
+        super.writeUpdateData(buf);
+
+        buf.writeInt(parts.size());
+        for (Entry<String, IQLPart> e : parts.entrySet()) {
+            buf.writeString(e.getValue().getType());
+            buf.writeString(e.getKey());
+            e.getValue().writeUpdateData(buf);
+        }
     }
 
-    public void readUpdateFromNBT(NBTTagCompound tag) {
+    @Override
+    public void readUpdateData(MCByteBuf buf) {
 
-        NBTTagList l = tag.getTagList("parts", new NBTTagCompound().getId());
-        readParts(l, true, true);
+        super.readUpdateData(buf);
 
-        getWorldObj().markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord, yCoord, zCoord);
+        parts.clear();
+
+        int amt = buf.readInt();
+        for (int i = 0; i < amt; i++) {
+            String type = buf.readString();
+            String id = buf.readString();
+            IQLPart part = PartRegistry.createPart(type, true);
+            part.readUpdateData(buf);
+            addPart(id, part, false);
+        }
     }
 
-    private void writeParts(NBTTagList l, boolean update) {
+    public QMovingObjectPosition rayTrace(Vec3 start, Vec3 end) {
 
-        for (IPart p : getParts()) {
-            String id = getIdentifier(p);
+        QMovingObjectPosition closest = null;
+        double dist = Double.MAX_VALUE;
 
-            NBTTagCompound tag = new NBTTagCompound();
-
-            tag.setString("id", id);
-            tag.setString("type", p.getType());
-            NBTTagCompound data = new NBTTagCompound();
-            if (update) {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                DataOutput buffer = new DataOutputStream(baos);
-                try {
-                    p.writeUpdateData(buffer, -1);
-                    baos.flush();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+        for (IQLPart p : getParts()) {
+            QMovingObjectPosition mop = p.rayTrace(start, end);
+            if (mop != null) {
+                double d = mop.hitVec.distanceTo(start);
+                if (closest == null || d <= dist) {
+                    closest = mop;
+                    dist = d;
                 }
-                data.setByteArray("data", baos.toByteArray());
-            } else {
-                p.writeToNBT(data);
             }
-            tag.setTag("data", data);
-
-            l.appendTag(tag);
         }
+        return closest;
     }
 
-    private void readParts(NBTTagList l, boolean update, boolean client) {
+    public void addCollisionBoxesToList(List<Cuboid> boxes, AxisAlignedBB bounds) {
 
-        for (int i = 0; i < l.tagCount(); i++) {
-            NBTTagCompound tag = l.getCompoundTagAt(i);
+        Vector3 pos = new Vector3(getX(), getY(), getZ());
+        Cuboid bounds_ = new Cuboid(bounds).sub(pos);
+        for (IQLPart p : getParts())
+            for (Cuboid c : p.getCollisionBoxes())
+                if (c.intersects(bounds_))
+                    boxes.add(c.copy().add(pos));
+    }
 
-            String id = tag.getString("id");
-            IPart p = getPart(id);
-            if (p == null) {
-                p = PartRegistry.createPart(tag.getString("type"), client);
-                if (p == null)
-                    continue;
-                p.setParent(this);
-                parts.put(id, p);
-            }
+    public boolean isSideSolid(ForgeDirection side) {
 
-            NBTTagCompound data = tag.getCompoundTag("data");
-            if (update) {
-                try {
-                    p.readUpdateData(new DataInputStream(new ByteArrayInputStream(data.getByteArray("data"))), -1);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            } else {
-                p.readFromNBT(data);
-            }
-        }
+        IQLPart part = getPartInSlot(PartSlot.face(side).mask);
+        return part != null && part instanceof ISolidPart ? ((ISolidPart) part).isSideSolid(side) : false;
     }
 
     @Override
-    public void sendUpdatePacket(IPart part, int channel) {
+    public boolean canConnectRedstone(ForgeDirection side) {
 
-        if (getWorld() != null && getParts().contains(part))
-            PartUpdateManager.sendPartUpdate(this, part, channel);
+        return canConnectRedstone(ForgeDirection.UNKNOWN, side);
     }
 
     @Override
-    public Packet getDescriptionPacket() {
+    public int getWeakRedstoneOutput(ForgeDirection side) {
 
-        NBTTagCompound tag = new NBTTagCompound();
-        writeUpdateToNBT(tag);
-        return new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, tag);
+        return getWeakRedstoneOutput(ForgeDirection.UNKNOWN, side);
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+    public int getStrongRedstoneOutput(ForgeDirection side) {
 
-        readUpdateFromNBT(pkt.func_148857_g());
-    }
-
-    public void removePart(EntityPlayer player) {
-
-        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
-        if (mop != null)
-            if (mop.getPart().breakAndDrop(player, mop))
-                mop.getPart().getParent().removePart(mop.getPart());
+        return getStrongRedstoneOutput(ForgeDirection.UNKNOWN, side);
     }
 
     @Override
-    public void addCollisionBoxesToList(List<Vec3dCube> l, AxisAlignedBB bounds, Entity entity) {
+    public boolean canConnectRedstone(ForgeDirection face, ForgeDirection side) {
 
-        List<Vec3dCube> boxes = new ArrayList<Vec3dCube>();
+        // Side
+        IQLPart part = getPartInSlot(PartSlot.face(side).ordinal());
+        if (part != null) {
+            if (part instanceof IRedstonePart)
+                return ((IRedstonePart) part).canConnectRedstone(side);
+            return false;
+        }
 
-        for (IPart p : getParts()) {
-            if (p instanceof IPartCollidable) {
-                List<Vec3dCube> boxes_ = new ArrayList<Vec3dCube>();
-                ((IPartCollidable) p).addCollisionBoxesToList(boxes_, entity);
-                for (Vec3dCube c : boxes_) {
-                    Vec3dCube cube = c.clone();
-                    cube.add(getX(), getY(), getZ());
-                    cube.setPart(p);
-                    boxes.add(cube);
-                }
-                boxes_.clear();
+        if (face != ForgeDirection.UNKNOWN) {
+            // Face-side edge
+            part = getPartInSlot(PartSlot.edgeBetween(face, side).ordinal());
+            if (part != null) {
+                if (part instanceof IRedstonePart)
+                    return ((IRedstonePart) part).canConnectRedstone(side);
+                return false;
             }
-        }
-
-        for (Vec3dCube c : boxes) {
-            if (c.toAABB().intersectsWith(bounds))
-                l.add(c);
-        }
-    }
-
-    public void onNeighborBlockChange() {
-
-        if (simulated)
-            return;
-
-        onUpdate();
-
-        for (IPart p : getParts())
-            if (p instanceof IPartUpdateListener)
-                ((IPartUpdateListener) p).onNeighborBlockChange();
-
-        onUpdate();
-    }
-
-    public void onNeighborChange() {
-
-        if (simulated)
-            return;
-
-        onUpdate();
-
-        for (IPart p : getParts())
-            if (p instanceof IPartUpdateListener)
-                ((IPartUpdateListener) p).onNeighborTileChange();
-
-        onUpdate();
-    }
-
-    private void onUpdate() {
-
-        if (simulated)
-            return;
-
-        if (!getWorldObj().isRemote) {
-            if (getParts().size() == 0)
-                getWorldObj().setBlockToAir(xCoord, yCoord, zCoord);
-        }
-    }
-
-    public boolean isSideSolid(ForgeDirection face) {
-
-        for (IPart p : getParts())
-            if (p instanceof IPartSolid)
-                if (((IPartSolid) p).isSideSolid(face))
+            // Face
+            part = getPartInSlot(PartSlot.face(face).ordinal());
+            if (part != null)
+                if (part instanceof IRedstonePart)
+                    return ((IRedstonePart) part).canConnectRedstone(side);
+            // Non-slotted parts
+            for (IQLPart p : getParts())
+                if (p != part && p instanceof IRedstonePart && (!(p instanceof ISlottedPart) || ((ISlottedPart) p).getSlotMask() == 0)
+                        && ((IRedstonePart) p).canConnectRedstone(side))
                     return true;
-
-        return false;
-    }
-
-    private boolean firstTick = true;
-
-    @Override
-    public void updateEntity() {
-
-        if (firstTick && loaded) {
-            for (IPart p : getParts()) {
-                if (p instanceof IPartUpdateListener)
-                    ((IPartUpdateListener) p).onLoaded();
-            }
-            firstTick = false;
-        }
-        for (IPart p : getParts())
-            if (p instanceof IPartTicking)
-                ((IPartTicking) p).update();
-
-        if(parts.size() > 100) {
-            QLog.error("A Qmunitylib part has " + parts.size() + " parts! It has been removed. Dimension: " + getWorld().provider.dimensionId + ", location: " + getX() + ", " + getY() + ", " + getZ());
-            shouldDieInAFire = true;
-        }
-        
-        if (shouldDieInAFire)
-            getWorld().setBlockToAir(getX(), getY(), getZ());
-    }
-
-    public List<Vec3dCube> getOcclusionBoxes() {
-
-        List<Vec3dCube> boxes = new ArrayList<Vec3dCube>();
-
-        for (IPart p : getParts())
-            if (p instanceof IPartOccluding)
-                boxes.addAll(((IPartOccluding) p).getOcclusionBoxes());
-
-        return boxes;
-    }
-
-    public int getStrongOutput(ForgeDirection direction, ForgeDirection face) {
-
-        int max = 0;
-
-        for (IPart p : getParts()) {
-            if (p instanceof IPartRedstone) {
-                if (p instanceof IPartFace) {
-                    if (((IPartFace) p).getFace() == face)
-                        max = Math.max(max, ((IPartRedstone) p).getStrongPower(direction));
-                } else {
-                    max = Math.max(max, ((IPartRedstone) p).getStrongPower(direction));
-                }
-            }
-        }
-
-        return max;
-    }
-
-    public int getStrongOutput(ForgeDirection direction) {
-
-        int max = 0;
-
-        for (ForgeDirection face : ForgeDirection.VALID_DIRECTIONS)
-            max = Math.max(max, getStrongOutput(direction, face));
-
-        return max;
-    }
-
-    public int getWeakOutput(ForgeDirection direction, ForgeDirection face) {
-
-        int max = 0;
-
-        for (IPart p : getParts()) {
-            if (p instanceof IPartRedstone) {
-                if (p instanceof IPartFace) {
-                    if (((IPartFace) p).getFace() == face)
-                        max = Math.max(max, ((IPartRedstone) p).getWeakPower(direction));
-                } else {
-                    max = Math.max(max, ((IPartRedstone) p).getWeakPower(direction));
-                }
-            }
-        }
-
-        return max;
-    }
-
-    public int getWeakOutput(ForgeDirection direction) {
-
-        int max = 0;
-
-        for (ForgeDirection face : ForgeDirection.VALID_DIRECTIONS)
-            max = Math.max(max, getWeakOutput(direction, face));
-
-        return max;
-    }
-
-    public boolean canConnect(ForgeDirection direction, ForgeDirection face) {
-
-        for (IPart p : getParts()) {
-            if (p instanceof IPartRedstone) {
-                if (p instanceof IPartFace) {
-                    if (((IPartFace) p).getFace() == face)
-                        if (((IPartRedstone) p).canConnectRedstone(direction))
-                            return true;
-                } else {
-                    if (((IPartRedstone) p).canConnectRedstone(direction))
+            return false;
+        } else {
+            // Center
+            part = getPartInSlot(PartSlot.CENTER.ordinal());
+            if (part != null)
+                if (part instanceof IRedstonePart && ((IRedstonePart) part).canConnectRedstone(side))
+                    return true;
+            // Sides
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS)
+                if (d != side && d != side.getOpposite())
+                    if (canConnectRedstone(d, side))
                         return true;
-                }
-            }
+            return false;
+        }
+    }
+
+    @Override
+    public int getWeakRedstoneOutput(ForgeDirection face, ForgeDirection side) {
+
+        // Side
+        IQLPart part = getPartInSlot(PartSlot.face(side).ordinal());
+        if (part != null) {
+            if (part instanceof IRedstonePart)
+                return ((IRedstonePart) part).getWeakPower(side);
+            return 0;
         }
 
-        return false;
-    }
-
-    public boolean canConnect(ForgeDirection direction) {
-
-        for (ForgeDirection face : ForgeDirection.VALID_DIRECTIONS)
-            if (canConnect(direction, face))
-                return true;
-
-        return false;
+        if (face != ForgeDirection.UNKNOWN) {
+            // Face-side edge
+            part = getPartInSlot(PartSlot.edgeBetween(face, side).ordinal());
+            if (part != null) {
+                if (part instanceof IRedstonePart)
+                    return ((IRedstonePart) part).getWeakPower(side);
+                return 0;
+            }
+            int pow = 0;
+            // Face
+            part = getPartInSlot(PartSlot.face(face).ordinal());
+            if (part != null)
+                if (part instanceof IRedstonePart)
+                    pow = Math.max(pow, ((IRedstonePart) part).getWeakPower(side));
+            // Non-slotted parts
+            for (IQLPart p : getParts())
+                if (p != part && p instanceof IRedstonePart && (!(p instanceof ISlottedPart) || ((ISlottedPart) p).getSlotMask() == 0))
+                    pow = Math.max(pow, ((IRedstonePart) p).getWeakPower(side));
+            return pow;
+        } else {
+            int pow = 0;
+            // Center
+            part = getPartInSlot(PartSlot.CENTER.ordinal());
+            if (part != null)
+                if (part instanceof IRedstonePart)
+                    pow = Math.max(pow, ((IRedstonePart) part).getWeakPower(side));
+            // Sides
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS)
+                if (d != side && d != side.getOpposite())
+                    pow = Math.max(pow, getWeakRedstoneOutput(d, side));
+            // Non-slotted parts
+            for (IQLPart p : getParts())
+                if (p != part && p instanceof IRedstonePart && (!(p instanceof ISlottedPart) || ((ISlottedPart) p).getSlotMask() == 0))
+                    pow = Math.max(pow, ((IRedstonePart) p).getWeakPower(side));
+            return pow;
+        }
     }
 
     @Override
-    public void onChunkUnload() {
+    public int getStrongRedstoneOutput(ForgeDirection face, ForgeDirection side) {
 
-        if (simulated)
-            return;
+        // Side
+        IQLPart part = getPartInSlot(PartSlot.face(side).ordinal());
+        if (part != null) {
+            if (part instanceof IRedstonePart)
+                return ((IRedstonePart) part).getStrongPower(side);
+            return 0;
+        }
 
-        for (IPart p : getParts())
-            if (p instanceof IPartUpdateListener)
-                ((IPartUpdateListener) p).onUnloaded();
+        if (face != ForgeDirection.UNKNOWN) {
+            // Face-side edge
+            part = getPartInSlot(PartSlot.edgeBetween(face, side).ordinal());
+            if (part != null) {
+                if (part instanceof IRedstonePart)
+                    return ((IRedstonePart) part).getStrongPower(side);
+                return 0;
+            }
+            int pow = 0;
+            // Face
+            part = getPartInSlot(PartSlot.face(face).ordinal());
+            if (part != null)
+                if (part instanceof IRedstonePart)
+                    pow = Math.max(pow, ((IRedstonePart) part).getStrongPower(side));
+            // Non-slotted parts
+            for (IQLPart p : getParts())
+                if (p != part && p instanceof IRedstonePart && (!(p instanceof ISlottedPart) || ((ISlottedPart) p).getSlotMask() == 0))
+                    pow = Math.max(pow, ((IRedstonePart) p).getStrongPower(side));
+            return pow;
+        } else {
+            int pow = 0;
+            // Center
+            part = getPartInSlot(PartSlot.CENTER.ordinal());
+            if (part != null)
+                if (part instanceof IRedstonePart)
+                    pow = Math.max(pow, ((IRedstonePart) part).getStrongPower(side));
+            // Sides
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS)
+                if (d != side && d != side.getOpposite())
+                    pow = Math.max(pow, getStrongRedstoneOutput(d, side));
+            return pow;
+        }
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
     public AxisAlignedBB getRenderBoundingBox() {
 
-        return AxisAlignedBB.getBoundingBox(xCoord, yCoord, zCoord, xCoord + 1, yCoord + 1, zCoord + 1);
-    }
-
-    public ItemStack pickUp(EntityPlayer player) {
-
-        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
-        if (mop != null) {
-            return mop.getPart().getPickedItem(mop);
+        AxisAlignedBB box = null;
+        for (IQLPart p : getParts()) {
+            AxisAlignedBB b = p.getRenderBounds().toAABB();
+            if (box != null)
+                box = box.addCoord(b.minX, b.minY, b.minZ).addCoord(b.maxX, b.maxY, b.maxZ);
+            else
+                box = b;
         }
-
-        return null;
-    }
-
-    @Override
-    public Map<String, IPart> getPartMap() {
-
-        return parts;
-    }
-
-    public void onClicked(EntityPlayer player) {
-
-        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
-        if (mop != null)
-            if (mop.getPart() instanceof IPartInteractable)
-                ((IPartInteractable) mop.getPart()).onClicked(player, mop, player.getCurrentEquippedItem());
-    }
-
-    public boolean onActivated(EntityPlayer player) {
-
-        QMovingObjectPosition mop = rayTrace(RayTracer.getStartVector(player), RayTracer.getEndVector(player));
-        if (mop != null)
-            if (mop.getPart() instanceof IPartInteractable)
-                return ((IPartInteractable) mop.getPart()).onActivated(player, mop, player.getCurrentEquippedItem());
-
-        return false;
-    }
-
-    @Override
-    public List<IMicroblock> getMicroblocks() {
-
-        List<IMicroblock> microblocks = new ArrayList<IMicroblock>();
-
-        for (IPart p : getParts())
-            if (p instanceof IMicroblock)
-                microblocks.add((IMicroblock) p);
-
-        return microblocks;
-    }
-
-    @Override
-    public boolean isSimulated() {
-
-        return simulated;
+        return box != null ? box.offset(getX(), getY(), getZ()) : super.getRenderBoundingBox();
     }
 
     @Override
     public boolean shouldRenderInPass(int pass) {
 
         RenderMultipart.pass = pass;
+
         return true;
+    }
+
+    public boolean firstTick = true;
+
+    @Override
+    public void updateEntity() {
+
+        if (firstTick == true) {
+            for (IQLPart p : getParts())
+                p.onLoaded();
+            firstTick = false;
+        }
+
+        for (IQLPart p : getParts())
+            p.update();
+    }
+
+    @Override
+    public void validate() {
+
+        super.validate();
+
+        for (IQLPart p : getParts())
+            p.onLoaded();
+    }
+
+    @Override
+    public void invalidate() {
+
+        super.invalidate();
+
+        for (IQLPart p : getParts())
+            p.onUnloaded();
+    }
+
+    @Override
+    public void onChunkUnload() {
+
+        super.onChunkUnload();
+
+        for (IQLPart p : getParts())
+            p.onUnloaded();
     }
 
 }

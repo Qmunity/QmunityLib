@@ -1,194 +1,161 @@
 package uk.co.qmunity.lib.block;
 
-import uk.co.qmunity.lib.misc.ForgeDirectionUtils;
-import uk.co.qmunity.lib.tile.IRotatable;
-import uk.co.qmunity.lib.tile.TileBase;
+import java.util.ArrayList;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import uk.co.qmunity.lib.tile.TileBase;
 
-public abstract class BlockTileBase extends BlockBase implements ITileEntityProvider{
+public abstract class BlockTileBase extends BlockBase implements ITileEntityProvider {
 
-    private int guiId = -1;
-    private Class<? extends TileBase> tileEntityClass;
-    private boolean isRedstoneEmitter;
+    private Class<? extends TileBase> tileClass;
+    private boolean canProvidePower;
 
-    public BlockTileBase(Material material, Class<? extends TileBase> tileEntityClass){
+    public BlockTileBase(Material material, Class<? extends TileBase> tileClass) {
+
         super(material);
-        isBlockContainer = true;
-        setTileEntityClass(tileEntityClass);
-    }
-
-    public BlockTileBase setGuiId(int guiId){
-        this.guiId = guiId;
-        return this;
-    }
-
-    public int getGuiId(){
-        return guiId;
-    }
-
-    public BlockTileBase setTileEntityClass(Class<? extends TileBase> tileEntityClass){
-        if(tileEntityClass == null) throw new NullPointerException("Entity class can't be null!");
-        this.tileEntityClass = tileEntityClass;
-        return this;
+        this.tileClass = tileClass;
     }
 
     @Override
-    public TileEntity createNewTileEntity(World world, int metadata){
+    public TileEntity createNewTileEntity(World world, int meta) {
 
         try {
-            return getTileEntity().newInstance();
-        } catch(Exception e) {
-            return null;
+            return tileClass.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
-    /**
-     * Fetches the TileEntity Class that goes with the block
-     * 
-     * @return a .class
-     */
-    protected Class<? extends TileEntity> getTileEntity(){
+    private TileBase get(IBlockAccess world, int x, int y, int z) {
 
-        return tileEntityClass;
-    }
-
-    public BlockTileBase emitsRedstone(){
-
-        isRedstoneEmitter = true;
-        return this;
+        TileEntity tile = world.getTileEntity(x, y, z);
+        if (tile instanceof TileBase)
+            return (TileBase) tile;
+        return null;
     }
 
     @Override
-    public boolean canProvidePower(){
+    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
 
-        return isRedstoneEmitter;
+        TileBase te = get(world, x, y, z);
+        if (te == null)
+            return false;
+
+        return te.onActivated(player, new MovingObjectPosition(x, y, z, side, Vec3.createVectorHelper(x + hitX, y + hitY, z + hitZ)),
+                player.getCurrentEquippedItem());
     }
 
     @Override
-    public void onNeighborBlockChange(World world, int x, int y, int z, Block block){
+    public void onBlockClicked(World world, int x, int y, int z, EntityPlayer player) {
 
-        super.onNeighborBlockChange(world, x, y, z, block);
-        // Only do this on the server side.
-        if(!world.isRemote) {
-            TileBase tileEntity = (TileBase)world.getTileEntity(x, y, z);
-            if(tileEntity != null) {
-                tileEntity.onBlockNeighbourChanged();
-            }
-        }
+        TileBase te = get(world, x, y, z);
+        if (te == null)
+            return;
+
+        te.onClicked(player, player.getCurrentEquippedItem());
     }
 
     @Override
-    public int isProvidingWeakPower(IBlockAccess par1IBlockAccess, int par2, int par3, int par4, int par5){
+    public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase entity, ItemStack stack) {
 
-        TileEntity te = par1IBlockAccess.getTileEntity(par2, par3, par4);
-        if(te instanceof TileBase) {
-            TileBase tileBase = (TileBase)te;
-            return tileBase.getOutputtingRedstone();
-        }
+        TileBase te = get(world, x, y, z);
+        if (te == null)
+            return;
+
+        te.onPlacedBy(entity, stack);
+    }
+
+    @Override
+    public void onNeighborBlockChange(World world, int x, int y, int z, Block block) {
+
+        TileBase te = get(world, x, y, z);
+        if (te == null)
+            return;
+
+        te.onNeighborChange(block);
+    }
+
+    @Override
+    public void onNeighborChange(IBlockAccess world, int x, int y, int z, int tileX, int tileY, int tileZ) {
+
+        TileBase te = get(world, x, y, z);
+        if (te == null)
+            return;
+
+        te.onNeighborTileChange(world.getTileEntity(tileX, tileY, tileZ));
+    }
+
+    @Override
+    public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
+
+        TileBase te = get(world, x, y, z);
+        if (te == null)
+            return new ArrayList<ItemStack>();
+
+        return te.getDrops();
+    }
+
+    @Override
+    public boolean canProvidePower() {
+
+        return canProvidePower;
+    }
+
+    @Override
+    public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side) {
+
+        if (!canProvidePower())
+            return false;
+
+        TileBase te = get(world, x, y, z);
+        if (te != null)
+            return te.canConnectRedstone(ForgeDirection.getOrientation(side >= 0 && side < 4 ? Direction.directionToFacing[side] ^ 1 : 0));
+
+        return false;
+    }
+
+    @Override
+    public int isProvidingWeakPower(IBlockAccess world, int x, int y, int z, int side) {
+
+        if (!canProvidePower())
+            return 0;
+
+        TileBase te = get(world, x, y, z);
+        if (te != null)
+            return te.getWeakRedstoneOutput(ForgeDirection.getOrientation(side ^ 1));
+
         return 0;
     }
 
     @Override
-    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int par6, float par7, float par8, float par9){
+    public int isProvidingStrongPower(IBlockAccess world, int x, int y, int z, int side) {
 
-        if(player.isSneaking()) {
-            return false;
-        }
+        if (!canProvidePower())
+            return 0;
 
-        TileEntity entity = world.getTileEntity(x, y, z);
-        if(entity == null || !(entity instanceof TileBase)) {
-            return false;
-        }
+        TileBase te = get(world, x, y, z);
+        if (te != null)
+            return te.getStrongRedstoneOutput(ForgeDirection.getOrientation(side ^ 1));
 
-        if(getGuiId() >= 0) {
-            if(!world.isRemote) player.openGui(getModInstance(), getGuiId(), world, x, y, z);
-            return true;
-        }
-        return false;
+        return 0;
     }
 
-    protected abstract Object getModInstance();
+    public void setCanProvidePower(boolean canProvidePower) {
 
-    @Override
-    public void breakBlock(World world, int x, int y, int z, Block block, int meta){
-
-        if(shouldDropItems()) {
-            TileBase tile = (TileBase)world.getTileEntity(x, y, z);
-            if(tile != null) {
-                for(ItemStack stack : tile.getDrops()) {
-                    spawnItemInWorld(world, stack, x + 0.5, y + 0.5, z + 0.5);
-                }
-            }
-        }
-        super.breakBlock(world, x, y, z, block, meta);
-        world.removeTileEntity(x, y, z);
+        this.canProvidePower = canProvidePower;
     }
 
-    private static void spawnItemInWorld(World world, ItemStack itemStack, double x, double y, double z){
-
-        if(world.isRemote) return;
-        float dX = world.rand.nextFloat() * 0.8F + 0.1F;
-        float dY = world.rand.nextFloat() * 0.8F + 0.1F;
-        float dZ = world.rand.nextFloat() * 0.8F + 0.1F;
-
-        EntityItem entityItem = new EntityItem(world, x + dX, y + dY, z + dZ, new ItemStack(itemStack.getItem(), itemStack.stackSize, itemStack.getItemDamage()));
-
-        if(itemStack.hasTagCompound()) {
-            entityItem.getEntityItem().setTagCompound((NBTTagCompound)itemStack.getTagCompound().copy());
-        }
-
-        float factor = 0.05F;
-        entityItem.motionX = world.rand.nextGaussian() * factor;
-        entityItem.motionY = world.rand.nextGaussian() * factor + 0.2F;
-        entityItem.motionZ = world.rand.nextGaussian() * factor;
-        world.spawnEntityInWorld(entityItem);
-        itemStack.stackSize = 0;
-    }
-
-    protected boolean shouldDropItems(){
-        return true;
-    }
-
-    /**
-     * Method to detect how the block was placed, and what way it's facing.
-     */
-    @Override
-    public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase player, ItemStack iStack){
-        TileEntity te = world.getTileEntity(x, y, z);
-        if(te instanceof IRotatable) {
-            ((IRotatable)te).setFacingDirection(ForgeDirectionUtils.getDirectionFacing(player, canRotateVertical()).getOpposite());
-        }
-    }
-
-    protected boolean canRotateVertical(){
-
-        return true;
-    }
-
-    @Override
-    public boolean rotateBlock(World worldObj, int x, int y, int z, ForgeDirection axis){
-
-        TileEntity te = worldObj.getTileEntity(x, y, z);
-        if(te instanceof IRotatable) {
-            IRotatable rotatable = (IRotatable)te;
-            ForgeDirection dir = rotatable.getFacingDirection();
-            dir = dir.getRotation(axis);
-            if(dir != ForgeDirection.UP && dir != ForgeDirection.DOWN || canRotateVertical()) {
-                rotatable.setFacingDirection(dir);
-                return true;
-            }
-        }
-        return false;
-    }
 }

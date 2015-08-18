@@ -1,21 +1,26 @@
 package uk.co.qmunity.lib;
 
-import cpw.mods.fml.common.event.*;
 import uk.co.qmunity.lib.command.CommandQLib;
+import uk.co.qmunity.lib.compat.QLCompatManager;
+import uk.co.qmunity.lib.helper.RedstoneHelper;
 import uk.co.qmunity.lib.helper.SystemInfoHelper;
-import uk.co.qmunity.lib.init.QLBlocks;
 import uk.co.qmunity.lib.network.NetworkHandler;
-import uk.co.qmunity.lib.part.compat.MultipartSystem;
-import uk.co.qmunity.lib.proxy.CommonProxy;
+import uk.co.qmunity.lib.part.MultipartCompat;
+import uk.co.qmunity.lib.part.MultipartSystemStandalone;
 import uk.co.qmunity.lib.util.QLog;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.SidedProxy;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
-@Mod(modid = QLModInfo.MODID, name = QLModInfo.NAME)
+@Mod(modid = QLModInfo.MODID, name = QLModInfo.NAME, dependencies = "after:ForgeMultipart")
 public class QmunityLib {
 
-    @SidedProxy(serverSide = "uk.co.qmunity.lib.proxy.CommonProxy", clientSide = "uk.co.qmunity.lib.proxy.ClientProxy")
+    @SidedProxy(serverSide = "uk.co.qmunity.lib.CommonProxy", clientSide = "uk.co.qmunity.lib.client.ClientProxy")
     public static CommonProxy proxy;
 
     @EventHandler
@@ -24,7 +29,13 @@ public class QmunityLib {
         event.getModMetadata().version = QLModInfo.fullVersionString();
         QLog.logger = event.getModLog();
 
-        MultipartSystem.preInit(event);
+        QLBlocks.init();
+
+        MultipartSystemStandalone standaloneMultiparts = new MultipartSystemStandalone();
+        MultipartCompat.registerMultipartSystem(standaloneMultiparts);
+        RedstoneHelper.registerProvider(standaloneMultiparts);
+
+        QLCompatManager.preInit(event);
     }
 
     @EventHandler
@@ -34,15 +45,13 @@ public class QmunityLib {
 
         proxy.registerRenders();
 
-        QLBlocks.init();
-
-        MultipartSystem.init(event);
+        QLCompatManager.init(event);
     }
 
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
 
-        MultipartSystem.postInit(event);
+        QLCompatManager.postInit(event);
     }
 
     @EventHandler

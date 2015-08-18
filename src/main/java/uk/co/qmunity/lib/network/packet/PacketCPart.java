@@ -1,109 +1,110 @@
 package uk.co.qmunity.lib.network.packet;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.Map;
-
+import io.netty.buffer.Unpooled;
 import net.minecraft.entity.player.EntityPlayer;
 import uk.co.qmunity.lib.network.LocatedPacket;
+import uk.co.qmunity.lib.network.MCByteBuf;
 import uk.co.qmunity.lib.network.NetworkHandler;
-import uk.co.qmunity.lib.part.IPart;
-import uk.co.qmunity.lib.part.ITilePartHolder;
-import uk.co.qmunity.lib.part.compat.MultipartCompatibility;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import uk.co.qmunity.lib.part.IPartHolder;
+import uk.co.qmunity.lib.part.IQLPart;
+import uk.co.qmunity.lib.part.MultipartCompat;
+import uk.co.qmunity.lib.part.PartRegistry;
 
-public abstract class PacketCPart extends LocatedPacket<PacketCPart> {
+public class PacketCPart extends LocatedPacket<PacketCPart> {
 
-    protected ITilePartHolder holder = null;
-    protected IPart part = null;
-    protected String partId = null;
+    private int action;
 
-    public PacketCPart(ITilePartHolder holder, IPart part) {
+    private String partID;
+    private IQLPart part;
+
+    private byte[] data;
+
+    private PacketCPart(int action, IPartHolder holder, IQLPart part) {
 
         super(holder);
 
-        this.holder = holder;
+        this.action = action;
+
+        this.partID = holder.getPartID(part);
         this.part = part;
     }
 
     public PacketCPart() {
 
-        super();
-    }
-
-    public abstract void handle(EntityPlayer player);
-
-    public abstract void writeData(DataOutput buffer) throws IOException;
-
-    public abstract void readData(DataInput buffer) throws IOException;
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public final void handleClientSide(EntityPlayer player) {
-
-        if (player == null || player.worldObj == null)
-            return;
-
-        holder = MultipartCompatibility.getPartHolder(player.worldObj, x, y, z);
-        if (holder != null && holder.getPartMap().containsKey(partId))
-            part = holder.getPartMap().get(partId);
-
-        doHandle(player);
     }
 
     @Override
-    public final void handleServerSide(EntityPlayer player) {
+    public void toBytes(MCByteBuf buf) {
 
-    }
+        super.toBytes(buf);
 
-    public void doHandle(EntityPlayer player) {
-
-        holder = MultipartCompatibility.getPartHolder(player.worldObj, x, y, z);
-        if (holder != null)
-            part = holder.getPartMap().get(partId);
-
-        handle(player);
-    }
-
-    @Override
-    public void write(DataOutput buffer) throws IOException {
-
-        super.write(buffer);
-
-        String partId = null;
-        Map<String, IPart> parts = holder.getPartMap();
-        for (String id : parts.keySet()) {
-            if (parts.get(id) == part) {
-                partId = id;
-                break;
-            }
+        buf.writeByte(action);
+        buf.writeString(partID);
+        if (action == 1 || action == 2) {
+            MCByteBuf buf_ = new MCByteBuf(Unpooled.buffer());
+            if (action == 1)
+                buf_.writeString(part.getType());
+            part.writeUpdateData(buf_);
+            byte[] data = buf_.array();
+            buf.writeInt(data.length);
+            buf.writeBytes(data);
         }
-        if (partId == null) {
-            buffer.writeBoolean(false);
-            return;
-        }
-        buffer.writeBoolean(true);
-        buffer.writeUTF(partId);
-
-        writeData(buffer);
     }
 
     @Override
-    public void read(DataInput buffer) throws IOException {
+    public void fromBytes(MCByteBuf buf) {
 
-        super.read(buffer);
-        if (!buffer.readBoolean())
-            return;
+        super.fromBytes(buf);
 
-        partId = buffer.readUTF();
-
-        readData(buffer);
+        action = buf.readByte() & 0xFF;
+        partID = buf.readString();
+        if (action == 1 || action == 2) {
+            data = new byte[buf.readInt()];
+            buf.readBytes(data);
+        }
     }
 
-    public void send() {
+    @Override
+    public void handleClientSide(EntityPlayer player) {
 
-        NetworkHandler.QLIB.sendToAllAround(this, holder.getWorld(), 64);
+        if (action == 0) { // Remove part
+            IPartHolder holder = MultipartCompat.getHolder(player.worldObj, x, y, z);
+            part = holder.findPart(partID);
+
+            holder.removePart(part);
+        } else if (action == 1) { // Add part
+            MCByteBuf buf_ = new MCByteBuf(Unpooled.copiedBuffer(data));
+            part = PartRegistry.createPart(buf_.readString(), true);
+            part.readUpdateData(buf_);
+
+            MultipartCompat.addPart(player.worldObj, x, y, z, part, partID);
+        } else if (action == 2) { // Update part
+            MCByteBuf buf_ = new MCByteBuf(Unpooled.copiedBuffer(data));
+            IPartHolder holder = MultipartCompat.getHolder(player.worldObj, x, y, z);
+
+            part = holder.findPart(partID);
+            part.readUpdateData(buf_);
+        }
     }
+
+    @Override
+    public void handleServerSide(EntityPlayer player) {
+
+    }
+
+    public static void removePart(IPartHolder holder, IQLPart part) {
+
+        NetworkHandler.QLIB.sendToAllAround(new PacketCPart(0, holder, part), holder.getWorld());
+    }
+
+    public static void addPart(IPartHolder holder, IQLPart part) {
+
+        NetworkHandler.QLIB.sendToAllAround(new PacketCPart(1, holder, part), holder.getWorld());
+    }
+
+    public static void updatePart(IPartHolder holder, IQLPart part) {
+
+        NetworkHandler.QLIB.sendToAllAround(new PacketCPart(2, holder, part), holder.getWorld());
+    }
+
 }
