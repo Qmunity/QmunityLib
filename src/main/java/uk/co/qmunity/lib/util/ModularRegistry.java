@@ -15,30 +15,31 @@ public class ModularRegistry<T> implements Iterable<T> {
 
     private List<T> objects = new ArrayList<T>();
 
-    public boolean register(ModularRegistry.Dependency dep, Class<? extends T> object) {
+    @SuppressWarnings("unchecked")
+    public <J extends T> J register(ModularRegistry.Dependency dep, Class<J> object) {
 
-        return register(dep, object, null);
+        return (J) register(dep, object, null);
     }
 
-    public boolean register(ModularRegistry.Dependency dep, Class<? extends T> object, Class<? extends T> alt) {
+    public T register(ModularRegistry.Dependency dep, Class<? extends T> object, Class<? extends T> alt) {
+
+        if (!dep.isAvailable())
+            return null;
 
         try {
-            if (dep.isAvailable()) {
-                if (object != null) {
-                    objects.add(object.newInstance());
-                    return true;
-                }
-            } else {
-                if (alt != null) {
-                    objects.add(alt.newInstance());
-                    return true;
-                }
-            }
+            T obj = null;
+            if (object != null)
+                obj = object.newInstance();
+            else if (alt != null)
+                obj = alt.newInstance();
+
+            objects.add(obj);
+            return obj;
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        return false;
+        return null;
     }
 
     public List<T> getRegisteredObjects() {
@@ -112,6 +113,15 @@ public class ModularRegistry<T> implements Iterable<T> {
                     }
                 };
             }
+        };
+        public static final Dependency NONE = new Dependency() {
+
+            @Override
+            public boolean isAvailable() {
+
+                return true;
+            }
+
         };
 
         public abstract boolean isAvailable();
