@@ -68,7 +68,7 @@ public class WidgetButtonCycle extends WidgetButton {
         else if (mode < 0)
             mode = modes - 1;
 
-        if (notifyListeners(new WidgetActionButton.Cycle(mouseX + x, mouseY + y, old, mode))) {
+        if (notifyListeners(new WidgetActionButton.Cycle(mouseX + x, mouseY + y, id, old, mode))) {
             mode = old;
             return;
         }

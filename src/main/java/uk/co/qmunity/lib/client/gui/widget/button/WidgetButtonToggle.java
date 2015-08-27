@@ -51,7 +51,7 @@ public class WidgetButtonToggle extends WidgetButton {
         if (button != 0 || !enabled)
             return;
 
-        if (notifyListeners(new WidgetActionButton.Toggle(mouseX + x, mouseY + y, !state)))
+        if (notifyListeners(new WidgetActionButton.Toggle(mouseX + x, mouseY + y, id, !state)))
             return;
 
         state = !state;

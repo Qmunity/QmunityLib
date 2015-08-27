@@ -102,7 +102,7 @@ public class WidgetButton extends LocatedWidget<WidgetButton> {
         if (button != 0 || !enabled)
             return;
 
-        notifyListeners(new WidgetActionButton.Press(mouseX + x, mouseY + y));
+        notifyListeners(new WidgetActionButton.Press(mouseX + x, mouseY + y, id));
         playSound();
     }
 

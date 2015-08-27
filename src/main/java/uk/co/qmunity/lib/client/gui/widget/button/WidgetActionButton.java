@@ -4,19 +4,20 @@ import uk.co.qmunity.lib.client.gui.widget.IWidgetAction;
 
 public abstract class WidgetActionButton implements IWidgetAction {
 
-    public final int x, y;
+    public final int x, y, button;
 
-    public WidgetActionButton(int x, int y) {
+    public WidgetActionButton(int x, int y, int button) {
 
         this.x = x;
         this.y = y;
+        this.button = button;
     }
 
     public static class Press extends WidgetActionButton {
 
-        public Press(int x, int y) {
+        public Press(int x, int y, int button) {
 
-            super(x, y);
+            super(x, y, button);
         }
 
         @Override
@@ -44,9 +45,9 @@ public abstract class WidgetActionButton implements IWidgetAction {
 
         private boolean canceled = false;
 
-        public Toggle(int x, int y, boolean state) {
+        public Toggle(int x, int y, int button, boolean state) {
 
-            super(x, y);
+            super(x, y, button);
 
             this.state = state;
         }
@@ -77,9 +78,9 @@ public abstract class WidgetActionButton implements IWidgetAction {
 
         private boolean canceled = false;
 
-        public Cycle(int x, int y, int lastValue, int newValue) {
+        public Cycle(int x, int y, int button, int lastValue, int newValue) {
 
-            super(x, y);
+            super(x, y, button);
 
             this.oldValue = lastValue;
             this.newValue = newValue;
