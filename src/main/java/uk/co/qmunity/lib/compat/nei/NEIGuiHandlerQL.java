@@ -58,9 +58,13 @@ public class NEIGuiHandlerQL implements INEIGuiHandler {
     @Override
     public boolean handleDragNDrop(GuiContainer gc, int mousex, int mousey, ItemStack draggedStack, int button) {
 
+        if (!(gc instanceof IWidgetContainer))
+            return false;
+        IWidgetContainer gui = (IWidgetContainer) gc;
+
         for (Slot s : (List<Slot>) gc.inventorySlots.inventorySlots) {
-            if (mousex >= s.xDisplayPosition + gc.guiLeft && mousex < s.xDisplayPosition + gc.guiLeft + 16
-                    && mousey >= s.yDisplayPosition + gc.guiTop && mousey < s.yDisplayPosition + gc.guiTop + 16
+            if (mousex >= s.xDisplayPosition + gui.getLeft() && mousex < s.xDisplayPosition + gui.getLeft() + 16
+                    && mousey >= s.yDisplayPosition + gui.getTop() && mousey < s.yDisplayPosition + gui.getTop() + 16
                     && s instanceof ISlotPhantom) {
                 if (s.isItemValid(draggedStack)) {
                     ItemStack inSlot = s.getStack();
