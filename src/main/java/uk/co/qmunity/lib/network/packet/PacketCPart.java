@@ -82,8 +82,10 @@ public class PacketCPart extends LocatedPacket<PacketCPart> {
             MCByteBuf buf_ = new MCByteBuf(Unpooled.copiedBuffer(data));
             IPartHolder holder = MultipartCompat.getHolder(player.worldObj, x, y, z);
 
-            part = holder.findPart(partID);
-            part.readUpdateData(buf_);
+            if (holder != null) {
+                part = holder.findPart(partID);
+                part.readUpdateData(buf_);
+            }
         }
     }
 
