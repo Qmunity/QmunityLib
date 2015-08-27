@@ -42,6 +42,11 @@ public class ModularRegistry<T> implements Iterable<T> {
         return null;
     }
 
+    public void unregister(T object) {
+
+        objects.remove(object);
+    }
+
     public List<T> getRegisteredObjects() {
 
         return Collections.unmodifiableList(objects);
