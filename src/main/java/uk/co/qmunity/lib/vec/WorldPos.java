@@ -3,6 +3,7 @@ package uk.co.qmunity.lib.vec;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class WorldPos extends BlockPos implements IWorldLocation {
 
@@ -31,6 +32,11 @@ public class WorldPos extends BlockPos implements IWorldLocation {
         this(coord.world, coord);
     }
 
+    public WorldPos(TileEntity te) {
+
+        this(te.getWorldObj(), te.xCoord, te.yCoord, te.zCoord);
+    }
+
     @Override
     public World getWorld() {
 
@@ -56,6 +62,20 @@ public class WorldPos extends BlockPos implements IWorldLocation {
     public TileEntity getTileEntity() {
 
         return world.getTileEntity(x, y, z);
+    }
+
+    @Override
+    public WorldPos offset(ForgeDirection side) {
+
+        super.offset(side, 1);
+        return this;
+    }
+
+    @Override
+    public WorldPos offset(ForgeDirection side, int amount) {
+
+        super.offset(side, amount);
+        return this;
     }
 
 }

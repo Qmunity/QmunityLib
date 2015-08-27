@@ -51,6 +51,18 @@ public interface IRotatable {
 
             return BlockPos.sideOffsets[positiveDir];
         }
+
+        public static EnumAxis getAxis(ForgeDirection direction) {
+
+            if (direction == ForgeDirection.WEST || direction == ForgeDirection.EAST) {
+                return X;
+            } else if (direction == ForgeDirection.DOWN || direction == ForgeDirection.UP) {
+                return Y;
+            } else if (direction == ForgeDirection.NORTH || direction == ForgeDirection.SOUTH) {
+                return Z;
+            }
+            return null;
+        }
     }
 
 }
