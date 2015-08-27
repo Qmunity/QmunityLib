@@ -173,7 +173,7 @@ public abstract class QLPart implements IQLPart {
     @Override
     public void harvest(EntityPlayer player, QMovingObjectPosition hit) {
 
-        if (!player.capabilities.isCreativeMode)
+        if (player == null || !player.capabilities.isCreativeMode)
             for (ItemStack item : getDrops())
                 ItemHelper.dropItem(getWorld(), getX(), getY(), getZ(), item);
         getParent().removePart(this);

@@ -4,6 +4,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
 import uk.co.qmunity.lib.QLModInfo;
 import uk.co.qmunity.lib.network.packet.PacketCPart;
+import uk.co.qmunity.lib.network.packet.PacketCUpdateTile;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
@@ -24,6 +25,7 @@ public class NetworkHandler {
     public static void initQLib() {
 
         QLIB.registerPacket(PacketCPart.class, Side.CLIENT);
+        QLIB.registerPacket(PacketCUpdateTile.class, Side.CLIENT);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

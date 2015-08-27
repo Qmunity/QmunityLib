@@ -68,4 +68,16 @@ public class MultipartCompat {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T extends IQLPart> T getPart(World world, int x, int y, int z, Class<T> clazz) {
+
+        IPartHolder holder = getHolder(world, x, y, z);
+        if (holder == null)
+            return null;
+        for (IQLPart part : holder.getParts())
+            if (clazz.isAssignableFrom(part.getClass()))
+                return (T) part;
+        return null;
+    }
+
 }

@@ -1,7 +1,6 @@
 package uk.co.qmunity.lib.item;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -12,11 +11,16 @@ import uk.co.qmunity.lib.transform.Rotation;
 import uk.co.qmunity.lib.vec.BlockPos;
 import uk.co.qmunity.lib.vec.Vector3;
 
-public abstract class ItemQLPart extends Item {
+public abstract class ItemQLPart extends QLItemBase {
 
     public ItemQLPart() {
 
-        setUnlocalizedName(QLModInfo.MODID + ":multipart");
+        this(QLModInfo.MODID + ":multipart");
+    }
+
+    public ItemQLPart(String name) {
+
+        super(name);
     }
 
     private double getHitDepth(Vector3 vhit, int side) {

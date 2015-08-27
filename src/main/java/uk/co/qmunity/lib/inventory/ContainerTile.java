@@ -9,7 +9,7 @@ import uk.co.qmunity.lib.network.annotation.GuiSynced;
 import uk.co.qmunity.lib.network.annotation.PacketCUpdateGui;
 import uk.co.qmunity.lib.network.annotation.SyncNetworkUtils;
 import uk.co.qmunity.lib.network.annotation.SyncedField;
-import uk.co.qmunity.lib.tile.TileBase;
+import uk.co.qmunity.lib.tile.QLTileBase;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 /**
@@ -18,7 +18,7 @@ import cpw.mods.fml.common.network.simpleimpl.IMessage;
  * @author MineMaarten
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public abstract class ContainerTile<Tile extends TileBase> extends ContainerBase {
+public abstract class ContainerTile<Tile extends QLTileBase> extends QLContainerBase {
 
     public Tile te;
     private final List<SyncedField> syncedFields;

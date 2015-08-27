@@ -6,7 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import uk.co.qmunity.lib.network.LocatedPacket;
 import uk.co.qmunity.lib.network.MCByteBuf;
-import uk.co.qmunity.lib.tile.TileBase;
+import uk.co.qmunity.lib.tile.QLTileBase;
 
 /**
  * @author MineMaarten
@@ -22,7 +22,7 @@ public class PacketDescription extends LocatedPacket<PacketDescription> {
 
     }
 
-    public PacketDescription(TileBase te) {
+    public PacketDescription(QLTileBase te) {
 
         super(te.xCoord, te.yCoord, te.zCoord);
         values = new Object[te.getDescriptionFields().size()];
@@ -65,8 +65,8 @@ public class PacketDescription extends LocatedPacket<PacketDescription> {
     public void handleClientSide(EntityPlayer player) {
 
         TileEntity te = getWorldPos(player.worldObj).getTileEntity();
-        if (te instanceof TileBase) {
-            List<SyncedField> descFields = ((TileBase) te).getDescriptionFields();
+        if (te instanceof QLTileBase) {
+            List<SyncedField> descFields = ((QLTileBase) te).getDescriptionFields();
             if (descFields != null && descFields.size() == types.length) {
                 for (int i = 0; i < descFields.size(); i++) {
                     descFields.get(i).setValue(values[i]);

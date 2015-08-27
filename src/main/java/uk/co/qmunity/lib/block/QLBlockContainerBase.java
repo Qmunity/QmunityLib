@@ -15,17 +15,37 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import uk.co.qmunity.lib.tile.TileBase;
+import uk.co.qmunity.lib.tile.QLTileBase;
 
-public abstract class BlockTileBase extends BlockBase implements ITileEntityProvider {
+public abstract class QLBlockContainerBase extends QLBlockBase implements ITileEntityProvider {
 
-    private Class<? extends TileBase> tileClass;
+    private int guiId = -1;
+    private Class<? extends QLTileBase> tileClass;
     private boolean canProvidePower;
 
-    public BlockTileBase(Material material, Class<? extends TileBase> tileClass) {
+    public QLBlockContainerBase(Material material, Class<? extends QLTileBase> tileClass) {
 
         super(material);
+        isBlockContainer = true;
         this.tileClass = tileClass;
+    }
+
+    public QLBlockContainerBase(Material material, Class<? extends QLTileBase> tileClass, String name) {
+
+        super(material, name);
+        isBlockContainer = true;
+        this.tileClass = tileClass;
+    }
+
+    public QLBlockContainerBase setGuiId(int guiId) {
+
+        this.guiId = guiId;
+        return this;
+    }
+
+    public int getGuiId() {
+
+        return guiId;
     }
 
     @Override
@@ -39,20 +59,26 @@ public abstract class BlockTileBase extends BlockBase implements ITileEntityProv
         return null;
     }
 
-    private TileBase get(IBlockAccess world, int x, int y, int z) {
+    private QLTileBase get(IBlockAccess world, int x, int y, int z) {
 
         TileEntity tile = world.getTileEntity(x, y, z);
-        if (tile instanceof TileBase)
-            return (TileBase) tile;
+        if (tile instanceof QLTileBase)
+            return (QLTileBase) tile;
         return null;
     }
 
     @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
 
-        TileBase te = get(world, x, y, z);
+        QLTileBase te = get(world, x, y, z);
         if (te == null)
             return false;
+
+        if (getGuiId() >= 0) {
+            if (!world.isRemote)
+                player.openGui(getModInstance(), getGuiId(), world, x, y, z);
+            return true;
+        }
 
         return te.onActivated(player, new MovingObjectPosition(x, y, z, side, Vec3.createVectorHelper(x + hitX, y + hitY, z + hitZ)),
                 player.getCurrentEquippedItem());
@@ -61,7 +87,7 @@ public abstract class BlockTileBase extends BlockBase implements ITileEntityProv
     @Override
     public void onBlockClicked(World world, int x, int y, int z, EntityPlayer player) {
 
-        TileBase te = get(world, x, y, z);
+        QLTileBase te = get(world, x, y, z);
         if (te == null)
             return;
 
@@ -71,7 +97,7 @@ public abstract class BlockTileBase extends BlockBase implements ITileEntityProv
     @Override
     public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase entity, ItemStack stack) {
 
-        TileBase te = get(world, x, y, z);
+        QLTileBase te = get(world, x, y, z);
         if (te == null)
             return;
 
@@ -81,7 +107,7 @@ public abstract class BlockTileBase extends BlockBase implements ITileEntityProv
     @Override
     public void onNeighborBlockChange(World world, int x, int y, int z, Block block) {
 
-        TileBase te = get(world, x, y, z);
+        QLTileBase te = get(world, x, y, z);
         if (te == null)
             return;
 
@@ -91,7 +117,7 @@ public abstract class BlockTileBase extends BlockBase implements ITileEntityProv
     @Override
     public void onNeighborChange(IBlockAccess world, int x, int y, int z, int tileX, int tileY, int tileZ) {
 
-        TileBase te = get(world, x, y, z);
+        QLTileBase te = get(world, x, y, z);
         if (te == null)
             return;
 
@@ -101,7 +127,7 @@ public abstract class BlockTileBase extends BlockBase implements ITileEntityProv
     @Override
     public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
 
-        TileBase te = get(world, x, y, z);
+        QLTileBase te = get(world, x, y, z);
         if (te == null)
             return new ArrayList<ItemStack>();
 
@@ -120,7 +146,7 @@ public abstract class BlockTileBase extends BlockBase implements ITileEntityProv
         if (!canProvidePower())
             return false;
 
-        TileBase te = get(world, x, y, z);
+        QLTileBase te = get(world, x, y, z);
         if (te != null)
             return te.canConnectRedstone(ForgeDirection.getOrientation(side >= 0 && side < 4 ? Direction.directionToFacing[side] ^ 1 : 0));
 
@@ -133,7 +159,7 @@ public abstract class BlockTileBase extends BlockBase implements ITileEntityProv
         if (!canProvidePower())
             return 0;
 
-        TileBase te = get(world, x, y, z);
+        QLTileBase te = get(world, x, y, z);
         if (te != null)
             return te.getWeakRedstoneOutput(ForgeDirection.getOrientation(side ^ 1));
 
@@ -146,7 +172,7 @@ public abstract class BlockTileBase extends BlockBase implements ITileEntityProv
         if (!canProvidePower())
             return 0;
 
-        TileBase te = get(world, x, y, z);
+        QLTileBase te = get(world, x, y, z);
         if (te != null)
             return te.getStrongRedstoneOutput(ForgeDirection.getOrientation(side ^ 1));
 

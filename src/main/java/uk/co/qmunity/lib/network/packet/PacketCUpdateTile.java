@@ -5,15 +5,16 @@ import net.minecraft.tileentity.TileEntity;
 import uk.co.qmunity.lib.QmunityLib;
 import uk.co.qmunity.lib.network.LocatedPacket;
 import uk.co.qmunity.lib.network.MCByteBuf;
-import uk.co.qmunity.lib.tile.TileBase;
+import uk.co.qmunity.lib.tile.QLTileBase;
 
 public class PacketCUpdateTile extends LocatedPacket<PacketCUpdateTile> {
 
-    private TileBase tile;
+    private QLTileBase tile;
 
-    public PacketCUpdateTile(TileBase tile) {
+    public PacketCUpdateTile(QLTileBase tile) {
 
         super(tile);
+        this.tile = tile;
     }
 
     public PacketCUpdateTile() {
@@ -42,10 +43,11 @@ public class PacketCUpdateTile extends LocatedPacket<PacketCUpdateTile> {
 
         super.fromBytes(buf);
         TileEntity te = QmunityLib.proxy.getWorld().getTileEntity(x, y, z);
-        if (te == null || !(te instanceof TileBase))
+        if (te == null || !(te instanceof QLTileBase))
             return;
-        tile = (TileBase) te;
+        tile = (QLTileBase) te;
         tile.readUpdateData(buf);
+        tile.markRender();
     }
 
 }

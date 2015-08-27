@@ -28,7 +28,7 @@ import uk.co.qmunity.lib.raytrace.QMovingObjectPosition;
 import uk.co.qmunity.lib.vec.Cuboid;
 import uk.co.qmunity.lib.vec.Vector3;
 
-public class TileMultipart extends TileBase implements IPartHolder {
+public class TileMultipart extends QLTileBase implements IPartHolder {
 
     public Map<String, IQLPart> parts = new HashMap<String, IQLPart>();
     private Map<Integer, ISlottedPart> slotMap = new HashMap<Integer, ISlottedPart>();
@@ -482,7 +482,7 @@ public class TileMultipart extends TileBase implements IPartHolder {
     public boolean firstTick = true;
 
     @Override
-    public void updateEntity() {
+    public void update() {
 
         if (firstTick == true) {
             for (IQLPart p : getParts())

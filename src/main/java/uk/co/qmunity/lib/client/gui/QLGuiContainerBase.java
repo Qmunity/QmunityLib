@@ -32,7 +32,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
  * @author MineMaarten
  * @author K-4U
  */
-public class GuiContainerBase extends GuiContainer implements IWidgetListener, IWidgetContainer {
+public class QLGuiContainerBase extends GuiContainer implements IWidgetListener, IWidgetContainer {
 
     protected final int xSize, ySize;
     protected int guiTop, guiLeft;
@@ -44,12 +44,12 @@ public class GuiContainerBase extends GuiContainer implements IWidgetListener, I
 
     protected ScaledResolution resolution;
 
-    public GuiContainerBase(Container container, int xSize, int ySize, String background) {
+    public QLGuiContainerBase(Container container, int xSize, int ySize, String background) {
 
         this(container, xSize, ySize, new ResourceLocation(background));
     }
 
-    public GuiContainerBase(Container container, int xSize, int ySize, ResourceLocation background) {
+    public QLGuiContainerBase(Container container, int xSize, int ySize, ResourceLocation background) {
 
         super(container);
 
@@ -59,14 +59,14 @@ public class GuiContainerBase extends GuiContainer implements IWidgetListener, I
         this.background = background;
     }
 
-    public GuiContainerBase(Container container, int xSize, int ySize, String background, String title) {
+    public QLGuiContainerBase(Container container, int xSize, int ySize, String background, String title) {
 
         this(container, xSize, ySize, background);
 
         this.title = title;
     }
 
-    public GuiContainerBase(Container container, int xSize, int ySize, ResourceLocation background, String title) {
+    public QLGuiContainerBase(Container container, int xSize, int ySize, ResourceLocation background, String title) {
 
         this(container, xSize, ySize, background);
 

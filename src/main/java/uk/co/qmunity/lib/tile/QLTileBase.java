@@ -19,15 +19,17 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import uk.co.qmunity.lib.network.MCByteBuf;
+import uk.co.qmunity.lib.network.NetworkHandler;
 import uk.co.qmunity.lib.network.annotation.DescSynced;
 import uk.co.qmunity.lib.network.annotation.SyncNetworkUtils;
 import uk.co.qmunity.lib.network.annotation.SyncedField;
+import uk.co.qmunity.lib.network.packet.PacketCUpdateTile;
 import uk.co.qmunity.lib.util.INBTSaveable;
 import uk.co.qmunity.lib.util.ISyncable;
 import uk.co.qmunity.lib.vec.IWorldLocation;
 
 @SuppressWarnings("rawtypes")
-public class TileBase extends TileEntity implements IWorldLocation, ISyncable, INBTSaveable {
+public class QLTileBase extends TileEntity implements IWorldLocation, ISyncable, INBTSaveable {
 
     /*
      * IWorldLocation
@@ -74,6 +76,8 @@ public class TileBase extends TileEntity implements IWorldLocation, ISyncable, I
     @Override
     public void sendUpdatePacket() {
 
+        if (getWorld() != null)
+            NetworkHandler.QLIB.sendToAllAround(new PacketCUpdateTile(this), getWorld());
     }
 
     /*
@@ -170,6 +174,10 @@ public class TileBase extends TileEntity implements IWorldLocation, ISyncable, I
 
     }
 
+    public void onFirstTick() {
+
+    }
+
     public ArrayList<ItemStack> getDrops() {
 
         ArrayList<ItemStack> l = new ArrayList<ItemStack>();
@@ -190,6 +198,21 @@ public class TileBase extends TileEntity implements IWorldLocation, ISyncable, I
     public int getWeakRedstoneOutput(ForgeDirection side) {
 
         return 0;
+    }
+
+    protected int ticker = 0;
+
+    @Override
+    public final void updateEntity() {
+
+        if (ticker == 0)
+            onFirstTick();
+        update();
+        ticker++;
+    }
+
+    public void update() {
+
     }
 
 }
