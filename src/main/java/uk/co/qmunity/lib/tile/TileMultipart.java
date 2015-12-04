@@ -54,11 +54,18 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     private boolean shouldDieInAFire = false;
     private boolean loaded = false;
 
+    private boolean partsModified = true;
+    private List<IPart> parts_list = new ArrayList<IPart>();
+    
     private final boolean simulated;
 
     public TileMultipart(boolean simulated) {
 
         this.simulated = simulated;
+    }
+
+    public boolean isPartsModified() {
+        return partsModified;
     }
 
     public TileMultipart() {
@@ -93,15 +100,17 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     @Override
     public List<IPart> getParts() {
 
-        List<IPart> parts = new ArrayList<IPart>();
-
-        for (String s : this.parts.keySet()) {
-            IPart p = this.parts.get(s);
-            if (p.getParent() != null)
-                parts.add(p);
+        if(partsModified || parts.size() != parts_list.size()) {
+            List<IPart> parts = new ArrayList<IPart>();
+            for (String s : this.parts.keySet()) {
+                IPart p = this.parts.get(s);
+                if (p.getParent() != null)
+                    parts.add(p);
+            }
+            partsModified = false;
+            parts_list = parts;
         }
-
-        return parts;
+        return parts_list;
     }
 
     @Override
@@ -122,7 +131,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
     public void addPart(IPart part) {
 
         int before = parts.size();
-
+        partsModified = true;
         parts.put(genIdentifier(), part);
         part.setParent(this);
 
@@ -162,6 +171,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
         }
 
         String id = getIdentifier(part);
+        partsModified = true;
         parts.remove(id);
         part.setParent(null);
 
@@ -319,6 +329,7 @@ public class TileMultipart extends TileEntity implements ITilePartHolder {
                 if (p == null)
                     continue;
                 p.setParent(this);
+                partsModified = true;
                 parts.put(id, p);
             }
 
